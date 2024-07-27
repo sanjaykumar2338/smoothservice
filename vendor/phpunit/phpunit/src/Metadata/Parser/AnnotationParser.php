@@ -40,6 +40,16 @@ use PHPUnit\Util\VersionComparisonOperator;
 final class AnnotationParser implements Parser
 {
     /**
+     * @psalm-var array<string, true>
+     */
+    private static array $deprecationEmittedForClass = [];
+
+    /**
+     * @psalm-var array<string, true>
+     */
+    private static array $deprecationEmittedForMethod = [];
+
+    /**
      * @psalm-param class-string $className
      *
      * @throws AnnotationsAreNotSupportedForInternalClassesException
@@ -166,6 +176,19 @@ final class AnnotationParser implements Parser
                     $e->getMessage(),
                 ),
             );
+        }
+
+        if (!empty($result) &&
+            !isset(self::$deprecationEmittedForClass[$className]) &&
+            !str_starts_with($className, 'PHPUnit\TestFixture')) {
+            EventFacade::emitter()->testRunnerTriggeredDeprecation(
+                sprintf(
+                    'Metadata found in doc-comment for class %s. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.',
+                    $className,
+                ),
+            );
+
+            self::$deprecationEmittedForClass[$className] = true;
         }
 
         return MetadataCollection::fromArray($result);
@@ -395,6 +418,20 @@ final class AnnotationParser implements Parser
                     ),
                 );
             }
+        }
+
+        if (!empty($result) &&
+            !isset(self::$deprecationEmittedForMethod[$className . '::' . $methodName]) &&
+            !str_starts_with($className, 'PHPUnit\TestFixture')) {
+            EventFacade::emitter()->testRunnerTriggeredDeprecation(
+                sprintf(
+                    'Metadata found in doc-comment for method %s::%s(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.',
+                    $className,
+                    $methodName,
+                ),
+            );
+
+            self::$deprecationEmittedForMethod[$className . '::' . $methodName] = true;
         }
 
         return MetadataCollection::fromArray($result);
