@@ -128,34 +128,16 @@
             </div>
             <!-- /Logo -->
             <h4 class="mb-2">Welcome to {{env('APP_NAME')}}! 👋</h4>
-            <p class="mb-4">Please sign-in to your account and start the adventure</p>
+            
 
             @yield('content')
-
+          
             <p class="text-center">
               <span>New on our platform?</span>
-              <a href="auth-register-cover.html">
+              <a href="{{route('register')}}">
                 <span>Create an account</span>
               </a>
             </p>
-
-            <div class="divider my-4">
-              <div class="divider-text">or</div>
-            </div>
-
-            <div class="d-flex justify-content-center">
-              <a href="javascript:;" class="btn btn-icon btn-label-facebook me-3">
-                <i class="tf-icons bx bxl-facebook"></i>
-              </a>
-
-              <a href="javascript:;" class="btn btn-icon btn-label-google-plus me-3">
-                <i class="tf-icons bx bxl-google-plus"></i>
-              </a>
-
-              <a href="javascript:;" class="btn btn-icon btn-label-twitter">
-                <i class="tf-icons bx bxl-twitter"></i>
-              </a>
-            </div>
           </div>
         </div>
         <!-- /Login -->
