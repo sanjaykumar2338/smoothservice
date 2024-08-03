@@ -13,6 +13,6 @@ class ClientController extends Controller
     // Show the login form
     public function index()
     {
-        return view('client.client_template');
+        return view('client.dashboard_page');
     }
 }

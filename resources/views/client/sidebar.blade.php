@@ -57,122 +57,41 @@
 
           <ul class="menu-inner py-1">
             <!-- Dashboards -->
-            <li class="menu-item active open">
+            <li class="menu-item {{request()->route()->getName()=='client.dashboard' ? 'open':''}}">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-home-circle"></i>
                 <div data-i18n="Dashboards">Dashboards</div>
                 <div class="badge bg-primary rounded-pill ms-auto">5</div>
               </a>
               <ul class="menu-sub">
-                <li class="menu-item active">
-                  <a href="index.html" class="menu-link">
+                <li class="menu-item {{request()->route()->getName()=='client.dashboard' ? 'active':''}}">
+                  <a href="{{route('client.dashboard')}}" class="menu-link">
                     <div data-i18n="Analytics">Analytics</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="app-ecommerce-dashboard.html" class="menu-link">
-                    <div data-i18n="eCommerce">eCommerce</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="app-logistics-dashboard.html" class="menu-link">
-                    <div data-i18n="Logistics">Logistics</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="app-academy-dashboard.html" class="menu-link">
-                    <div data-i18n="Academy">Academy</div>
                   </a>
                 </li>
               </ul>
             </li>
-
             <!-- Layouts -->
-            <li class="menu-item">
+            <li class="menu-item {{request()->route()->getName()=='client.service.list' || request()->route()->getName()=='client.service.add' ? 'open':''}}">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-layout"></i>
-                <div data-i18n="Layouts">Layouts</div>
+                <div data-i18n="Services">Services</div>
               </a>
 
               <ul class="menu-sub">
-                <li class="menu-item">
-                  <a href="layouts-collapsed-menu.html" class="menu-link">
-                    <div data-i18n="Collapsed menu">Collapsed menu</div>
+                <li class="menu-item {{request()->route()->getName()=='client.service.list' || request()->route()->getName()=='client.service.add' ? 'active':''}}">
+                  <a href="{{route('client.service.list')}}" class="menu-link">
+                    <div data-i18n="Services List">Services List</div>
                   </a>
                 </li>
                 <li class="menu-item">
                   <a href="layouts-content-navbar.html" class="menu-link">
-                    <div data-i18n="Content navbar">Content navbar</div>
+                    <div data-i18n="Landing pages">Landing pages</div>
                   </a>
                 </li>
                 <li class="menu-item">
                   <a href="layouts-content-navbar-with-sidebar.html" class="menu-link">
-                    <div data-i18n="Content nav + Sidebar">Content nav + Sidebar</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="../horizontal-menu-template" class="menu-link" target="_blank">
-                    <div data-i18n="Horizontal">Horizontal</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="layouts-without-menu.html" class="menu-link">
-                    <div data-i18n="Without menu">Without menu</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="layouts-without-navbar.html" class="menu-link">
-                    <div data-i18n="Without navbar">Without navbar</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="layouts-fluid.html" class="menu-link">
-                    <div data-i18n="Fluid">Fluid</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="layouts-container.html" class="menu-link">
-                    <div data-i18n="Container">Container</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="layouts-blank.html" class="menu-link">
-                    <div data-i18n="Blank">Blank</div>
-                  </a>
-                </li>
-              </ul>
-            </li>
-
-            <!-- Front Pages -->
-            <li class="menu-item">
-              <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-store"></i>
-                <div data-i18n="Front Pages">Front Pages</div>
-              </a>
-              <ul class="menu-sub">
-                <li class="menu-item">
-                  <a href="../front-pages/landing-page.html" class="menu-link" target="_blank">
-                    <div data-i18n="Landing">Landing</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="../front-pages/pricing-page.html" class="menu-link" target="_blank">
-                    <div data-i18n="Pricing">Pricing</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="../front-pages/payment-page.html" class="menu-link" target="_blank">
-                    <div data-i18n="Payment">Payment</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="../front-pages/checkout-page.html" class="menu-link" target="_blank">
-                    <div data-i18n="Checkout">Checkout</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="../front-pages/help-center-landing.html" class="menu-link" target="_blank">
-                    <div data-i18n="Help Center">Help Center</div>
+                    <div data-i18n="Intake Forms">Intake Forms</div>
                   </a>
                 </li>
               </ul>

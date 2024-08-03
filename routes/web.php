@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Client\ClientController;
+use App\Http\Controllers\Client\ServiceController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 
@@ -23,8 +24,10 @@ Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('
 //for client after login
 Route::prefix('client')->middleware('auth')->group(function () {
     Route::get('dashboard', [ClientController::class, 'index'])->name('client.dashboard');
+    Route::get('/service/list', [ServiceController::class, 'index'])->name('client.service.list');
+    Route::get('/service/add', [ServiceController::class, 'add'])->name('client.service.add');
 });
 
-//Auth::routes();
-
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+
