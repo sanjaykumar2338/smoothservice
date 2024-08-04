@@ -12,6 +12,16 @@
         <span class="text-muted fw-light">Services /</span> Add 
     </h4>
 
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="row">
         <div class="col-xl">
             <div class="card mb-4">
