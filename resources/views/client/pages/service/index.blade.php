@@ -16,26 +16,14 @@
         <h5 class="card-header">Services</h5>
 
         <div class="row mx-2">
-            <div class="col-md-2">
-                <div class="me-3">
-                    <div class="dataTables_length" id="DataTables_Table_0_length">
-                        <label>
-                            <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="form-select">
-                                <option value="10">10</option>
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                            </select>
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-10">
+            <div class="col-md-12">
                 <div class="dt-action-buttons text-xl-end text-lg-start text-md-end text-start d-flex align-items-center justify-content-end flex-md-row flex-column mb-3 mb-md-0">
                     <div id="DataTables_Table_0_filter" class="dataTables_filter">
-                        <label>
-                            <input type="search" class="form-control" placeholder="Search.." aria-controls="DataTables_Table_0">
-                        </label>
+                        <form action="{{ route('client.service.list') }}" method="GET" class="dataTables_filter" id="DataTables_Table_0_filter">
+                            <label>
+                                <input type="search" name="search" class="form-control" placeholder="Search.." aria-controls="DataTables_Table_0" value="{{ request()->get('search') }}">
+                            </label>
+                        </form>
                     </div>
                     <div class="dt-buttons">
                         &nbsp;
@@ -65,30 +53,56 @@
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
-                    @foreach($services as $service)
-                    <tr>
-                        <th scope="row">{{ $loop->iteration }}</th>
-                        <td>{{ $service->service_name }}</td>
-                        <td>{{ $service->addon ? 'Yes' : 'No' }}</td>
-                        <td>{{ $service->group_multiple ? 'Yes' : 'No' }}</td>
-                        <td>{{ $service->assign_team_member ? 'Yes' : 'No' }}</td>
-                        <td>{{ $service->set_deadline_check ? ($service->set_a_deadline . ' ' . $service->set_a_deadline_duration) : 'No' }}</td>
-                        <td>
-                            <a href="{{ route('client.service.edit', $service->id) }}" class="btn btn-sm btn-primary">Edit</a>
-                            <form action="{{ route('client.service.destroy', $service->id) }}" method="POST" style="display:inline-block;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    @endforeach
+                    @if($services->count() > 0)
+                        @foreach($services as $service)
+                        <tr>
+                            <th scope="row">{{ $loop->iteration }}</th>
+                            <td>{{ $service->service_name }}</td>
+                            <td>{{ $service->addon ? 'Yes' : 'No' }}</td>
+                            <td>{{ $service->group_multiple ? 'Yes' : 'No' }}</td>
+                            <td>{{ $service->assign_team_member ? 'Yes' : 'No' }}</td>
+                            <td>{{ $service->set_deadline_check ? ($service->set_a_deadline . ' ' . $service->set_a_deadline_duration) : 'No' }}</td>
+                            <td>
+                                <a href="{{ route('client.service.edit', $service->id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                <form action="{{ route('client.service.destroy', $service->id) }}" method="POST" style="display:inline-block;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        @endforeach
+                    @else
+                        <tr><td>No record found.</td></tr>
+                    @endif
                 </tbody>
             </table>
         </div>
 
         <div class="d-flex justify-content-center">
-            {{ $services->links() }}
+        <nav>
+            <ul class="pagination justify-content-center">
+                @if ($services->onFirstPage())
+                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                @else
+                    <li class="page-item"><a class="page-link" href="{{ $services->previousPageUrl() }}" rel="prev">Previous</a></li>
+                @endif
+
+                @for ($i = 1; $i <= $services->lastPage(); $i++)
+                    @if ($i == $services->currentPage())
+                        <li class="page-item active"><span class="page-link">{{ $i }}</span></li>
+                    @else
+                        <li class="page-item"><a class="page-link" href="{{ $services->url($i) }}">{{ $i }}</a></li>
+                    @endif
+                @endfor
+
+                @if ($services->hasMorePages())
+                    <li class="page-item"><a class="page-link" href="{{ $services->nextPageUrl() }}" rel="next">Next</a></li>
+                @else
+                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                @endif
+            </ul>
+        </nav>
         </div>
     </div>
 </div>

@@ -10,9 +10,17 @@ use App\Models\ServiceTeamMember;
 
 class ServiceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $services = Service::paginate(10);
+        $query = Service::query();
+
+        if ($request->has('search')) {
+            $query->where('service_name', 'like', '%' . $request->search . '%')
+                ->orWhere('description', 'like', '%' . $request->search . '%');
+        }
+
+        $services = $query->paginate(10);
+
         return view('client.pages.service.index', compact('services'));
     }
 
