@@ -159,7 +159,8 @@
     <script src="/assets/vendor/libs/@form-validation/umd/plugin-auto-focus/index.min.js"></script>
     <script src="/assets/vendor/libs/cleavejs/cleave.js"></script>
     <script src="/assets/vendor/libs/cleavejs/cleave-phone.js"></script>
-
+    <script src="/assets/js/forms-tagify.js"></script>
+    <script src="/assets/js/forms-typeahead.js"></script>
     <script src="/assets/vendor/libs/quill/katex.js"></script>
     <script src="/assets/vendor/libs/quill/quill.js"></script>
 
@@ -167,8 +168,6 @@
     <script src="/assets/js/main.js"></script>
 
     <script src="/assets/js/forms-selects.js"></script>
-    <script src="/assets/js/forms-tagify.js"></script>
-    <script src="/assets/js/forms-typeahead.js"></script>
 
     <script src="/assets/js/forms-editors.js"></script>
 

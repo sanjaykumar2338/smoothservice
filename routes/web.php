@@ -21,11 +21,17 @@ Route::post('password/email', [ForgotPasswordController::class,'sendResetLinkEma
 Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 
-//for client after login
+// For client after login
 Route::prefix('client')->middleware('auth')->group(function () {
     Route::get('dashboard', [ClientController::class, 'index'])->name('client.dashboard');
+    
+    // Service routes
     Route::get('/service/list', [ServiceController::class, 'index'])->name('client.service.list');
-    Route::get('/service/add', [ServiceController::class, 'add'])->name('client.service.add');
+    Route::get('/service/add', [ServiceController::class, 'create'])->name('client.service.add');
+    Route::post('/service/store', [ServiceController::class, 'store'])->name('client.service.store');
+    Route::get('/service/{service}/edit', [ServiceController::class, 'edit'])->name('client.service.edit');
+    Route::put('/service/{service}', [ServiceController::class, 'update'])->name('client.service.update');
+    Route::delete('/service/{service}', [ServiceController::class, 'destroy'])->name('client.service.destroy');
 });
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

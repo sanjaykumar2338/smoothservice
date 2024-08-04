@@ -90,4 +90,9 @@
     },
     theme: 'snow'
   });
+
+  fullEditor.on('text-change', function(delta, oldDelta, source) {
+    console.log(fullEditor.container.firstChild.innerHTML)
+    $('#editor_content').val(fullEditor.container.firstChild.innerHTML);
+  });
 })();
