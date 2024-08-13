@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Client\ClientController;
+use App\Http\Controllers\Client\IntakeformController;
 use App\Http\Controllers\Client\ServiceController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
@@ -32,6 +33,12 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::get('/service/{service}/edit', [ServiceController::class, 'edit'])->name('client.service.edit');
     Route::put('/service/{service}', [ServiceController::class, 'update'])->name('client.service.update');
     Route::delete('/service/{service}', [ServiceController::class, 'destroy'])->name('client.service.destroy');
+
+    //for intake form
+    Route::get('/service/intakeform/list', [IntakeformController::class, 'index'])->name('client.service.intakeform.list');
+    Route::get('/service/intakeform/add', [IntakeformController::class, 'create'])->name('client.service.intakeform.add');
+    Route::get('/service/intakeform/{id}/edit', [IntakeformController::class, 'create'])->name('client.service.intakeform.edit');
+    Route::delete('/service/intakeform/{id}', [ServiceController::class, 'destroy'])->name('client.intakeform.destroy');
 });
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

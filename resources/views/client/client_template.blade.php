@@ -49,6 +49,7 @@
     <link rel="stylesheet" href="/assets/vendor/libs/quill/typography.css" />
     <link rel="stylesheet" href="/assets/vendor/libs/quill/katex.css" />
     <link rel="stylesheet" href="/assets/vendor/libs/quill/editor.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css" />
 
     <!-- Page CSS -->
 
@@ -174,5 +175,15 @@
     <!-- Page JS -->
     <script src="/assets/js/app-user-list.js"></script>
     <script src="/assets/js/custom.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+    <script src="https://formbuilder.online/assets/js/form-builder.min.js"></script>
+
+    <script>
+      jQuery($ => {
+        const fbTemplate = document.getElementById('build-wrap');
+        $(fbTemplate).formBuilder();
+      });
+    </script>
+
   </body>
 </html>

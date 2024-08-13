@@ -72,26 +72,28 @@
               </ul>
             </li>
             <!-- Layouts -->
-            <li class="menu-item {{request()->route()->getName()=='client.service.list' || request()->route()->getName()=='client.service.add' ? 'open':''}}">
+            <li class="menu-item @php echo in_array(request()->route()->getName(),['client.service.list','client.service.add','client.service.edit','client.service.intakeform.list','client.service.intakeform.add','client.service.intakeform.edit']) ? 'open':''@endphp">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-layout"></i>
                 <div data-i18n="Services">Services</div>
               </a>
 
               <ul class="menu-sub">
-                <li class="menu-item {{request()->route()->getName()=='client.service.list' || request()->route()->getName()=='client.service.add' ? 'active':''}}">
+                <li class="menu-item {{request()->route()->getName()=='client.service.list' || request()->route()->getName()=='client.service.add' || request()->route()->getName()=='client.service.edit' ? 'active':''}}">
                   <a href="{{route('client.service.list')}}" class="menu-link">
                     <div data-i18n="Services List">Services List</div>
                   </a>
                 </li>
+
+                <li class="menu-item {{request()->route()->getName()=='client.service.intakeform.list' || request()->route()->getName()=='client.service.intakeform.add' || request()->route()->getName()=='client.service.intakeform.edit' ? 'active':''}}">
+                  <a href="{{route('client.service.intakeform.list')}}" class="menu-link">
+                    <div data-i18n="Intake Forms">Intake Forms</div>
+                  </a>
+                </li>
+                
                 <li class="menu-item">
                   <a href="layouts-content-navbar.html" class="menu-link">
                     <div data-i18n="Landing pages">Landing pages</div>
-                  </a>
-                </li>
-                <li class="menu-item">
-                  <a href="layouts-content-navbar-with-sidebar.html" class="menu-link">
-                    <div data-i18n="Intake Forms">Intake Forms</div>
                   </a>
                 </li>
               </ul>

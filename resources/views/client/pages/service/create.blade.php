@@ -9,7 +9,7 @@
 
 <div class="container-xxl flex-grow-1 container-p-y">
     <h4 class="py-3 breadcrumb-wrapper mb-4">
-        <span class="text-muted fw-light">Services /</span> Add 
+        <span class="text-muted fw-light">Services /</span> <span class="text-muted fw-light">Services List /</span> Add 
     </h4>
 
     @if ($errors->any())
