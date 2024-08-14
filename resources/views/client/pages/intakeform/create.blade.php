@@ -88,55 +88,7 @@
 </div>
 
 <script>
-    function toggleDisplay(checkboxId, containerId) {
-        const checkbox = document.getElementById(checkboxId);
-        const container = document.getElementById(containerId);
-        if (checkbox && container) {
-            checkbox.addEventListener('change', function () {
-                if (checkbox.checked) {
-                    container.style.display = 'block';
-                } else {
-                    container.style.display = 'none';
-                }
-            });
-        }
-    }
-
-    function manageCheckboxes(primaryCheckboxId, otherCheckboxIds, otherContainers) {
-        const primaryCheckbox = document.getElementById(primaryCheckboxId);
-
-        primaryCheckbox.addEventListener('change', function () {
-            if (primaryCheckbox.checked) {
-                otherCheckboxIds.forEach(id => document.getElementById(id).disabled = true);
-                otherContainers.forEach(id => document.getElementById(id).style.display = 'none');
-            } else {
-                otherCheckboxIds.forEach(id => document.getElementById(id).disabled = false);
-            }
-        });
-
-        otherCheckboxIds.forEach((id, index) => {
-            const otherCheckbox = document.getElementById(id);
-            otherCheckbox.addEventListener('change', function () {
-                if (otherCheckbox.checked) {
-                    primaryCheckbox.disabled = true;
-                    document.getElementById('parent_services_container').style.display = 'none';
-                } else {
-                    const anyChecked = otherCheckboxIds.some(id => document.getElementById(id).checked);
-                    if (!anyChecked) {
-                        primaryCheckbox.disabled = false;
-                    }
-                }
-            });
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        toggleDisplay('addon', 'parent_services_container');
-        toggleDisplay('assign_team_member', 'select_team_container');
-        toggleDisplay('set_deadline_check', 'set_deadline_container');
-
-        manageCheckboxes('addon', ['group_multiple', 'assign_team_member', 'set_deadline_check'], ['select_team_container', 'set_deadline_container']);
-    });
+    
 </script>
 
 @endsection
