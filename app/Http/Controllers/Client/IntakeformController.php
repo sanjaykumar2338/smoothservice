@@ -13,7 +13,7 @@ class IntakeformController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Service::query();
+        $query = Intakeform::query();
 
         if ($request->has('search')) {
             $query->where('service_name', 'like', '%' . $request->search . '%')
@@ -80,56 +80,25 @@ class IntakeformController extends Controller
 
     public function store(Request $request)
     {
-        // Validate the request
-        $validatedData = $request->validate([
-            'service_name' => 'required|string|max:255',
-            'editor_content' => 'required|string',
-            'addon' => 'boolean',
-            'parent_services' => 'array',
-            'group_multiple' => 'boolean',
-            'assign_team_member' => 'boolean',
-            'team_member' => 'array',
-            'set_deadline_check' => 'boolean',
-            'set_a_deadline' => 'nullable|integer',
-            'set_a_deadline_duration' => 'nullable|string|in:days,hours',
+        // Validate the incoming request data
+        $request->validate([
+            'form_name' => 'required|string|max:255',
+            'form_fields' => 'required', // Assuming this holds the JSON data
+            'checkmark' => 'nullable|string',
+            'onboarding_field' => 'nullable|array', // Validate as an array since multiple selections are possible
         ]);
 
-        // Create the service
-        $service = Service::create([
-            'service_name' => $request->service_name,
-            'description' => $request->editor_content,
-            'addon' => $request->addon ?? false,
-            'group_multiple' => $request->group_multiple ?? false,
-            'assign_team_member' => $request->assign_team_member ?? false,
-            'set_deadline_check' => $request->set_deadline_check ?? false,
-            'set_a_deadline' => $request->set_a_deadline,
-            'set_a_deadline_duration' => $request->set_a_deadline_duration,
-            'user_id' => auth()->id(),
-        ]);
+        // Create a new IntakeForm instance and save the data
+        $intakeForm = new IntakeForm();
+        $intakeForm->user_id = auth()->id(); // Assuming the user is logged in
+        $intakeForm->form_name = $request->input('form_name');
+        $intakeForm->form_fields = $request->input('form_fields'); // Store the form JSON data
+        $intakeForm->checkmark = $request->input('checkmark') ? '1' : '0';
+        $intakeForm->onboarding = $request->input('onboarding_field') ? implode(',', $request->input('onboarding_field')) : null; // Store as comma-separated values or null
+        $intakeForm->save();
 
-        // Attach parent services
-        /*
-        if ($request->has('parent_services')) {
-            foreach ($request->parent_services as $parentServiceId) {
-                ServiceParentService::create([
-                    'service_id' => $service->id,
-                    'parent_service_id' => $parentServiceId,
-                ]);
-            }
-        }
-
-        // Attach team members
-        if ($request->has('team_member')) {
-            foreach ($request->team_member as $teamMemberId) {
-                ServiceTeamMember::create([
-                    'service_id' => $service->id,
-                    'team_member_id' => $teamMemberId,
-                ]);
-            }
-        }
-        */
-        
-        return redirect()->route('client.service.list')->with('success', 'Service created successfully.');
+        // Redirect back with a success message
+        return redirect()->back()->with('status', 'Form has been saved successfully!');
     }
 
     public function destroy(Service $service)

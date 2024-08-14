@@ -44,11 +44,12 @@
                 <thead>
                     <tr class="text-nowrap">
                         <th>#</th>
-                        <th>Service Name</th>
-                        <th>Addon</th>
-                        <th>Group Multiple</th>
-                        <th>Assign Team Member</th>
-                        <th>Set Deadline</th>
+                        <th>Form Name</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -56,12 +57,13 @@
                     @if($services->count() > 0)
                         @foreach($services as $service)
                         <tr>
-                            <th scope="row">{{ $loop->iteration }}</th>
-                            <td>{{ $service->service_name }}</td>
-                            <td>{{ $service->addon ? 'Yes' : 'No' }}</td>
-                            <td>{{ $service->group_multiple ? 'Yes' : 'No' }}</td>
-                            <td>{{ $service->assign_team_member ? 'Yes' : 'No' }}</td>
-                            <td>{{ $service->set_deadline_check ? ($service->set_a_deadline . ' ' . $service->set_a_deadline_duration) : 'No' }}</td>
+                            <td scope="row">{{ $loop->iteration }}</td>
+                            <td>{{ $service->form_name }}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                             <td>
                                 <a href="{{ route('client.service.intakeform.edit', $service->id) }}" class="btn btn-sm btn-primary">Edit</a>
                                 <form action="{{ route('client.intakeform.destroy', $service->id) }}" method="POST" style="display:inline-block;">

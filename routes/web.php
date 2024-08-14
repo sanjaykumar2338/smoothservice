@@ -38,7 +38,9 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::get('/service/intakeform/list', [IntakeformController::class, 'index'])->name('client.service.intakeform.list');
     Route::get('/service/intakeform/add', [IntakeformController::class, 'create'])->name('client.service.intakeform.add');
     Route::get('/service/intakeform/{id}/edit', [IntakeformController::class, 'create'])->name('client.service.intakeform.edit');
-    Route::delete('/service/intakeform/{id}', [ServiceController::class, 'destroy'])->name('client.intakeform.destroy');
+    Route::delete('/service/intakeform/{id}', [IntakeformController::class, 'destroy'])->name('client.intakeform.destroy');
+    Route::post('/service/intakeform/store', [IntakeformController::class, 'store'])->name('client.intakeform.store');
+
 });
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

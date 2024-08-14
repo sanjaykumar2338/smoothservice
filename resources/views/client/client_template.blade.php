@@ -18,7 +18,7 @@
     <meta name="description" content="" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="{{asset('/assets/img/favicon/favicon.ico')}}" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,38 +28,38 @@
       rel="stylesheet" />
 
     <!-- Icons -->
-    <link rel="stylesheet" href="/assets/vendor/fonts/boxicons.css" />
-    <link rel="stylesheet" href="/assets/vendor/fonts/fontawesome.css" />
-    <link rel="stylesheet" href="/assets/vendor/fonts/flag-icons.css" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/fonts/boxicons.css')}}" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/fonts/fontawesome.css')}}" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/fonts/flag-icons.css')}}" />
 
     <!-- Core CSS -->
-    <link rel="stylesheet" href="/assets/vendor/css/rtl/core.css" class="template-customizer-core-css" />
-    <link rel="stylesheet" href="/assets/vendor/css/rtl/theme-default.css" class="template-customizer-theme-css" />
-    <link rel="stylesheet" href="/assets/css/demo.css" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/css/rtl/core.css')}}" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/css/rtl/theme-default.css')}}" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="{{asset('/assets/css/demo.css')}}" />
 
     <!-- Vendors CSS -->
-    <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/typeahead-js/typeahead.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/select2/select2.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/tagify/tagify.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/bootstrap-select/bootstrap-select.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/typeahead-js/typeahead.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/apex-charts/apex-charts.css" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css')}}" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/libs/typeahead-js/typeahead.css')}}" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/libs/select2/select2.css')}}" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/libs/tagify/tagify.css')}}" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/libs/bootstrap-select/bootstrap-select.css')}}" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/libs/typeahead-js/typeahead.css')}}" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/libs/apex-charts/apex-charts.css')}}" />
 
-    <link rel="stylesheet" href="/assets/vendor/libs/quill/typography.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/quill/katex.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/quill/editor.css" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/libs/quill/typography.css')}}" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/libs/quill/katex.css')}}" />
+    <link rel="stylesheet" href="{{asset('/assets/vendor/libs/quill/editor.css')}}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css" />
 
     <!-- Page CSS -->
 
     <!-- Helpers -->
-    <script src="/assets/vendor/js/helpers.js"></script>
+    <script src="{{asset('/assets/vendor/js/helpers.js')}}"></script>
     <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
     <!--? Template customizer: To hide customizer set displayCustomizer value false in config.js.  -->
-    <script src="/assets/vendor/js/template-customizer.js"></script>
+    <script src="{{asset('/assets/vendor/js/template-customizer.js')}}"></script>
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
-    <script src="/assets/js/config.js"></script>
+    <script src="{{asset('/assets/js/config.js')}}"></script>
   </head>
 
   <body>
@@ -103,6 +103,22 @@
           <div class="content-wrapper">
             <!-- Content -->
 
+            @if(session('success'))
+              <div class="alert alert-success alert-dismissible d-flex align-items-center" role="alert">
+                <i class="bx bx-xs bx-desktop me-2"></i>
+                {{session('success')}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            @endif  
+
+            @if(session('error'))
+              <div class="alert alert-danger alert-dismissible d-flex align-items-center" role="alert">
+                <i class="bx bx-xs bx-store me-2"></i>
+                {{session('error')}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            @endif  
+
             @yield('content')
             
             <!-- / Content -->
@@ -140,50 +156,111 @@
     <!-- Core JS -->
     <!-- build:js assets/vendor/js/core.js -->
 
-    <script src="/assets/vendor/libs/jquery/jquery.js"></script>
-    <script src="/assets/vendor/libs/popper/popper.js"></script>
-    <script src="/assets/vendor/js/bootstrap.js"></script>
-    <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-    <script src="/assets/vendor/libs/hammer/hammer.js"></script>
-    <script src="/assets/vendor/libs/i18n/i18n.js"></script>
-    <script src="/assets/vendor/libs/typeahead-js/typeahead.js"></script>
-    <script src="/assets/vendor/js/menu.js"></script>
+    <script src="{{asset('/assets/vendor/libs/jquery/jquery.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/popper/popper.js')}}"></script>
+    <script src="{{asset('/assets/vendor/js/bootstrap.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/hammer/hammer.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/i18n/i18n.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/typeahead-js/typeahead.js')}}"></script>
+    <script src="{{asset('/assets/vendor/js/menu.js')}}"></script>
 
     <!-- endbuild -->
 
     <!-- Vendors JS -->
-    <script src="/assets/vendor/libs/moment/moment.js"></script>
-    <script src="/assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
-    <script src="/assets/vendor/libs/select2/select2.js"></script>
-    <script src="/assets/vendor/libs/@form-validation/umd/bundle/popular.min.js"></script>
-    <script src="/assets/vendor/libs/@form-validation/umd/plugin-bootstrap5/index.min.js"></script>
-    <script src="/assets/vendor/libs/@form-validation/umd/plugin-auto-focus/index.min.js"></script>
-    <script src="/assets/vendor/libs/cleavejs/cleave.js"></script>
-    <script src="/assets/vendor/libs/cleavejs/cleave-phone.js"></script>
-    <script src="/assets/js/forms-tagify.js"></script>
-    <script src="/assets/js/forms-typeahead.js"></script>
-    <script src="/assets/vendor/libs/quill/katex.js"></script>
-    <script src="/assets/vendor/libs/quill/quill.js"></script>
+    <script src="{{asset('/assets/vendor/libs/moment/moment.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/select2/select2.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/@form-validation/umd/bundle/popular.min.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/@form-validation/umd/plugin-bootstrap5/index.min.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/@form-validation/umd/plugin-auto-focus/index.min.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/cleavejs/cleave.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/cleavejs/cleave-phone.js')}}"></script>
+    <script src="{{asset('/assets/js/forms-tagify.js')}}"></script>
+    <script src="{{asset('/assets/js/forms-typeahead.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/quill/katex.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/quill/quill.js')}}"></script>
 
     <!-- Main JS -->
-    <script src="/assets/js/main.js"></script>
+    <script src="{{asset('/assets/js/main.js')}}"></script>
 
-    <script src="/assets/js/forms-selects.js"></script>
+    <script src="{{asset('/assets/js/forms-selects.js')}}"></script>
 
-    <script src="/assets/js/forms-editors.js"></script>
+    <script src="{{asset('/assets/js/forms-editors.js')}}"></script>
 
     <!-- Page JS -->
-    <script src="/assets/js/app-user-list.js"></script>
-    <script src="/assets/js/custom.js"></script>
+    <script src="{{asset('/assets/js/app-user-list.js')}}"></script>
+    <script src="{{asset('/assets/js/custom.js')}}"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
     <script src="https://formbuilder.online/assets/js/form-builder.min.js"></script>
 
     <script>
+      /*
       jQuery($ => {
         const fbTemplate = document.getElementById('build-wrap');
-        $(fbTemplate).formBuilder();
-      });
-    </script>
+        const formBuilder = $(fbTemplate).formBuilder();
 
+        setInterval(() => {
+          const formData = formBuilder.actions.getData('json');
+          console.log('formData', formData);
+        }, 2000);
+      });
+      */
+
+      jQuery($ => {
+          const fbTemplate = document.getElementById('build-wrap');
+          const formBuilder = $(fbTemplate).formBuilder();
+
+          $('#intake_form_save').on('submit', function(e) {
+              e.preventDefault(); // Prevent the default form submission
+
+              // Clear any previous errors
+              $('#error-list').empty();
+              $('#error-messages').hide();
+
+              // Get the form data
+              const formData = formBuilder.actions.getData('json');
+
+              // Collect additional data if needed
+              const formName = $('#form_name').val();
+              const checkmark = $('#checkmark').is(':checked') ? 1 : 0;
+              const onboardingField = $('#onboarding_field').val();
+
+              // Send the data to the backend
+              $.ajax({
+                  url: '{{ route("client.intakeform.store") }}', // Your backend route
+                  method: 'POST',
+                  data: {
+                      _token: '{{ csrf_token() }}', // CSRF token for Laravel
+                      form_name: formName,
+                      form_fields: formData, // JSON data from form builder
+                      checkmark: checkmark,
+                      onboarding_field: onboardingField
+                  },
+                  success: function(response) {
+                      alert('Form saved successfully!');
+                      window.location.href = '{{ route("client.service.intakeform.list") }}';
+                      // You can redirect or update the UI as needed here
+                  },
+                  error: function(xhr) {
+                      // Parse and display the errors
+                      if (xhr.status === 422) { // Laravel validation error status
+                          const errors = xhr.responseJSON.errors;
+                          for (let field in errors) {
+                              if (errors.hasOwnProperty(field)) {
+                                  $('#error-list').append('<li>' + errors[field][0] + '</li>');
+                              }
+                          }
+                          $('#error-messages').show();
+                      } else {
+                          console.error('Error saving form:', xhr);
+                          alert('There was an error saving the form.');
+                      }
+                  }
+              });
+          });
+      });
+
+    </script>
   </body>
 </html>
