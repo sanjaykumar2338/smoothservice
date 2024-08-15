@@ -261,8 +261,9 @@
 
       if ($('#intake_form_edit').length > 0) {
           jQuery($ => {
-              const existingFormData = @json($intakeform->form_fields);
-              const id = "{{$intakeform->id}}";
+              var fields = $('#intake_frm_details').val();
+              const existingFormData = fields;
+              const id = $('#iding').val();
 
               const fbTemplate = document.getElementById('build-wrap-edit');
               const optionsedit = {

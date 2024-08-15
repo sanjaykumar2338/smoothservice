@@ -27,6 +27,9 @@
             <form id="intake_form_edit">
                 {{ csrf_field() }}
 
+                <input type="hidden" name="intake_frm_details" id="intake_frm_details" value="{{$intakeform->form_fields}}">
+                <input type="hidden" name="iding" id="iding" value="{{$intakeform->id}}">
+
                 <!-- Error messages will be displayed here -->
                 <div id="error-messages" class="alert alert-danger" style="display:none;">
                     <ul id="error-list"></ul>
