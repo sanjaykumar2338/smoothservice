@@ -54,22 +54,22 @@
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
-                    @if($services->count() > 0)
-                        @foreach($services as $service)
+                    @if($intakeforms->count() > 0)
+                        @foreach($intakeforms as $index => $intakeform)
                         <tr>
-                            <td scope="row">{{ $loop->iteration }}</td>
-                            <td>{{ $service->form_name }}</td>
+                            <td scope="row">{{$index + $intakeforms->firstItem()}}</td>
+                            <td>{{ $intakeform->form_name }}</td>
                             <td></td>
                             <td></td>
                             <td></td>
                             <td></td>
                             <td></td>
                             <td>
-                                <a href="{{ route('client.service.intakeform.edit', $service->id) }}" class="btn btn-sm btn-primary">Edit</a>
-                                <form action="{{ route('client.intakeform.destroy', $service->id) }}" method="POST" style="display:inline-block;">
+                                <a href="{{ route('client.service.intakeform.edit', $intakeform->id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                <form action="{{ route('client.intakeform.destroy', $intakeform->id) }}" method="POST" style="display:inline-block;">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    <button type="submit" onclick="return confirm('are you sure?')" class="btn btn-sm btn-danger">Delete</button>
                                 </form>
                             </td>
                         </tr>
@@ -84,22 +84,22 @@
         <div class="d-flex justify-content-center">
         <nav>
             <ul class="pagination justify-content-center">
-                @if ($services->onFirstPage())
+                @if ($intakeforms->onFirstPage())
                     <li class="page-item disabled"><span class="page-link">Previous</span></li>
                 @else
-                    <li class="page-item"><a class="page-link" href="{{ $services->previousPageUrl() }}" rel="prev">Previous</a></li>
+                    <li class="page-item"><a class="page-link" href="{{ $intakeforms->previousPageUrl() }}" rel="prev">Previous</a></li>
                 @endif
 
-                @for ($i = 1; $i <= $services->lastPage(); $i++)
-                    @if ($i == $services->currentPage())
+                @for ($i = 1; $i <= $intakeforms->lastPage(); $i++)
+                    @if ($i == $intakeforms->currentPage())
                         <li class="page-item active"><span class="page-link">{{ $i }}</span></li>
                     @else
-                        <li class="page-item"><a class="page-link" href="{{ $services->url($i) }}">{{ $i }}</a></li>
+                        <li class="page-item"><a class="page-link" href="{{ $intakeforms->url($i) }}">{{ $i }}</a></li>
                     @endif
                 @endfor
 
-                @if ($services->hasMorePages())
-                    <li class="page-item"><a class="page-link" href="{{ $services->nextPageUrl() }}" rel="next">Next</a></li>
+                @if ($intakeforms->hasMorePages())
+                    <li class="page-item"><a class="page-link" href="{{ $intakeforms->nextPageUrl() }}" rel="next">Next</a></li>
                 @else
                     <li class="page-item disabled"><span class="page-link">Next</span></li>
                 @endif

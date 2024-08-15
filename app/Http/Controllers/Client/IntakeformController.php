@@ -20,9 +20,9 @@ class IntakeformController extends Controller
                 ->orWhere('description', 'like', '%' . $request->search . '%');
         }
 
-        $services = $query->paginate(10);
+        $intakeforms = $query->paginate(10);
 
-        return view('client.pages.intakeform.index', compact('services'));
+        return view('client.pages.intakeform.index', compact('intakeforms'));
     }
 
     public function create()
@@ -30,52 +30,36 @@ class IntakeformController extends Controller
         return view('client.pages.intakeform.create');
     }
 
-    public function edit(Service $service)
-    {
-        return view('client.pages.service.edit', compact('service'));
+    public function edit(Intakeform $service, $id)
+    {  
+        $intakeform = Intakeform::find($id);
+        return view('client.pages.intakeform.edit', compact('intakeform'));
     }
 
-    public function update(Request $request, Service $service)
+    public function update_intake(Request $request)
     {
-        // Validate the request
-        $validatedData = $request->validate([
-            'service_name' => 'required|string|max:255',
-            'editor_content' => 'required|string',
-            'addon' => 'boolean',
-            'parent_services' => 'array',
-            'group_multiple' => 'boolean',
-            'assign_team_member' => 'boolean',
-            'team_member' => 'array',
-            'set_deadline_check' => 'boolean',
-            'set_a_deadline' => 'nullable|integer',
-            'set_a_deadline_duration' => 'nullable|string|in:days,hours',
+        // Validate the incoming request data
+        $request->validate([
+            'form_name' => 'required|string|max:255',
+            'form_fields' => 'required', // JSON data from form builder
+            'checkmark' => 'nullable|boolean',
+            'onboarding_field' => 'nullable|array', // Validate as an array since multiple selections are possible
         ]);
 
-        // Update the service
-        $service->update([
-            'service_name' => $request->service_name,
-            'description' => $request->editor_content,
-            'addon' => $request->addon ?? false,
-            'group_multiple' => $request->group_multiple ?? false,
-            'assign_team_member' => $request->assign_team_member ?? false,
-            'set_deadline_check' => $request->set_deadline_check ?? false,
-            'set_a_deadline' => $request->set_a_deadline,
-            'set_a_deadline_duration' => $request->set_a_deadline_duration,
-        ]);
+        // Fetch the IntakeForm model you want to update
+        $intakeForm = IntakeForm::findOrFail($request->id); // Assuming you have an ID to find the record
 
-        // Sync parent services
-        /*
-        if ($request->has('parent_services')) {
-            $service->parentServices()->sync($request->parent_services);
-        }
+        // Update the form fields
+        $intakeForm->form_name = $request->input('form_name');
+        $intakeForm->form_fields = $request->input('form_fields'); // Store the form JSON data
+        $intakeForm->checkmark = $request->input('checkmark') ? '1' : '0';
+        $intakeForm->onboarding = $request->input('onboarding_field') ? implode(',', $request->input('onboarding_field')) : null; // Store as comma-separated values
 
-        // Sync team members
-        if ($request->has('team_member')) {
-            $service->teamMembers()->sync($request->team_member);
-        }
-        */
+        // Save the updated form
+        $intakeForm->save();
 
-        return redirect()->route('client.service.list')->with('success', 'Service updated successfully.');
+        // Return a JSON response to the AJAX request
+        return response()->json(['message' => 'Form updated successfully!']);
     }
 
     public function store(Request $request)
@@ -101,9 +85,15 @@ class IntakeformController extends Controller
         return redirect()->back()->with('status', 'Form has been saved successfully!');
     }
 
-    public function destroy(Service $service)
+    public function destroy(Intakeform $intakeform, $id)
     {
-        $service->delete();
-        return redirect()->route('client.service.list')->with('success', 'Service deleted successfully.');
+        //echo "<pre>"; print_r($id); die;
+        $rec = Intakeform::find($id);
+        if(!$rec){
+            return redirect()->route('client.service.intakeform.list')->with('error', 'Intake form not found!');
+        }
+
+        $rec->delete();
+        return redirect()->route('client.service.intakeform.list')->with('success', 'Intake Form deleted successfully.');
     }
 }

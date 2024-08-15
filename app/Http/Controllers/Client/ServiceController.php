@@ -133,6 +133,10 @@ class ServiceController extends Controller
 
     public function destroy(Service $service)
     {
+        if(!$service){
+            return redirect()->route('client.service.intakeform.list')->with('error', 'Intake form not found!');
+        }
+        
         $service->delete();
         return redirect()->route('client.service.list')->with('success', 'Service deleted successfully.');
     }

@@ -67,7 +67,7 @@
                                 <form action="{{ route('client.service.destroy', $service->id) }}" method="POST" style="display:inline-block;">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    <button type="submit" onclick="return confirm('are you sure?')" class="btn btn-sm btn-danger">Delete</button>
                                 </form>
                             </td>
                         </tr>
