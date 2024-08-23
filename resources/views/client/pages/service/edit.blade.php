@@ -21,9 +21,74 @@
         transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
         background-color: #fff;
     }
+
+    /* Modal overlay */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    /* Modal content */
+    .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 890px;
+        width: 100%;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: relative;
+        max-height: 800px;
+        overflow-y: scroll;
+    }
+
+    /* Close button */
+    .modal-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        cursor: pointer;
+        font-size: 20px;
+        background: none;
+        border: none;
+    }
+
+    .option-input {
+        margin-bottom: 10px;
+        display: flex;
+    }
+
+    .option-menu {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 5px;
+    }
+
+    .add-option-menu {
+        cursor: pointer;
+        color: #007bff;
+        text-decoration: underline;
+    }
+
+    .option-header {
+        display: flex;
+        align-items: center;
+    }
+
+    .option-header input {
+        flex-grow: 1;
+    }
 </style>
 
-<div class="container-xxl flex-grow-1 container-p-y">
+<div class="container-xxl flex-grow-1 container-p-y" id="app">
     <h4 class="py-3 breadcrumb-wrapper mb-4">
         <span class="text-muted fw-light">Services /</span> <span class="text-muted fw-light">Services List /</span> Edit Service
     </h4>
@@ -96,20 +161,34 @@
                                         <input type="number" value="0.00" class="form-control" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
                                     </div>
 
+                                    <!-- for price option -->
+                                    <div class="pricing_option" v-show="isPricingOptionVisible">
+                                        <br>
+                                        <label class="form-label" for="full_editor">Pricing options</label>
+                                        <div class="input-group hidden" id="checked_inputs">
+                                            <select style="height: 37px;border: 0px;" name="recurring_pirce" id="recurring_pirce" class="form-control">
+                                                <option value="Month"> No pricing options set up yet...</option>
+                                            </select>
+                                            <button @click="showModal = true" type="button" style="border-left: 0px;" class="btn btn-label-secondary">Edit</button><br>
+                                        </div>
+                                        <br>
+                                        <span style="cursor:pointer;" class="revert_to_simple_pricing" @click="revertToSimplePricing">Revert to simple pricing</span>
+                                    </div>
+
                                     <div class="input-group" style="width: 53ch;">
                                         <div class="demo-inline-spacing mt-3">
-                                            <div class="">
-                                                <a href="javascript:void(0);" class="list-group-item list-group-item-action d-flex justify-content-between">
+                                            <div>
+                                                <a href="javascript:void(0);" class="list-group-item list-group-item-action d-flex justify-content-between" @click="togglePricingOption">
                                                     <div class="li-wrapper d-flex justify-content-start align-items-center">
                                                         <div class="list-content">
-                                                            <h6 class="">Create multiple pricing options?</h6>
+                                                            <h6 class="create_multiple_pricing_option">Create multiple pricing options?</h6>
                                                         </div>
                                                     </div>
                                                 </a>
-                                                <a href="javascript:void(0);" class="list-group-item list-group-item-action d-flex justify-content-between">
+                                                <a href="javascript:void(0);" class="list-group-item list-group-item-action d-flex justify-content-between" @click="toggleOrdersDiv">
                                                     <div class="li-wrapper d-flex justify-content-start align-items-center">
                                                         <div class="list-content">
-                                                            <h6 class="mb-1">Create multiple orders?</h6>
+                                                            <h6 class="mb-1 create_multiple_orders">Create multiple orders?</h6>
                                                         </div>
                                                     </div>
                                                 </a>
@@ -117,12 +196,13 @@
                                         </div>
                                     </div>
                                     <br>
-                                    <div class="input-group" style="width: 53ch;">
-                                        <input type="number" value="2" class="form-control" placeholder="">
-                                        <input type="text" readonly value="orders" class="custom-input-short" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
-                                        2 new orders will be created when this service is purchased.
-                                    </div>
 
+                                    <div class="input-group create_multiple_orders_div" v-show="isOrdersDivVisible">
+                                        <input type="number" v-model.number="orderValue" class="form-control" placeholder="">
+                                    </div>
+                                    <div v-show="isOrdersDivVisible">
+                                        <span>@{{ orderValue }}</span> new orders will be created when this service is purchased.
+                                    </div>
                                 </div>
 
                                 <div class="tab-pane" id="navs-top-profile" role="tabpanel">
@@ -287,11 +367,50 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary">Submit</button>
+                        
                     </form>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Custom Modal Component -->
+    <custom-modal v-if="showModal" @close="showModal = false">
+        <template v-slot:header>
+            <h5>Create Options</h5>
+        </template>
+
+        <template v-slot:body>
+            <!-- Loop through each option menu -->
+            <div v-for="(menu, menuIndex) in optionMenus" :key="menuIndex" class="option-menu">
+                <div class="option-header">
+                    <h6 class="mb-2" style="padding-bottom: 75px;">Option @{{ menuIndex + 1 }}:</h6><br><br>
+                    <input style="width:65px;" type="text" class="form-control mb-2" placeholder="Turnaround Time" v-model="menu.optionTitle">
+                    <!-- Show remove button only for cloned option menus -->
+                    &nbsp;<button v-if="menuIndex > 0" class="btn btn-danger btn-sm remove-option-menu" @click="removeOptionMenu(menuIndex)">&times;</button>
+                </div>
+                <p class="text-muted">This is a drop-down menu where customers can select one of the options below.</p>
+
+                <div v-for="(option, index) in menu.options" :key="index" class="option-input">
+                    <input type="text" class="form-control" v-model="option.value" :placeholder="option.placeholder">
+                    <button class="btn btn-danger btn-sm" @click="removeOption(menuIndex, index)">&times;</button>
+                </div>
+
+                <button class="btn btn-secondary" @click="addOption(menuIndex)">+ Add value</button>
+            </div>
+
+            <!-- Button to add another option menu -->
+            <div>
+                <span class="add-option-menu" @click="addOptionMenu">+ Add another option menu</span>
+            </div>
+        </template>
+
+        <template v-slot:footer>
+            <button @click="showModal = false" class="btn btn-secondary">Close</button>
+            <button class="btn btn-primary" @click="saveOptions">Save options</button>
+        </template>
+    </custom-modal>
+
 </div>
 
 <script>
@@ -379,6 +498,82 @@
                 }
             }
         });
+    });
+</script>
+
+<script>
+    // Define the custom modal component
+    Vue.component('custom-modal', {
+        template: `
+            <div class="modal-overlay" @click.self="$emit('close')">
+                <div class="modal-content">
+                    <button class="modal-close" @click="$emit('close')">&times;</button>
+                    <header class="modal-header">
+                        <slot name="header"></slot>
+                    </header>
+                    <section class="modal-body">
+                        <slot name="body"></slot>
+                    </section>
+                    <footer class="modal-footer">
+                        <slot name="footer"></slot>
+                    </footer>
+                </div>
+            </div>
+        `
+    });
+
+    new Vue({
+        el: '#app',
+        data: {
+            isOrdersDivVisible: false,
+            isPricingOptionVisible: false,
+            orderValue: 2,
+            showModal: false,
+            optionMenus: [
+                {
+                    optionTitle: 'Turnaround Time',
+                    options: [
+                        { value: '', placeholder: 'Regular' },
+                        { value: '', placeholder: 'Fast' },
+                        { value: '', placeholder: 'Extra Fast' }
+                    ]
+                }
+            ]
+        },
+        methods: {
+            togglePricingOption() {
+                this.isPricingOptionVisible = !this.isPricingOptionVisible;
+            },
+            toggleOrdersDiv() {
+                this.isOrdersDivVisible = !this.isOrdersDivVisible;
+            },
+            revertToSimplePricing() {
+                this.isPricingOptionVisible = false;
+            },
+            addOption(menuIndex) {
+                this.optionMenus[menuIndex].options.push({ value: '', placeholder: 'Extra Fast' });
+            },
+            removeOption(menuIndex, optionIndex) {
+                this.optionMenus[menuIndex].options.splice(optionIndex, 1);
+            },
+            addOptionMenu() {
+                this.optionMenus.push({
+                    optionTitle: 'Turnaround Time',
+                    options: [
+                        { value: '', placeholder: 'Regular' },
+                        { value: '', placeholder: 'Fast' },
+                        { value: '', placeholder: 'Extra Fast' }
+                    ]
+                });
+            },
+            removeOptionMenu(menuIndex) {
+                this.optionMenus.splice(menuIndex, 1);
+            },
+            saveOptions() {
+                console.log('Option Menus:', this.optionMenus);
+                this.showModal = false;
+            }
+        }
     });
 </script>
 
