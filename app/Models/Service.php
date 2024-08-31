@@ -19,6 +19,7 @@ class Service extends Model
         'set_a_deadline',
         'set_a_deadline_duration',
         'user_id',
+        'price_options'
     ];
 
     public function parentServices()

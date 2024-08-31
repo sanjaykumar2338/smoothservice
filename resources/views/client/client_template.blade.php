@@ -17,6 +17,9 @@
 
     <meta name="description" content="" />
 
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{asset('/assets/img/favicon/favicon.ico')}}" />
 
@@ -55,6 +58,8 @@
     <script src="{{asset('/assets/vendor/js/template-customizer.js')}}"></script>
     <script src="{{asset('/assets/js/config.js')}}"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
   </head>
 
   <body>

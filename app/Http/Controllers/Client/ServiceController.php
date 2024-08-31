@@ -140,4 +140,22 @@ class ServiceController extends Controller
         $service->delete();
         return redirect()->route('client.service.list')->with('success', 'Service deleted successfully.');
     }
+
+    public function saveOptions(Request $request)
+    {
+        // Validate incoming request data if necessary
+        $validatedData = $request->validate([
+            'price_options' => 'required|array', // Ensure price_options is an array
+        ]);
+
+        // Find the Service model instance you want to update
+        // Assuming you have an ID or other criteria to identify the record
+        $service = Service::find($request->service_id); // Replace with the correct identifier
+
+        // Update the price_options field
+        $service->price_options = json_encode($validatedData['price_options']); // Store as JSON
+        $service->save();
+
+        return response()->json(['success' => true, 'message' => 'Options saved successfully.']);
+    }
 }

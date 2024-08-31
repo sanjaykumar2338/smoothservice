@@ -342,9 +342,11 @@
                                     </select>
                                 </div>
                             </div>
+                            <br>
                         </div>
-
+                       
                         <div class="mb-3">
+                            
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="1" id="set_deadline_check" name="set_deadline_check" {{ $service->set_deadline_check ? 'checked' : '' }}>
                                 <label class="form-check-label" for="set_deadline_check">
@@ -366,6 +368,8 @@
                             </div>
                         </div>
 
+                        
+
                         <button type="submit" class="btn btn-primary">Submit</button>
                         
                     </form>
@@ -376,41 +380,71 @@
 
     <!-- Custom Modal Component -->
     <custom-modal v-if="showModal" @close="showModal = false">
-        <template v-slot:header>
-            <h5>Create Options</h5>
-        </template>
+                            <template v-slot:header>
+                                <h5>Create Options</h5>
+                            </template>
 
-        <template v-slot:body>
-            <!-- Loop through each option menu -->
-            <div v-for="(menu, menuIndex) in optionMenus" :key="menuIndex" class="option-menu">
-                <div class="option-header">
-                    <h6 class="mb-2" style="padding-bottom: 75px;">Option @{{ menuIndex + 1 }}:</h6><br><br>
-                    <input style="width:65px;" type="text" class="form-control mb-2" placeholder="Turnaround Time" v-model="menu.optionTitle">
-                    <!-- Show remove button only for cloned option menus -->
-                    &nbsp;<button v-if="menuIndex > 0" class="btn btn-danger btn-sm remove-option-menu" @click="removeOptionMenu(menuIndex)">&times;</button>
-                </div>
-                <p class="text-muted">This is a drop-down menu where customers can select one of the options below.</p>
+                            <template v-slot:body>
+                                <!-- Loop through each option menu -->
+                                <div v-for="(menu, menuIndex) in optionMenus" :key="menuIndex" class="option-menu">
+                                    <div class="option-header">
+                                        <h6 class="mb-2" style="padding-bottom: 75px;">Option @{{ menuIndex + 1 }}:</h6><br><br>
+                                        <input style="width:65px;" type="text" class="form-control mb-2" placeholder="Turnaround Time" v-model="menu.optionTitle">
+                                        <!-- Show remove button only for cloned option menus -->
+                                        &nbsp;<button v-if="menuIndex > 0" class="btn btn-danger btn-sm remove-option-menu" @click="removeOptionMenu(menuIndex)">&times;</button>
+                                    </div>
+                                    <p class="text-muted">This is a drop-down menu where customers can select one of the options below.</p>
 
-                <div v-for="(option, index) in menu.options" :key="index" class="option-input">
-                    <input type="text" class="form-control" v-model="option.value" :placeholder="option.placeholder">
-                    <button class="btn btn-danger btn-sm" @click="removeOption(menuIndex, index)">&times;</button>
-                </div>
+                                    <div v-for="(option, index) in menu.options" :key="index" class="option-input">
+                                        <input type="text" class="form-control" v-model="option.value" :placeholder="option.placeholder">
+                                        <button class="btn btn-danger btn-sm" @click="removeOption(menuIndex, index)">&times;</button>
+                                    </div>
 
-                <button class="btn btn-secondary" @click="addOption(menuIndex)">+ Add value</button>
-            </div>
+                                    <button class="btn btn-secondary" @click="addOption(menuIndex)">+ Add value</button>
+                                </div>
 
-            <!-- Button to add another option menu -->
-            <div>
-                <span class="add-option-menu" @click="addOptionMenu">+ Add another option menu</span>
-            </div>
-        </template>
+                                <!-- Button to add another option menu -->
+                                <div>
+                                    <span class="add-option-menu" @click="addOptionMenu">+ Add another option menu</span>
+                                </div>
 
-        <template v-slot:footer>
-            <button @click="showModal = false" class="btn btn-secondary">Close</button>
-            <button class="btn btn-primary" @click="saveOptions">Save options</button>
-        </template>
-    </custom-modal>
+                            <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th v-for="(menu, menuIndex) in optionMenus" :key="menuIndex">
+                                                @{{ menu.optionTitle }}
+                                            </th>
+                                            <th>Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr v-for="(combination, combinationIndex) in allOptionCombinations" :key="combinationIndex">
+            <td>
+                <input type="checkbox" :key="`checkbox-${combinationIndex}`">
+            </td>
 
+            <td v-for="(optionValue, optionIndex) in combination" :key="`option-${optionIndex}-${combinationIndex}`">
+                @{{ optionValue }}
+            </td>
+
+            <td>
+                <input type="number" class="form-control mb-2" 
+                       placeholder="Enter price" 
+                       :key="`price-${combinationIndex}`">
+            </td>
+        </tr>
+                                    </tbody>
+                                </table>
+
+                            </template>
+
+                            <template v-slot:footer>
+                                <button @click="showModal = false" class="btn btn-secondary">Close</button>
+                                <button class="btn btn-primary" @click="saveOptions($event)">Save options</button>
+                                <span v-if="statusMessage" class="status-message" :class="statusClass">@{{ statusMessage }}</span>
+                            </template>
+                        </custom-modal>
 </div>
 
 <script>
@@ -502,6 +536,7 @@
 </script>
 
 <script>
+
     // Define the custom modal component
     Vue.component('custom-modal', {
         template: `
@@ -529,52 +564,120 @@
             isPricingOptionVisible: false,
             orderValue: 2,
             showModal: false,
+            maxOptionMenus: 3,
+            serviceId: {{ $service->id }}, // Pass the service ID from Blade
             optionMenus: [
                 {
                     optionTitle: 'Turnaround Time',
                     options: [
-                        { value: '', placeholder: 'Regular' },
-                        { value: '', placeholder: 'Fast' },
-                        { value: '', placeholder: 'Extra Fast' }
+                        { value: '', placeholder: 'Regular', price: '' },
+                        { value: '', placeholder: 'Fast', price: '' },
+                        { value: '', placeholder: 'Extra Fast', price: '' }
                     ]
                 }
-            ]
+            ],
+            statusMessage: '',
+            statusClass: '',   
+    },
+    computed: {
+        maxOptionFields() {
+            // Calculate the maximum number of options in any menu
+            return Math.max(...this.optionMenus.map(menu => menu.options.length));
         },
-        methods: {
-            togglePricingOption() {
-                this.isPricingOptionVisible = !this.isPricingOptionVisible;
-            },
-            toggleOrdersDiv() {
-                this.isOrdersDivVisible = !this.isOrdersDivVisible;
-            },
-            revertToSimplePricing() {
-                this.isPricingOptionVisible = false;
-            },
-            addOption(menuIndex) {
-                this.optionMenus[menuIndex].options.push({ value: '', placeholder: 'Extra Fast' });
-            },
-            removeOption(menuIndex, optionIndex) {
-                this.optionMenus[menuIndex].options.splice(optionIndex, 1);
-            },
-            addOptionMenu() {
+        allOptionCombinations() {
+            return this.generateCombinations(this.optionMenus.map(menu => menu.options.map(option => option.value)));
+        }
+    },
+    methods: {
+        togglePricingOption() {
+            this.isPricingOptionVisible = !this.isPricingOptionVisible;
+        },
+        toggleOrdersDiv() {
+            this.isOrdersDivVisible = !this.isOrdersDivVisible;
+        },
+        revertToSimplePricing() {
+            this.isPricingOptionVisible = false;
+        },
+        addOption(menuIndex) {
+            this.optionMenus[menuIndex].options.push({ value: '', placeholder: 'Extra Fast', price: '' });
+        },
+        removeOption(menuIndex, optionIndex) {
+            this.optionMenus[menuIndex].options.splice(optionIndex, 1);
+        },
+        addOptionMenu() {
+            if (this.optionMenus.length < this.maxOptionMenus) {
                 this.optionMenus.push({
-                    optionTitle: 'Turnaround Time',
+                    optionTitle: `Turnaround Time ${this.optionMenus.length + 1}`,
                     options: [
-                        { value: '', placeholder: 'Regular' },
-                        { value: '', placeholder: 'Fast' },
-                        { value: '', placeholder: 'Extra Fast' }
+                        { value: '', placeholder: 'Regular', price: '' },
+                        { value: '', placeholder: 'Fast', price: '' },
+                        { value: '', placeholder: 'Extra Fast', price: '' }
                     ]
                 });
-            },
-            removeOptionMenu(menuIndex) {
-                this.optionMenus.splice(menuIndex, 1);
-            },
-            saveOptions() {
-                console.log('Option Menus:', this.optionMenus);
-                this.showModal = false;
+            } else {
+                alert("You can only add up to 3 option menus.");
+            }
+        },
+        removeOptionMenu(menuIndex) {
+            this.optionMenus.splice(menuIndex, 1);
+        },
+        saveOptions(event) {
+            event.preventDefault();
+
+            console.log('Option Menus:', this.optionMenus);
+
+            // Prepare the data to be sent to the server
+            const dataToSave = {
+                service_id: this.serviceId,  // Use the service_id from data
+                price_options: this.optionMenus,
+                _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content') // CSRF token
+            };
+
+            // Send a POST request to save the data
+            axios.post('/client/save-options', dataToSave)
+                .then(response => {
+                    console.log('Data saved successfully:', response.data);
+                    this.statusMessage = 'Options saved successfully!';
+                    this.statusClass = 'text-success'; // Bootstrap class for green text
+
+                    // Hide the message after 3 seconds
+                    setTimeout(() => {
+                        this.statusMessage = '';
+                    }, 2000);
+                })
+                .catch(error => {
+                    console.error('Error saving data:', error);
+                    this.statusMessage = 'Failed to save options.';
+                    this.statusClass = 'text-danger'; // Bootstrap class for red text
+
+                    // Hide the message after 3 seconds
+                    setTimeout(() => {
+                        this.statusMessage = '';
+                    }, 2000);
+                });
+        },
+        getRepeatedOption(menu, index) {
+            if (menu.options.length > 0) {
+                return menu.options[index % menu.options.length].value;
+            }
+            return '';
+        },
+        generateCombinations(arrays, prefix = []) {
+            if (arrays.length === 0) {
+                return [prefix];
+            } else {
+                const result = [];
+                const firstArray = arrays[0];
+                const remainingArrays = arrays.slice(1);
+                for (let i = 0; i < firstArray.length; i++) {
+                    const newPrefix = prefix.concat(firstArray[i]);
+                    result.push(...this.generateCombinations(remainingArrays, newPrefix));
+                }
+                return result;
             }
         }
-    });
-</script>
+    }
+});
 
+</script>
 @endsection
