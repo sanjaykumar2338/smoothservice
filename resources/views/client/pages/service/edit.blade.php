@@ -605,6 +605,12 @@
                 if (newValue) {
                     this.fetchSavedOptions();
                 }
+            },
+            optionMenus: {
+                handler(newValue) {
+                    this.allOptionCombinations; // Force update of combinations
+                },
+                deep: true // Watch deeply for changes within the optionMenus array
             }
         },
         methods: {
@@ -619,9 +625,11 @@
             },
             addOption(menuIndex) {
                 this.optionMenus[menuIndex].options.push({ value: '', placeholder: 'Extra Fast', price: '' });
+                this.allOptionCombinations; // Update combinations after adding an option
             },
             removeOption(menuIndex, optionIndex) {
                 this.optionMenus[menuIndex].options.splice(optionIndex, 1);
+                this.allOptionCombinations; // Update combinations after removing an option
             },
             addOptionMenu() {
                 if (this.optionMenus.length < this.maxOptionMenus) {
