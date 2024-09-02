@@ -34,6 +34,7 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::put('/service/{service}', [ServiceController::class, 'update'])->name('client.service.update');
     Route::delete('/service/{service}', [ServiceController::class, 'destroy'])->name('client.service.destroy');
     Route::post('/save-options', [ServiceController::class, 'saveOptions'])->name('client.service.saveOptions');
+    Route::get('/get-options/{id}', [ServiceController::class, 'getOptions'])->name('client.service.getOptions');
 
     //for intake form
     Route::get('/service/intakeform/list', [IntakeformController::class, 'index'])->name('client.service.intakeform.list');

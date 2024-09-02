@@ -19,7 +19,24 @@ class Service extends Model
         'set_a_deadline',
         'set_a_deadline_duration',
         'user_id',
-        'price_options'
+        'price_options',
+        'pricing_option_data',
+        'one_time_service_currency',
+        'one_time_service_currency_value',
+        'multiple_orders',
+        'recurring_service_currency',
+        'recurring_service_currency_value',
+        'recurring_service_currency_every',
+        'recurring_service_currency_value_two',
+        'recurring_service_currency_value_two_type',
+        'with_trial_or_setup_fee',
+        'when_recurring_payment_received',
+        'when_recurring_payment_received_two_order_currency',
+        'when_recurring_payment_received_two_order_currency_value'
+    ];
+
+    protected $casts = [
+        'price_options' => 'array',
     ];
 
     public function parentServices()

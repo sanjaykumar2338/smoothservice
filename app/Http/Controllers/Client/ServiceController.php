@@ -48,6 +48,19 @@ class ServiceController extends Controller
             'set_deadline_check' => 'boolean',
             'set_a_deadline' => 'nullable|integer',
             'set_a_deadline_duration' => 'nullable|string|in:days,hours',
+            'pricing_option_data' => '',
+            'one_time_service_currency' => '',
+            'one_time_service_currency_value' => '',
+            'multiple_orders' => '',
+            'recurring_service_currency' => '',
+            'recurring_service_currency_value' => '',
+            'recurring_service_currency_every' => '',
+            'recurring_service_currency_value_two' => '',
+            'recurring_service_currency_value_two_type' => '',
+            'with_trial_or_setup_fee' => 'boolean',
+            'when_recurring_payment_received' => '',
+            'when_recurring_payment_received_two_order_currency' => '',
+            'when_recurring_payment_received_two_order_currency_value' => ''
         ]);
 
         // Update the service
@@ -60,6 +73,19 @@ class ServiceController extends Controller
             'set_deadline_check' => $request->set_deadline_check ?? false,
             'set_a_deadline' => $request->set_a_deadline,
             'set_a_deadline_duration' => $request->set_a_deadline_duration,
+            'pricing_option_data' => $request->pricing_option_data,
+            'one_time_service_currency' => $request->one_time_service_currency,
+            'one_time_service_currency_value' => $request->one_time_service_currency_value,
+            'multiple_orders' => $request->multiple_orders,
+            'recurring_service_currency' => $request->recurring_service_currency,
+            'recurring_service_currency_value' => $request->recurring_service_currency_value,
+            'recurring_service_currency_every' => $request->recurring_service_currency_every,
+            'recurring_service_currency_value_two' => $request->recurring_service_currency_value_two,
+            'recurring_service_currency_value_two_type' => $request->recurring_service_currency_value_two_type,
+            'with_trial_or_setup_fee' => $validatedData['with_trial_or_setup_fee'] ?? false,
+            'when_recurring_payment_received' => $request->when_recurring_payment_received,
+            'when_recurring_payment_received_two_order_currency' => $request->when_recurring_payment_received_two_order_currency,
+            'when_recurring_payment_received_two_order_currency_value' => $request->when_recurring_payment_received_two_order_currency_value
         ]);
 
         // Sync parent services
@@ -146,16 +172,50 @@ class ServiceController extends Controller
         // Validate incoming request data if necessary
         $validatedData = $request->validate([
             'price_options' => 'required|array', // Ensure price_options is an array
+            'combinations' => 'required|array'   // Ensure combinations is an array
         ]);
 
         // Find the Service model instance you want to update
-        // Assuming you have an ID or other criteria to identify the record
         $service = Service::find($request->service_id); // Replace with the correct identifier
 
-        // Update the price_options field
+        // Update the price_options and combinations fields
         $service->price_options = json_encode($validatedData['price_options']); // Store as JSON
+        $service->combinations = json_encode($validatedData['combinations']);   // Store as JSON
         $service->save();
 
         return response()->json(['success' => true, 'message' => 'Options saved successfully.']);
+    }
+
+    public function getOptions($serviceId)
+    {
+        $service = Service::find($serviceId);
+
+        if ($service) {
+            // Decode the JSON fields
+            $priceOptions = json_decode($service->price_options, true);
+            $combinations = json_decode($service->combinations, true);
+
+            // Extract recurring price options if they exist
+            $recurringPriceOptions = [];
+            $selectedRecurringPrice = null;
+
+            if ($priceOptions) {
+                foreach ($priceOptions as $menu) {
+                    $recurringPriceOptions[] = $menu['optionTitle'];
+                }
+
+                // If there's a selected recurring price, set it
+                $selectedRecurringPrice = $service->selected_recurring_price ?? null;
+            }
+
+            return response()->json([
+                'price_options' => $priceOptions,
+                'combinations' => $combinations,
+                'recurringPriceOptions' => $recurringPriceOptions,
+                'selectedRecurringPrice' => $selectedRecurringPrice
+            ]);
+        }
+
+        return response()->json(['price_options' => [], 'combinations' => [], 'recurringPriceOptions' => [], 'selectedRecurringPrice' => null], 404);
     }
 }

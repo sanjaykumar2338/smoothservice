@@ -156,9 +156,10 @@
                                 <div class="tab-content">
                                 <div class="tab-pane show active" id="navs-top-home" role="tabpanel">
                                     <label class="form-label" for="full_editor">Price</label>
+
                                     <div class="input-group" style="width: 53ch;">
-                                        <input type="text" value="CAD" class="custom-input-short" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
-                                        <input type="number" value="0.00" class="form-control" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
+                                        <input type="text" value="CAD" class="custom-input-short" placeholder="" aria-label="Username" aria-describedby="basic-addon11" name="one_time_service_currency">
+                                        <input type="number" value="0.00" class="form-control" placeholder="" aria-label="Username" aria-describedby="basic-addon11" name="one_time_service_currency_value">
                                     </div>
 
                                     <!-- for price option -->
@@ -166,10 +167,15 @@
                                         <br>
                                         <label class="form-label" for="full_editor">Pricing options</label>
                                         <div class="input-group hidden" id="checked_inputs">
-                                            <select style="height: 37px;border: 0px;" name="recurring_pirce" id="recurring_pirce" class="form-control">
-                                                <option value="Month"> No pricing options set up yet...</option>
-                                            </select>
-                                            <button @click="showModal = true" type="button" style="border-left: 0px;" class="btn btn-label-secondary">Edit</button><br>
+
+                                        <select style="height: 37px;border: 0px;" name="pricing_option_data" id="pricing_option_data" class="form-control" v-model="selectedRecurringPrice">
+                                            <option value="" disabled>No pricing options set up yet...</option>
+                                            <option v-for="(option, index) in recurringPriceOptions" :key="index" :value="option">
+                                                @{{ option }}
+                                            </option>
+                                        </select>
+
+                                        <button @click="showModal = true" type="button" style="border-left: 0px;" class="btn btn-label-secondary">Edit</button><br>
                                         </div>
                                         <br>
                                         <span style="cursor:pointer;" class="revert_to_simple_pricing" @click="revertToSimplePricing">Revert to simple pricing</span>
@@ -198,7 +204,7 @@
                                     <br>
 
                                     <div class="input-group create_multiple_orders_div" v-show="isOrdersDivVisible">
-                                        <input type="number" v-model.number="orderValue" class="form-control" placeholder="">
+                                        <input type="number" value="{{$service->multiple_orders}}" v-model.number="orderValue" class="form-control" placeholder="" name="multiple_orders">
                                     </div>
                                     <div v-show="isOrdersDivVisible">
                                         <span>@{{ orderValue }}</span> new orders will be created when this service is purchased.
@@ -208,83 +214,76 @@
                                 <div class="tab-pane" id="navs-top-profile" role="tabpanel">
                                     <label class="form-label" for="full_editor">Price</label>
                                     <div class="input-group" style="">
-                                        <input type="text" value="CAD" class="custom-input-short" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
-                                        <input type="number" value="0.00" class="form-control" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
-                                        <input type="text" value="every" readonly class="custom-input-short" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
-                                        <input type="number" value="0.00" class="form-control" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
-                                        <select name="recurring_pirce" id="recurring_pirce" class="custom-input-short">
-                                            <option value="Month"> Month</option>
-                                            <option value="Year"> Year</option>
-                                            <option value="Week"> Week</option>
-                                            <option value="Day"> Day</option>
+                                        <input type="text" value="{{$service->recurring_service_currency}}" class="custom-input-short" placeholder="" aria-label="Username" name="recurring_service_currency" aria-describedby="basic-addon11">
+
+                                        <input type="number" value="{{$service->recurring_service_currency_value}}" class="form-control" placeholder="" aria-label="Username" name="recurring_service_currency_value" aria-describedby="basic-addon11">
+                                        
+                                        <input type="text" value="{{$service->recurring_service_currency_every}}" readonly class="custom-input-short" placeholder="" name="recurring_service_currency_every" aria-label="Username" aria-describedby="basic-addon11">
+                                        
+                                        <input type="number" value="{{$service->recurring_service_currency_value_two}}" class="form-control" placeholder="" aria-label="Username" name="recurring_service_currency_value_two" aria-describedby="basic-addon11">
+                                        
+                                        <select name="recurring_service_currency_value_two_type" id="recurring_pirce" class="custom-input-short">
+                                            <option {{$service->recurring_service_currency_value_two_type==="Month" ? 'selected':''}} value="Month"> Month</option>
+                                            <option {{$service->recurring_service_currency_value_two_type==="Year" ? 'selected':''}} value="Year"> Year</option>
+                                            <option {{$service->recurring_service_currency_value_two_type==="Week" ? 'selected':''}} value="Week"> Week</option>
+                                            <option {{$service->recurring_service_currency_value_two_type==="Day" ? 'selected':''}} value="Day"> Day</option>
                                         </select>
                                     </div>
 
                                     <div class="form-check mt-3">
-                                        <input class="form-check-input" type="checkbox" value="" id="defaultCheck3" checked="">
-                                        <label class="form-check-label" for="defaultCheck3"> With trial or setup fee </label>
+                                        <input class="form-check-input" name="with_trial_or_setup_fee" type="checkbox" value="1" id="defaultCheck3" {{ $service->with_trial_or_setup_fee ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="defaultCheck3">With trial or setup fee</label>
                                     </div>
-
-                                    <div class="input-group hidden" style="" id="checked_inputs">
-                                        <input type="text" value="CAD" class="custom-input-short" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
-                                        <input type="number" value="0.00" class="form-control" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
-                                        <input type="text" value="every" readonly class="custom-input-short" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
-                                        <input type="number" value="0.00" class="form-control" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
-                                        <select name="recurring_pirce" id="recurring_pirce" class="custom-input-short">
-                                            <option value="Month"> Month</option>
-                                            <option value="Year"> Year</option>
-                                            <option value="Week"> Week</option>
-                                            <option value="Day"> Day</option>
-                                        </select>
-                                    </div>
-
 
                                     <div class="col-md mt-3">
                                         <small class="text-light fw-medium">When a recurring payment is received…
                                         </small>
 
                                         <div class="form-check mt-3">
-                                            <input name="default-radio-1" class="form-check-input" type="radio" value="" id="defaultRadio1">
-                                            <label class="form-check-label" for="defaultRadio1"> Do nothing
-                                            </label><br>
-                                            <small class="text-light fw-medium">Order status and due date will not change.
-                                            </small>
+                                            <input class="form-check-input" type="radio" id="defaultRadio1" name="when_recurring_payment_received" value="Do nothing"
+                                                {{ $service->when_recurring_payment_received === 'Do nothing' ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="defaultRadio1"> Do nothing</label><br>
+                                            <small class="text-light fw-medium">Order status and due date will not change.</small>
                                         </div>
 
                                         <div class="form-check">
-                                            <input name="default-radio-1" class="form-check-input" type="radio" value="" id="defaultRadio2" checked="">
-                                            <label class="form-check-label" for="defaultRadio2"> Reopen order
-                                            </label><br>
-                                            <small class="text-light fw-medium">Order will go back into Working status with a new due date.
-                                        </small>
+                                            <input class="form-check-input" type="radio" id="defaultRadio2" name="when_recurring_payment_received" value="Reopen order"
+                                                {{ $service->when_recurring_payment_received === 'Reopen order' ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="defaultRadio2"> Reopen order</label><br>
+                                            <small class="text-light fw-medium">Order will go back into Working status with a new due date.</small>
                                         </div>
 
                                         <div class="form-check">
-                                            <input name="default-radio-1" class="form-check-input" type="radio" value="" id="defaultRadio33" checked="">
-                                            <label class="form-check-label" for="defaultRadio3"> Create 2 new orders
-                                            </label><br>
-                                            <small class="text-light fw-medium">If you want clients to fill out 2 new intake forms every day.
-                                            </small>
+                                            <input class="form-check-input" type="radio" id="defaultRadio33" name="when_recurring_payment_received" value="Create 2 new orders"
+                                                {{ $service->when_recurring_payment_received === 'Create 2 new orders' ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="defaultRadio3"> Create 2 new orders</label><br>
+                                            <small class="text-light fw-medium">If you want clients to fill out 2 new intake forms every day.</small>
 
-                                            <div class="input-group hidden custom_ordering" style="width: 53ch;">
-                                                <input type="text" value="CAD" class="custom-input-short" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
-                                                <input type="number" value="0.00" class="form-control" placeholder="" aria-label="Username" aria-describedby="basic-addon11">
+                                            @if($service->when_recurring_payment_received === 'Create 2 new orders')
+                                                <div class="input-group custom_ordering" style="width: 53ch;">
+                                            @else
+                                                <div class="input-group hidden custom_ordering" style="width: 53ch;">
+                                            @endif
+                                                <input type="text" name="when_recurring_payment_received_two_order_currency" class="custom-input-short" placeholder="CAD" aria-label="Username" aria-describedby="basic-addon11" value="{{$service->when_recurring_payment_received_two_order_currency}}">
+
+                                                <input type="number" name="when_recurring_payment_received_two_order_currency_value" class="form-control" placeholder="0.00" aria-label="Username" aria-describedby="basic-addon11" value="{{$service->when_recurring_payment_received_two_order_currency_value}}">
+
                                             </div>
                                         </div>
 
                                         <div class="form-check">
-                                            <input name="default-radio-1" class="form-check-input" type="radio" value="" id="defaultRadio4" checked="">
-                                            <label class="form-check-label" for="defaultRadio4"> Let clients request new orders / tasks as they need them
-                                            </label><br>
-                                            <small class="text-light fw-medium">If you offer task-based services. Limit total requests? Limit active requests?
-                                            </small>
+                                            <input class="form-check-input" type="radio" id="defaultRadio4" name="when_recurring_payment_received" value="Let clients request new orders / tasks as they need them"
+                                                {{ $service->when_recurring_payment_received === 'Let clients request new orders / tasks as they need them' ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="defaultRadio4"> Let clients request new orders / tasks as they need them</label><br>
+                                            <small class="text-light fw-medium">If you offer task-based services. Limit total requests? Limit active requests?</small>
                                         </div>
+
+
                                     </div>
                                 </div>
                                 </div>
                                 </div>
                             </div>
-
                         <div>
                             <h5>Orders of this service</h5>
                         </div>
@@ -301,7 +300,11 @@
                                 Intake form will be appended to selected services when purchased together.
                             </div>
 
-                            <div class="col-md-6 mb-4 mb-md-0" id="parent_services_container" style="display:none">
+                            @if($service->parentServices!="")
+                                <div class="col-md-6 mb-4 mb-md-0" id="parent_services_container" style="display:block">
+                            @else
+                                <div class="col-md-6 mb-4 mb-md-0" id="parent_services_container" style="display:none">
+                            @endif
                                 <div class="select2-dark">
                                     <select id="parent_services" name="parent_services[]" class="select2 form-select" multiple>
                                         <option value="1" {{ isset($service) && $service->parentServices && in_array(1, $service->parentServices->pluck('id')->toArray()) ? 'selected' : '' }}>Test 1</option>
@@ -309,6 +312,7 @@
                                     </select>
                                 </div>
                             </div>
+                            <br>
                         </div>
 
                         <div class="mb-3">
@@ -321,6 +325,7 @@
                             <div class="mb-2">
                                 By default purchases of multiple quantities are added as separate orders. Different services are always added separately.
                             </div>
+                            <br>
                         </div>
 
                         <div class="mb-3">
@@ -334,7 +339,11 @@
                                 Automatically assign orders of this service to a team member.
                             </div>    
                             
-                            <div class="col-md-6 mb-4 mb-md-0" id="select_team_container" style="display:none">
+                            @if($service->teamMembers)
+                                <div class="col-md-6 mb-4 mb-md-0" id="select_team_container" style="display:block;">
+                            @else
+                                <div class="col-md-6 mb-4 mb-md-0" id="select_team_container" style="display:none;">
+                            @endif
                                 <div class="select2-dark">
                                     <select id="select_team" name="team_member[]" class="select2 form-select" multiple>
                                         <option value="11" {{ isset($service) && $service->teamMembers && in_array(11, $service->teamMembers->pluck('id')->toArray()) ? 'selected' : '' }}>Test 11</option>
@@ -357,7 +366,11 @@
                                 Helps your team see orders that are due soon, not visible to clients.
                             </div>
 
-                            <div class="col-md-6 mb-4 mb-md-0" id="set_deadline_container" style="display:none">
+                            @if($service->set_deadline_check)
+                                <div class="col-md-6 mb-4 mb-md-0" id="set_deadline_container" style="display:block">
+                            @else
+                                <div class="col-md-6 mb-4 mb-md-0" id="set_deadline_container" style="display:none">
+                            @endif
                                 <div class="select2-dark" style="display:inline-flex;">
                                     <input type="number" name="set_a_deadline" class="form-control" id="set_a_deadline" value="{{ $service->set_a_deadline }}" placeholder="Days" />&nbsp;&nbsp;&nbsp;
                                     <select id="set_a_deadline_duration" name="set_a_deadline_duration" class="form-select">
@@ -419,21 +432,19 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    <tr v-for="(combination, combinationIndex) in allOptionCombinations" :key="combinationIndex">
-            <td>
-                <input type="checkbox" :key="`checkbox-${combinationIndex}`">
-            </td>
-
-            <td v-for="(optionValue, optionIndex) in combination" :key="`option-${optionIndex}-${combinationIndex}`">
-                @{{ optionValue }}
-            </td>
-
-            <td>
-                <input type="number" class="form-control mb-2" 
-                       placeholder="Enter price" 
-                       :key="`price-${combinationIndex}`">
-            </td>
-        </tr>
+                                        <tr v-for="(combination, combinationIndex) in combinations" :key="combinationIndex">
+                                            <td>
+                                                <input type="checkbox" v-model="combination.checked" :key="`checkbox-${combinationIndex}`">
+                                            </td>
+                                            <td v-for="(option, optionIndex) in combination.options" :key="`option-${optionIndex}-${combinationIndex}`">
+                                                @{{ option }}
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control mb-2" v-model="combination.price" 
+                                                    placeholder="Enter price" 
+                                                    :key="`price-${combinationIndex}`">
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
 
@@ -562,122 +573,186 @@
         data: {
             isOrdersDivVisible: false,
             isPricingOptionVisible: false,
-            orderValue: 2,
+            orderValue: {{ $service->multiple_orders }},
             showModal: false,
             maxOptionMenus: 3,
             serviceId: {{ $service->id }}, // Pass the service ID from Blade
-            optionMenus: [
-                {
-                    optionTitle: 'Turnaround Time',
-                    options: [
-                        { value: '', placeholder: 'Regular', price: '' },
-                        { value: '', placeholder: 'Fast', price: '' },
-                        { value: '', placeholder: 'Extra Fast', price: '' }
-                    ]
-                }
-            ],
+            optionMenus: [],
+            combinations: [], // To store the combinations data
+            recurringPriceOptions: [], // To store the pricing options
+            selectedRecurringPrice: '', // To store the selected recurring price option
             statusMessage: '',
             statusClass: '',   
-    },
-    computed: {
-        maxOptionFields() {
-            // Calculate the maximum number of options in any menu
-            return Math.max(...this.optionMenus.map(menu => menu.options.length));
         },
-        allOptionCombinations() {
-            return this.generateCombinations(this.optionMenus.map(menu => menu.options.map(option => option.value)));
-        }
-    },
-    methods: {
-        togglePricingOption() {
-            this.isPricingOptionVisible = !this.isPricingOptionVisible;
-        },
-        toggleOrdersDiv() {
-            this.isOrdersDivVisible = !this.isOrdersDivVisible;
-        },
-        revertToSimplePricing() {
-            this.isPricingOptionVisible = false;
-        },
-        addOption(menuIndex) {
-            this.optionMenus[menuIndex].options.push({ value: '', placeholder: 'Extra Fast', price: '' });
-        },
-        removeOption(menuIndex, optionIndex) {
-            this.optionMenus[menuIndex].options.splice(optionIndex, 1);
-        },
-        addOptionMenu() {
-            if (this.optionMenus.length < this.maxOptionMenus) {
-                this.optionMenus.push({
-                    optionTitle: `Turnaround Time ${this.optionMenus.length + 1}`,
-                    options: [
-                        { value: '', placeholder: 'Regular', price: '' },
-                        { value: '', placeholder: 'Fast', price: '' },
-                        { value: '', placeholder: 'Extra Fast', price: '' }
-                    ]
+        computed: {
+            maxOptionFields() {
+                return Math.max(...this.optionMenus.map(menu => menu.options.length));
+            },
+            allOptionCombinations() {
+                const combinations = this.generateCombinations(
+                    this.optionMenus.map(menu => menu.options.map(option => option.value))
+                );
+                this.combinations = combinations.map((comb, index) => {
+                    return {
+                        options: comb,
+                        checked: this.combinations[index]?.checked || false,
+                        price: this.combinations[index]?.price || ''
+                    };
                 });
-            } else {
-                alert("You can only add up to 3 option menus.");
+                return this.combinations;
             }
         },
-        removeOptionMenu(menuIndex) {
-            this.optionMenus.splice(menuIndex, 1);
-        },
-        saveOptions(event) {
-            event.preventDefault();
-
-            console.log('Option Menus:', this.optionMenus);
-
-            // Prepare the data to be sent to the server
-            const dataToSave = {
-                service_id: this.serviceId,  // Use the service_id from data
-                price_options: this.optionMenus,
-                _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content') // CSRF token
-            };
-
-            // Send a POST request to save the data
-            axios.post('/client/save-options', dataToSave)
-                .then(response => {
-                    console.log('Data saved successfully:', response.data);
-                    this.statusMessage = 'Options saved successfully!';
-                    this.statusClass = 'text-success'; // Bootstrap class for green text
-
-                    // Hide the message after 3 seconds
-                    setTimeout(() => {
-                        this.statusMessage = '';
-                    }, 2000);
-                })
-                .catch(error => {
-                    console.error('Error saving data:', error);
-                    this.statusMessage = 'Failed to save options.';
-                    this.statusClass = 'text-danger'; // Bootstrap class for red text
-
-                    // Hide the message after 3 seconds
-                    setTimeout(() => {
-                        this.statusMessage = '';
-                    }, 2000);
-                });
-        },
-        getRepeatedOption(menu, index) {
-            if (menu.options.length > 0) {
-                return menu.options[index % menu.options.length].value;
-            }
-            return '';
-        },
-        generateCombinations(arrays, prefix = []) {
-            if (arrays.length === 0) {
-                return [prefix];
-            } else {
-                const result = [];
-                const firstArray = arrays[0];
-                const remainingArrays = arrays.slice(1);
-                for (let i = 0; i < firstArray.length; i++) {
-                    const newPrefix = prefix.concat(firstArray[i]);
-                    result.push(...this.generateCombinations(remainingArrays, newPrefix));
+        watch: {
+            showModal(newValue) {
+                if (newValue) {
+                    this.fetchSavedOptions();
                 }
-                return result;
+            }
+        },
+        methods: {
+            togglePricingOption() {
+                this.isPricingOptionVisible = !this.isPricingOptionVisible;
+            },
+            toggleOrdersDiv() {
+                this.isOrdersDivVisible = !this.isOrdersDivVisible;
+            },
+            revertToSimplePricing() {
+                this.isPricingOptionVisible = false;
+            },
+            addOption(menuIndex) {
+                this.optionMenus[menuIndex].options.push({ value: '', placeholder: 'Extra Fast', price: '' });
+            },
+            removeOption(menuIndex, optionIndex) {
+                this.optionMenus[menuIndex].options.splice(optionIndex, 1);
+            },
+            addOptionMenu() {
+                if (this.optionMenus.length < this.maxOptionMenus) {
+                    this.optionMenus.push({
+                        optionTitle: `Turnaround Time ${this.optionMenus.length + 1}`,
+                        options: [
+                            { value: '', placeholder: 'Regular', price: '' },
+                            { value: '', placeholder: 'Fast', price: '' },
+                            { value: '', placeholder: 'Extra Fast', price: '' }
+                        ]
+                    });
+                    this.allOptionCombinations;
+                } else {
+                    alert("You can only add up to 3 option menus.");
+                }
+            },
+            removeOptionMenu(menuIndex) {
+                this.optionMenus.splice(menuIndex, 1);
+                this.allOptionCombinations;
+            },
+            saveOptions(event) {
+                event.preventDefault();
+
+                const rows = document.querySelectorAll('tbody tr');
+                const combinationsData = [];
+
+                rows.forEach((row) => {
+                    const checkbox = row.querySelector('input[type="checkbox"]');
+                    const isChecked = checkbox ? checkbox.checked : false;
+
+                    const priceInput = row.querySelector('input[type="number"]');
+                    const priceValue = priceInput ? priceInput.value : '';
+
+                    const optionValues = Array.from(row.querySelectorAll('td:not(:first-child):not(:last-child)'))
+                        .map(td => td.innerText.trim());
+
+                    const rowData = {
+                        options: optionValues,
+                        checked: isChecked,
+                        price: priceValue
+                    };
+
+                    combinationsData.push(rowData);
+                });
+
+                const dataToSave = {
+                    service_id: this.serviceId,
+                    price_options: this.optionMenus,
+                    combinations: combinationsData,
+                    _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                };
+
+                axios.post('/client/save-options', dataToSave)
+                    .then(response => {
+                        this.statusMessage = 'Options saved successfully!';
+                        this.statusClass = 'text-success';
+                        setTimeout(() => {
+                            this.statusMessage = '';
+                        }, 2000);
+
+                        this.fetchSavedOptions(); // Reload options after saving
+                    })
+                    .catch(error => {
+                        console.error('Error saving data:', error);
+                        this.statusMessage = 'Failed to save options.';
+                        this.statusClass = 'text-danger';
+                        setTimeout(() => {
+                            this.statusMessage = '';
+                        }, 2000);
+                    });
+            },
+            fetchSavedOptions() {
+                axios.get(`/client/get-options/${this.serviceId}`)
+                    .then(response => {
+                        if (response.data.price_options) {
+                            this.optionMenus = response.data.price_options;
+                        }
+                        if (response.data.combinations) {
+                            this.combinations = response.data.combinations.map(combination => ({
+                                options: combination.options,
+                                checked: combination.checked,
+                                price: combination.price
+                            }));
+                        }
+                        if (response.data.recurringPriceOptions) {
+                            this.recurringPriceOptions = response.data.recurringPriceOptions;
+                            this.selectedRecurringPrice = response.data.selectedRecurringPrice || '';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching saved options:', error);
+                    });
+            },
+            generateCombinations(arrays, prefix = []) {
+                if (arrays.length === 0) {
+                    return [prefix];
+                } else {
+                    const result = [];
+                    const firstArray = arrays[0];
+                    const remainingArrays = arrays.slice(1);
+                    for (let i = 0; i < firstArray.length; i++) {
+                        const newPrefix = prefix.concat(firstArray[i]);
+                        result.push(...this.generateCombinations(remainingArrays, newPrefix));
+                    }
+                    return result;
+                }
+            }
+        },
+        mounted() {
+            this.fetchSavedOptions(); // Fetch options when the component is mounted
+        }
+    });
+
+    // Assume $service->pricing_option_data is available in the JavaScript context
+    const savedOption = "{{ $service->pricing_option_data }}";
+
+    setTimeout(() => {
+        const selectElement = document.getElementById('pricing_option_data');
+        
+        if (selectElement && savedOption) {
+            // Iterate over options to find the one that matches the saved value
+            for (let i = 0; i < selectElement.options.length; i++) {
+                if (selectElement.options[i].value === savedOption) {
+                    selectElement.selectedIndex = i;
+                    break;
+                }
             }
         }
-    }
-});
-
+    }, 2000);
+    
 </script>
 @endsection
