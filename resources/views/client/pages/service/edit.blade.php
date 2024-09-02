@@ -580,7 +580,7 @@
             recurringPriceOptions: [], // To store the pricing options
             selectedRecurringPrice: '', // To store the selected recurring price option
             statusMessage: '',
-            statusClass: '',   
+            statusClass: '',
         },
         computed: {
             maxOptionFields() {
@@ -633,14 +633,14 @@
                             { value: '', placeholder: 'Extra Fast', price: '' }
                         ]
                     });
-                    this.allOptionCombinations;
+                    this.allOptionCombinations; // Recalculate combinations after adding a menu
                 } else {
                     alert("You can only add up to 3 option menus.");
                 }
             },
             removeOptionMenu(menuIndex) {
                 this.optionMenus.splice(menuIndex, 1);
-                this.allOptionCombinations;
+                this.allOptionCombinations; // Recalculate combinations after removing a menu
             },
             saveOptions(event) {
                 event.preventDefault();
@@ -732,6 +732,11 @@
         },
         mounted() {
             this.fetchSavedOptions(); // Fetch options when the component is mounted
+
+            // Ensure at least one option menu is present
+            if (this.optionMenus.length === 0) {
+                this.addOptionMenu();
+            }
         }
     });
 
@@ -751,6 +756,6 @@
             }
         }
     }, 2000);
-    
+
 </script>
 @endsection
