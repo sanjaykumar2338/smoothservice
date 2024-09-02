@@ -187,7 +187,7 @@
                                                 <a href="javascript:void(0);" class="list-group-item list-group-item-action d-flex justify-content-between" @click="togglePricingOption">
                                                     <div class="li-wrapper d-flex justify-content-start align-items-center">
                                                         <div class="list-content">
-                                                            <h6 class="create_multiple_pricing_option">Create multiple pricing options?</h6>
+                                                            <h6 @click="create_multiple_pricing_option" class="create_multiple_pricing_option">Create multiple pricing options?</h6>
                                                         </div>
                                                     </div>
                                                 </a>
@@ -618,6 +618,9 @@
             },
             revertToSimplePricing() {
                 this.isPricingOptionVisible = false;
+            },
+            create_multiple_pricing_option(){
+                this.isPricingOptionVisible = true;
             },
             addOption(menuIndex) {
                 this.optionMenus[menuIndex].options.push({ value: '', placeholder: 'Extra Fast', price: '' });
