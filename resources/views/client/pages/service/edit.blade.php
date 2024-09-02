@@ -158,8 +158,8 @@
                                     <label class="form-label" for="full_editor">Price</label>
 
                                     <div class="input-group" style="width: 53ch;">
-                                        <input type="text" value="CAD" class="custom-input-short" placeholder="" aria-label="Username" aria-describedby="basic-addon11" name="one_time_service_currency">
-                                        <input type="number" value="0.00" class="form-control" placeholder="" aria-label="Username" aria-describedby="basic-addon11" name="one_time_service_currency_value">
+                                        <input type="text" value="" class="custom-input-short" placeholder="CAD" aria-label="Username" aria-describedby="basic-addon11" name="one_time_service_currency">
+                                        <input type="number" value="" class="form-control" placeholder="0.00" aria-label="Username" aria-describedby="basic-addon11" name="one_time_service_currency_value">
                                     </div>
 
                                     <!-- for price option -->
@@ -298,7 +298,7 @@
                                 Intake form will be appended to selected services when purchased together.
                             </div>
 
-                            @if($service->parentServices!="")
+                            @if($service->addon!=0)
                                 <div class="col-md-6 mb-4 mb-md-0" id="parent_services_container" style="display:block">
                             @else
                                 <div class="col-md-6 mb-4 mb-md-0" id="parent_services_container" style="display:none">
@@ -337,7 +337,7 @@
                                 Automatically assign orders of this service to a team member.
                             </div>    
                             
-                            @if($service->teamMembers)
+                            @if($service->assign_team_member!=0)
                                 <div class="col-md-6 mb-4 mb-md-0" id="select_team_container" style="display:block;">
                             @else
                                 <div class="col-md-6 mb-4 mb-md-0" id="select_team_container" style="display:none;">
