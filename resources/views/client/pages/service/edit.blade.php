@@ -573,7 +573,7 @@
         data: {
             isOrdersDivVisible: false,
             isPricingOptionVisible: false,
-            orderValue: {{ $service->multiple_orders }},
+            orderValue: "{{ $service->multiple_orders ?? '' }}",
             showModal: false,
             maxOptionMenus: 3,
             serviceId: {{ $service->id }}, // Pass the service ID from Blade
