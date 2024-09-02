@@ -620,6 +620,7 @@
                 this.isPricingOptionVisible = false;
             },
             create_multiple_pricing_option(){
+                console.log('sdfsdfs')
                 this.isPricingOptionVisible = true;
             },
             addOption(menuIndex) {
