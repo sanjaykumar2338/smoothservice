@@ -166,15 +166,13 @@
                                     <div class="pricing_option" v-show="isPricingOptionVisible">
                                         <br>
                                         <label class="form-label" for="full_editor">Pricing options</label>
-                                        <div class="input-group" id="checked_inputs">
-
-                                        <select style="height: 37px;border: 0px;" name="pricing_option_data" id="pricing_option_data" class="form-control" v-model="selectedRecurringPrice">
-                                            <option value="" disabled>No pricing options set up yet...</option>
-                                            <option v-for="(option, index) in recurringPriceOptions" :key="index" :value="option">
-                                                @{{ option }}
-                                            </option>
-                                        </select>
-
+                                        <div class="input-group" id="">
+                                            <select style="height: 37px;border: 0px;" name="pricing_option_data" id="pricing_option_data" class="form-control" v-model="selectedRecurringPrice">
+                                                <option value="" disabled>No pricing options set up yet...</option>
+                                                <option v-for="(option, index) in recurringPriceOptions" :key="index" :value="option">
+                                                    @{{ option }}
+                                                </option>
+                                            </select>
                                         <button @click="showModal = true" type="button" style="border-left: 0px;" class="btn btn-label-secondary">Edit</button><br>
                                         </div>
                                         <br>
