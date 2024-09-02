@@ -168,14 +168,14 @@
                                         <label class="form-label" for="full_editor">Pricing options</label>
                                         <div class="input-group hidden" id="checked_inputs">
 
-                                        <select style="height: 37px;border: 0px;" name="pricing_option_data" id="pricing_option_data" class="form-control">
+                                        <select style="height: 37px;border: 0px;" name="pricing_option_data" id="pricing_option_data" class="form-control" v-model="selectedRecurringPrice">
                                             <option value="" disabled>No pricing options set up yet...</option>
                                             <option v-for="(option, index) in recurringPriceOptions" :key="index" :value="option">
                                                 @{{ option }}
                                             </option>
                                         </select>
 
-                                        <button  type="button" style="border-left: 0px;" class="btn btn-label-secondary">Edit</button><br>
+                                        <button @click="showModal = true" type="button" style="border-left: 0px;" class="btn btn-label-secondary">Edit</button><br>
                                         </div>
                                         <br>
                                         <span style="cursor:pointer;" class="revert_to_simple_pricing" @click="revertToSimplePricing">Revert to simple pricing</span>
@@ -187,7 +187,7 @@
                                                 <a href="javascript:void(0);" class="list-group-item list-group-item-action d-flex justify-content-between" @click="togglePricingOption">
                                                     <div class="li-wrapper d-flex justify-content-start align-items-center">
                                                         <div class="list-content">
-                                                            <h6 @click="create_multiple_pricing_option" class="create_multiple_pricing_option">Create multiple pricing options?</h6>
+                                                            <h6 class="create_multiple_pricing_option">Create multiple pricing options?</h6>
                                                         </div>
                                                     </div>
                                                 </a>
@@ -618,9 +618,6 @@
             },
             revertToSimplePricing() {
                 this.isPricingOptionVisible = false;
-            },
-            create_multiple_pricing_option(){
-                this.isPricingOptionVisible = true;
             },
             addOption(menuIndex) {
                 this.optionMenus[menuIndex].options.push({ value: '', placeholder: 'Extra Fast', price: '' });
