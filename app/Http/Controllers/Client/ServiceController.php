@@ -19,7 +19,7 @@ class ServiceController extends Controller
                 ->orWhere('description', 'like', '%' . $request->search . '%');
         }
 
-        $services = $query->paginate(10);
+        $services = $query->orderBy('id','desc')->paginate(10);
 
         return view('client.pages.service.index', compact('services'));
     }
@@ -105,6 +105,7 @@ class ServiceController extends Controller
 
     public function store(Request $request)
     {
+        //echo "<pre>"; print_r($request->all()); die;
         // Validate the request
         $validatedData = $request->validate([
             'service_name' => 'required|string|max:255',
@@ -117,6 +118,21 @@ class ServiceController extends Controller
             'set_deadline_check' => 'boolean',
             'set_a_deadline' => 'nullable|integer',
             'set_a_deadline_duration' => 'nullable|string|in:days,hours',
+            'pricing_option_data' => '',
+            'one_time_service_currency' => '',
+            'one_time_service_currency_value' => '',
+            'multiple_orders' => '',
+            'recurring_service_currency' => '',
+            'recurring_service_currency_value' => '',
+            'recurring_service_currency_every' => '',
+            'recurring_service_currency_value_two' => '',
+            'recurring_service_currency_value_two_type' => '',
+            'with_trial_or_setup_fee' => 'boolean',
+            'when_recurring_payment_received' => '',
+            'when_recurring_payment_received_two_order_currency' => '',
+            'when_recurring_payment_received_two_order_currency_value' => '',
+            'price_options' => 'nullable|json', // Add validation for JSON input
+            'combinations' => 'nullable|json',  // Add validation for JSON input
         ]);
 
         // Create the service
@@ -129,7 +145,21 @@ class ServiceController extends Controller
             'set_deadline_check' => $request->set_deadline_check ?? false,
             'set_a_deadline' => $request->set_a_deadline,
             'set_a_deadline_duration' => $request->set_a_deadline_duration,
-            'user_id' => auth()->id(),
+            'pricing_option_data' => $request->pricing_option_data,
+            'one_time_service_currency' => $request->one_time_service_currency,
+            'one_time_service_currency_value' => $request->one_time_service_currency_value,
+            'multiple_orders' => $request->multiple_orders,
+            'recurring_service_currency' => $request->recurring_service_currency,
+            'recurring_service_currency_value' => $request->recurring_service_currency_value,
+            'recurring_service_currency_every' => $request->recurring_service_currency_every,
+            'recurring_service_currency_value_two' => $request->recurring_service_currency_value_two,
+            'recurring_service_currency_value_two_type' => $request->recurring_service_currency_value_two_type,
+            'with_trial_or_setup_fee' => $validatedData['with_trial_or_setup_fee'] ?? false,
+            'when_recurring_payment_received' => $request->when_recurring_payment_received,
+            'when_recurring_payment_received_two_order_currency' => $request->when_recurring_payment_received_two_order_currency,
+            'when_recurring_payment_received_two_order_currency_value' => $request->when_recurring_payment_received_two_order_currency_value,
+            'price_options' => $request->price_options, // Save price_options
+            'combinations' => $request->combinations,   // Save combinations
         ]);
 
         // Attach parent services

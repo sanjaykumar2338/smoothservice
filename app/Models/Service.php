@@ -20,6 +20,7 @@ class Service extends Model
         'set_a_deadline_duration',
         'user_id',
         'price_options',
+        'combinations',
         'pricing_option_data',
         'one_time_service_currency',
         'one_time_service_currency_value',
