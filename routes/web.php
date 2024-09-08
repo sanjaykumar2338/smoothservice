@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\Client\IntakeformController;
 use App\Http\Controllers\Client\ServiceController;
+use App\Http\Controllers\Client\TeamController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 
@@ -43,6 +44,14 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::delete('/service/intakeform/{id}', [IntakeformController::class, 'destroy'])->name('client.intakeform.destroy');
     Route::post('/service/intakeform/store', [IntakeformController::class, 'store'])->name('client.intakeform.store');
     Route::post('/service/intakeform/update_intake', [IntakeFormController::class, 'update_intake'])->name('client.service.intakeform.update_intake');
+
+    // Team member routes
+    Route::get('/team/list', [TeamController::class, 'index'])->name('client.team.list');
+    Route::get('/team/add', [TeamController::class, 'create'])->name('client.team.add');
+    Route::post('/team/store', [TeamController::class, 'store'])->name('client.team.store');
+    Route::get('/client/team/{teamMember}/edit', [TeamController::class, 'edit'])->name('client.team.edit');
+    Route::put('/client/team/{teamMember}', [TeamController::class, 'update'])->name('client.team.update');
+    Route::delete('/client/team/{teamMember}', [TeamController::class, 'destroy'])->name('client.team.destroy');
 });
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

@@ -72,7 +72,7 @@
               </ul>
             </li>
             <!-- Layouts -->
-            <li class="menu-item @php echo in_array(request()->route()->getName(),['client.service.list','client.service.add','client.service.edit','client.service.intakeform.list','client.service.intakeform.add','client.service.intakeform.edit']) ? 'open':''@endphp">
+            <li class="menu-item @php echo in_array(request()->route()->getName(),['client.service.list','client.service.add','client.service.edit','client.service.intakeform.list','client.service.intakeform.add','client.service.intakeform.edit','client.team.list','client.team.add','client.team.edit']) ? 'open':''@endphp">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-layout"></i>
                 <div data-i18n="Services">Services</div>
@@ -88,6 +88,12 @@
                 <li class="menu-item {{request()->route()->getName()=='client.service.intakeform.list' || request()->route()->getName()=='client.service.intakeform.add' || request()->route()->getName()=='client.service.intakeform.edit' ? 'active':''}}">
                   <a href="{{route('client.service.intakeform.list')}}" class="menu-link">
                     <div data-i18n="Intake Forms">Intake Forms</div>
+                  </a>
+                </li>
+
+                <li class="menu-item {{request()->route()->getName()=='client.team.list' || request()->route()->getName()=='client.team.add' || request()->route()->getName()=='client.team.edit' ? 'active':''}}">
+                  <a href="{{route('client.team.list')}}" class="menu-link">
+                    <div data-i18n="Team Members">Team Members</div>
                   </a>
                 </li>
                 
