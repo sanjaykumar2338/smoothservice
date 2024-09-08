@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\TeamMember;
 use App\Models\Role;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TeamMemberWelcome;
 
 class TeamController extends Controller
 {
@@ -41,11 +44,30 @@ class TeamController extends Controller
             'email' => 'required|email|unique:team_members',
             'role_id' => 'required|exists:roles,id',
         ]);
-
-        TeamMember::create($validatedData);
-
-        return redirect()->route('client.team.list')->with('success', 'Team member added successfully.');
-    }
+    
+        // Generate a random password
+        $password = \Str::random(8);
+    
+        // Hash the password
+        $hashedPassword = Hash::make($password);
+    
+        // Create the new team member with hashed password
+        $teamMember = TeamMember::create([
+            'first_name' => $validatedData['first_name'],
+            'last_name' => $validatedData['last_name'],
+            'email' => $validatedData['email'],
+            'role_id' => $validatedData['role_id'],
+            'password' => $hashedPassword, // Store hashed password
+        ]);
+    
+        // Fetch role name for the email content
+        $roleName = Role::find($validatedData['role_id'])->name;
+    
+        // Send the welcome email with login details
+        Mail::to($teamMember->email)->send(new TeamMemberWelcome($teamMember, $roleName, $password));
+    
+        return redirect()->route('client.team.list')->with('success', 'Team member added successfully, and email sent with login details.');
+    }    
 
     // Show form to edit team member
     public function edit(TeamMember $teamMember)

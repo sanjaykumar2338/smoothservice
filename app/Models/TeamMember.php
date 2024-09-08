@@ -18,6 +18,7 @@ class TeamMember extends Model
         'first_name',
         'last_name',
         'role_id', // Assuming role_id links to the roles table
+        'password'
     ];
 
     /**

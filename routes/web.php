@@ -54,6 +54,10 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::delete('/client/team/{teamMember}', [TeamController::class, 'destroy'])->name('client.team.destroy');
 });
 
+Route::group(['middleware' => 'auth:team_members'], function () {
+    Route::get('/dashboard', [TeamController::class, 'index'])->name('team.dashboard');
+});
+
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 
