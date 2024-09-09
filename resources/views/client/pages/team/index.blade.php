@@ -55,7 +55,7 @@
                     @if($teamMembers->count() > 0)
                         @foreach($teamMembers as $teamMember)
                         <tr>
-                            <th scope="row">{{ $loop->iteration }}</th>
+                            <th scope="row">{{ $teamMember->id }}</th>
                             <td>{{ $teamMember->first_name }}</td>
                             <td>{{ $teamMember->last_name }}</td>
                             <td>{{ $teamMember->email }}</td>

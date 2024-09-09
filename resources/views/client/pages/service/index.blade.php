@@ -56,7 +56,7 @@
                     @if($services->count() > 0)
                         @foreach($services as $service)
                         <tr>
-                            <th scope="row">{{ $loop->iteration }}</th>
+                            <th scope="row">{{ $service->id }}</th>
                             <td>{{ $service->service_name }}</td>
                             <td>{{ $service->addon ? 'Yes' : 'No' }}</td>
                             <td>{{ $service->group_multiple ? 'Yes' : 'No' }}</td>

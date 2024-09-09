@@ -334,8 +334,12 @@
                             <div class="col-md-6 mb-4 mb-md-0" id="select_team_container" style="display:none;">
                                 <div class="select2-dark">
                                     <select id="select_team" name="team_member[]" class="select2 form-select" multiple>
-                                        <option value="11">Test 11</option>
-                                        <option value="12">Test 12</option>
+                                        <option value="" disabled>Select Team Members</option>
+                                        @if($team_members)
+                                            @foreach($team_members as $member)
+                                                <option value="{{$member->id}}">{{$member->first_name}} {{$member->last_name}}</option>
+                                            @endforeach
+                                        @endif
                                     </select>
                                 </div>
                             </div>

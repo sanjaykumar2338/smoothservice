@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Service;
 use App\Models\ServiceParentService;
 use App\Models\ServiceTeamMember;
+use App\Models\TeamMember;
 
 class ServiceController extends Controller
 {
@@ -26,12 +27,15 @@ class ServiceController extends Controller
 
     public function create()
     {
-        return view('client.pages.service.create');
+        $team_members = TeamMember::where('added_by', auth()->id())->get();
+        return view('client.pages.service.create')->with('team_members', $team_members);
     }
 
     public function edit(Service $service)
     {
-        return view('client.pages.service.edit', compact('service'));
+        $team_members = TeamMember::where('added_by', auth()->id())->get();
+        $selected_members = $service->teamMembers->pluck('id')->toArray(); // Get the team members IDs already added
+        return view('client.pages.service.edit', compact('service', 'team_members', 'selected_members'));
     }
 
     public function update(Request $request, Service $service)
@@ -93,12 +97,12 @@ class ServiceController extends Controller
         if ($request->has('parent_services')) {
             $service->parentServices()->sync($request->parent_services);
         }
+        */
 
         // Sync team members
         if ($request->has('team_member')) {
             $service->teamMembers()->sync($request->team_member);
         }
-        */
 
         return redirect()->route('client.service.list')->with('success', 'Service updated successfully.');
     }
@@ -172,6 +176,7 @@ class ServiceController extends Controller
                 ]);
             }
         }
+        */
 
         // Attach team members
         if ($request->has('team_member')) {
@@ -182,7 +187,6 @@ class ServiceController extends Controller
                 ]);
             }
         }
-        */
         
         return redirect()->route('client.service.list')->with('success', 'Service created successfully.');
     }

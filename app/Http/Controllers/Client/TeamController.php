@@ -9,6 +9,8 @@ use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TeamMemberWelcome;
+use App\Mail\TeamMemberUpdated;
+use App\Mail\TeamMemberRemoved;
 
 class TeamController extends Controller
 {
@@ -23,8 +25,7 @@ class TeamController extends Controller
                 ->orWhere('email', 'like', '%' . $request->search . '%');
         }
 
-        $teamMembers = $query->with('role')->orderBy('id', 'desc')->paginate(10);
-
+        $teamMembers = $query->with('role')->where('added_by', auth()->id())->orderBy('id', 'desc')->paginate(10);
         return view('client.pages.team.index', compact('teamMembers'));
     }
 
@@ -50,14 +51,15 @@ class TeamController extends Controller
     
         // Hash the password
         $hashedPassword = Hash::make($password);
-    
+        //echo auth()->id(); die;
         // Create the new team member with hashed password
         $teamMember = TeamMember::create([
             'first_name' => $validatedData['first_name'],
             'last_name' => $validatedData['last_name'],
             'email' => $validatedData['email'],
             'role_id' => $validatedData['role_id'],
-            'password' => $hashedPassword, // Store hashed password
+            'password' => $hashedPassword,
+            'added_by' => auth()->id(),
         ]);
     
         // Fetch role name for the email content
@@ -93,14 +95,26 @@ class TeamController extends Controller
             'role_id' => 'required|exists:roles,id',
         ]);
 
+        // Check if anything has changed
+        $changes = array_diff_assoc($validatedData, $teamMember->only(['first_name', 'last_name', 'email', 'role_id']));
+
+        // Update team member details
         $teamMember->update($validatedData);
+
+        // Send email notification only if there are changes
+        if (!empty($changes)) {
+            Mail::to($teamMember->email)->send(new TeamMemberUpdated($teamMember));
+        }
 
         return redirect()->route('client.team.list')->with('success', 'Team member updated successfully.');
     }
 
+
     // Delete team member
     public function destroy(TeamMember $teamMember)
     {
+        Mail::to($teamMember->email)->send(new TeamMemberRemoved($teamMember));
+
         $teamMember->delete();
 
         return redirect()->route('client.team.list')->with('success', 'Team member deleted successfully.');

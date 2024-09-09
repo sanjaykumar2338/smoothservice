@@ -344,8 +344,14 @@
                             @endif
                                 <div class="select2-dark">
                                     <select id="select_team" name="team_member[]" class="select2 form-select" multiple>
-                                        <option value="11" {{ isset($service) && $service->teamMembers && in_array(11, $service->teamMembers->pluck('id')->toArray()) ? 'selected' : '' }}>Test 11</option>
-                                        <option value="12" {{ isset($service) && $service->teamMembers && in_array(12, $service->teamMembers->pluck('id')->toArray()) ? 'selected' : '' }}>Test 12</option>
+                                        <option value="" disabled>Select Team Members</option>
+                                            @if($team_members)
+                                                @foreach($team_members as $member)
+                                                    <option value="{{ $member->id }}" {{ in_array($member->id, $selected_members) ? 'selected' : '' }}>
+                                                        {{ $member->first_name }} {{ $member->last_name }}
+                                                    </option>
+                                                @endforeach
+                                            @endif
                                     </select>
                                 </div>
                             </div>

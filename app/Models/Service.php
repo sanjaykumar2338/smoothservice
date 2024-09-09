@@ -47,6 +47,6 @@ class Service extends Model
 
     public function teamMembers()
     {
-        return $this->belongsToMany(User::class, 'service_team_members', 'service_id', 'team_member_id');
+        return $this->belongsToMany(TeamMember::class, 'service_team_members', 'service_id', 'team_member_id');
     }
 }
