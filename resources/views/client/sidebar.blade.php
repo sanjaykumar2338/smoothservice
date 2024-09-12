@@ -72,9 +72,10 @@
               </ul>
             </li>
             <!-- Layouts -->
+
             <li class="menu-item @php echo in_array(request()->route()->getName(),['client.service.list','client.service.add','client.service.edit','client.service.intakeform.list','client.service.intakeform.add','client.service.intakeform.edit','client.team.list','client.team.add','client.team.edit']) ? 'open':''@endphp">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-layout"></i>
+                <i class="menu-icon tf-icons bx bx-briefcase"></i>
                 <div data-i18n="Services">Services</div>
               </a>
 
@@ -103,6 +104,13 @@
                   </a>
                 </li>
               </ul>
+            </li>
+
+            <li class="menu-item @php echo in_array(request()->route()->getName(), ['client.list', 'client.add', 'client.edit']) ? 'open active' : '' @endphp">
+                <a href="{{ route('client.list') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-user"></i>
+                    <div data-i18n="Clients">Clients</div>
+                </a>
             </li>
 
             <!-- Apps & Pages -->

@@ -3,7 +3,17 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width,initial-scale=1">
-	<title>Welcome to the Team</title>
+	<meta name="x-apple-disable-message-reformatting">
+	<title></title>
+	<!--[if mso]>
+	<noscript>
+		<xml>
+			<o:OfficeDocumentSettings>
+				<o:PixelsPerInch>96</o:PixelsPerInch>
+			</o:OfficeDocumentSettings>
+		</xml>
+	</noscript>
+	<![endif]-->
 	<style>
 		table, td, div, h1, p {font-family: Arial, sans-serif;}
 	</style>
@@ -15,7 +25,7 @@
 				<table role="presentation" style="width:602px;border-collapse:collapse;border:1px solid #cccccc;border-spacing:0;text-align:left;">
 					<tr>
 						<td align="center" style="padding:40px 0 30px 0;background:#70bbd9;">
-							{{env('APP_NAME')}} <!-- You can replace this with the actual logo if available -->
+							<h1 style="color:#ffffff; font-size:30px;">{{env('APP_NAME')}}</h1>
 						</td>
 					</tr>
 					<tr>
@@ -23,24 +33,16 @@
 							<table role="presentation" style="width:100%;border-collapse:collapse;border:0;border-spacing:0;">
 								<tr>
 									<td style="padding:0 0 36px 0;color:#153643;">
-										<h1 style="font-size:24px;margin:0 0 20px 0;font-family:Arial,sans-serif;">Dear {{ $teamMember->first_name ?? 'Team Member' }},</h1>
-										<p style="margin:0 0 12px 0;font-size:16px;line-height:24px;font-family:Arial,sans-serif;">Your account has been updated with the following details:</p>
-										<ul style="margin:0 0 12px 0;font-size:16px;line-height:24px;font-family:Arial,sans-serif;">
-                                            <li>Email: {{ $teamMember->email }}</li>
-                                            <li>Role: {{ $teamMember->role->name }}</li>
-										</ul>
-										<p style="margin:0 0 12px 0;font-size:16px;line-height:24px;font-family:Arial,sans-serif;">Please log in using the button below:</p>
-									</td>
-								</tr>
-								<tr>
-									<td align="center" style="padding:0;">
-										<table role="presentation" style="border-collapse:collapse;border-spacing:0;text-align:center;">
-											<tr>
-												<td align="center" style="background:#4CAF50;padding:10px 20px;border-radius:5px;">
-													<a href="{{ url('/login') }}" style="color:#ffffff;text-decoration:none;font-size:16px;font-family:Arial,sans-serif;">Login to Your Account</a>
-												</td>
-											</tr>
-										</table>
+										<h1 style="font-size:24px;margin:0 0 20px 0;font-family:Arial,sans-serif;">Dear {{ $client->first_name ?? 'Client' }},</h1>
+										<p style="margin:0 0 12px 0;font-size:16px;line-height:24px;font-family:Arial,sans-serif;">
+                                            Welcome to {{ env('APP_NAME') }}! Here are your login details:
+                                            <ul>
+                                                <li>Email: {{ $client->email }}</li>
+                                                <li>Password: {{ $password }}</li>
+                                            </ul>
+                                            Feel free to log in and explore the services we offer.
+										</p>
+										<p style="margin:0;font-size:16px;line-height:24px;font-family:Arial,sans-serif;">Best regards,<br>Your Company</p>
 									</td>
 								</tr>
 							</table>
@@ -56,7 +58,7 @@
 										</p>
 									</td>
 									<td style="padding:0;width:50%;" align="right">
-										<table role="presentation" style="border-collapse:collapse;border-spacing:0;">
+										<table role="presentation" style="border-collapse:collapse;border:0;border-spacing:0;">
 											<tr>
 												<td style="padding:0 0 0 10px;width:38px;">
 													<a href="http://www.twitter.com/" style="color:#ffffff;"><img src="https://assets.codepen.io/210284/tw_1.png" alt="Twitter" width="38" style="height:auto;display:block;border:0;" /></a>

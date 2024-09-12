@@ -52,6 +52,14 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::get('/client/team/{teamMember}/edit', [TeamController::class, 'edit'])->name('client.team.edit');
     Route::put('/client/team/{teamMember}', [TeamController::class, 'update'])->name('client.team.update');
     Route::delete('/client/team/{teamMember}', [TeamController::class, 'destroy'])->name('client.team.destroy');
+
+    // Client routes
+    Route::get('/list', [ClientController::class, 'index'])->name('client.list');
+    Route::get('/add', [ClientController::class, 'create'])->name('client.add');
+    Route::post('/store', [ClientController::class, 'store'])->name('client.store');
+    Route::get('/edit/{id}', [ClientController::class, 'edit'])->name('client.edit');
+    Route::put('/update/{id}', [ClientController::class, 'update'])->name('client.update');
+    Route::delete('/destroy/{id}', [ClientController::class, 'destroy'])->name('client.destroy');
 });
 
 Route::group(['middleware' => 'auth:team_members'], function () {
