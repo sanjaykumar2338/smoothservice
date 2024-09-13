@@ -6,6 +6,7 @@ use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\Client\IntakeformController;
 use App\Http\Controllers\Client\ServiceController;
 use App\Http\Controllers\Client\TeamController;
+use App\Http\Controllers\Client\OrderController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 
@@ -60,6 +61,15 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::get('/edit/{id}', [ClientController::class, 'edit'])->name('client.edit');
     Route::put('/update/{id}', [ClientController::class, 'update'])->name('client.update');
     Route::delete('/destroy/{id}', [ClientController::class, 'destroy'])->name('client.destroy');
+
+    // Order routes
+    Route::get('/order/detail/{id}', [OrderController::class, 'show'])->name('client.order.show');
+    Route::get('/order/list', [OrderController::class, 'index'])->name('client.order.list');
+    Route::get('/order/add', [OrderController::class, 'create'])->name('client.order.add');
+    Route::post('/order/store', [OrderController::class, 'store'])->name('client.order.store');        
+    Route::get('/order/edit/{id}', [OrderController::class, 'edit'])->name('client.order.edit');
+    Route::post('/order/update/{id}', [OrderController::class, 'update'])->name('client.order.update');
+    Route::delete('/order/delete/{id}', [OrderController::class, 'destroy'])->name('client.order.destroy');
 });
 
 Route::group(['middleware' => 'auth:team_members'], function () {
