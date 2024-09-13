@@ -99,7 +99,7 @@
                 </li>
                 
                 <li class="menu-item">
-                  <a href="layouts-content-navbar.html" class="menu-link">
+                  <a href="#" class="menu-link">
                     <div data-i18n="Landing pages">Landing pages</div>
                   </a>
                 </li>
