@@ -65,7 +65,9 @@
                             <td>{{ $order->created_at->format('Y-m-d') }}</td>
                             <td>
                                 <!-- Edit Button -->
-                                <a href="{{ route('client.order.edit', $order->id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                <a style="display:none;" href="{{ route('client.order.edit', $order->id) }}" class="btn btn-sm btn-primary">Edit</a>
+
+                                <a href="{{ route('client.order.show', $order->id) }}" class="btn btn-sm btn-info">Details</a>
 
                                 <!-- Delete Button -->
                                 <form action="{{ route('client.order.destroy', $order->id) }}" method="POST" style="display:inline-block;">
@@ -73,8 +75,6 @@
                                     @method('DELETE')
                                     <button type="submit" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</button>
                                 </form>
-
-                                <a href="{{ route('client.order.show', $order->id) }}" class="btn btn-sm btn-info">Details</a>
                             </td>
                         </tr>
                         @endforeach
