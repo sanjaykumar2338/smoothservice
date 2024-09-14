@@ -13,7 +13,7 @@ class OrderController extends Controller
     // List all orders
     public function index()
     {
-        $orders = Order::with('client', 'service')->paginate(10); 
+        $orders = Order::with('client', 'service')->where('user_id', auth()->id())->paginate(10); 
         //echo "<pre>"; print_r($orders); die;
         $clients = Client::all();  // Fetch list of all clients
         $services = Service::all();  // Fetch list of all services
@@ -44,6 +44,7 @@ class OrderController extends Controller
         // Create the new order
         $order = Order::create([
             'client_id' => $validatedData['client_id'],
+            'user_id' => auth()->id(),
             'service_id' => $validatedData['service_id'],
             'order_date' => $validatedData['order_date'] ?? now(), // Default to current date if not provided
             'note' => $validatedData['note'] ?? null,
