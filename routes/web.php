@@ -70,6 +70,7 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::get('/order/edit/{id}', [OrderController::class, 'edit'])->name('client.order.edit');
     Route::post('/order/update/{id}', [OrderController::class, 'update'])->name('client.order.update');
     Route::delete('/order/delete/{id}', [OrderController::class, 'destroy'])->name('client.order.destroy');
+    Route::post('/order/{id}/save-note', [OrderController::class, 'saveNote']);
 });
 
 Route::group(['middleware' => 'auth:team_members'], function () {

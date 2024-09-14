@@ -28,7 +28,6 @@ class OrderController extends Controller
         return view('client.pages.orders.add', compact('clients', 'services'));
     }
 
-    // Store new order
     public function store(Request $request)
     {
         // Validate the incoming request
@@ -39,18 +38,22 @@ class OrderController extends Controller
             'note' => 'nullable|string|max:255', // Optional team note
         ]);
 
+        // Generate an 8-character alphanumeric order number
+        $order_no = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8)); // Generates exactly 8 characters
+
         // Create the new order
         $order = Order::create([
             'client_id' => $validatedData['client_id'],
             'service_id' => $validatedData['service_id'],
             'order_date' => $validatedData['order_date'] ?? now(), // Default to current date if not provided
             'note' => $validatedData['note'] ?? null,
+            'order_no' => $order_no,  // Store the generated 8-character alphanumeric order number
         ]);
 
         // Redirect to the order detail page with success message
         return redirect()->route('client.order.show', ['id' => $order->id])->with('success', 'Order created successfully.');
     }
-
+    
     // Show order details
     public function show($id)
     {
@@ -92,5 +95,20 @@ class OrderController extends Controller
         $order->delete();
 
         return redirect()->route('client.order.list')->with('success', 'Order deleted successfully.');
+    }
+
+    public function saveNote(Request $request, $id)
+    {
+        // Validate the incoming request
+        $request->validate([
+            'note' => 'nullable|string|max:255',
+        ]);
+
+        // Find the order and update the note
+        $order = Order::findOrFail($id);
+        $order->note = $request->note;
+        $order->save();
+
+        return response()->json(['success' => true, 'message' => 'Note saved successfully.']);
     }
 }

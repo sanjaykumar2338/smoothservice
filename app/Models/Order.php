@@ -8,7 +8,7 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['service_id', 'client_id', 'note', 'status'];
+    protected $fillable = ['order_no', 'service_id', 'client_id', 'note', 'status'];
 
     public function service()
     {
