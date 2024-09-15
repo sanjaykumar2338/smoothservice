@@ -274,6 +274,7 @@ class OrderController extends Controller
 
     public function exportData($id) {
         // Fetch the project data for the order
+        $order = Order::findOrFail($id);
         $projectData = OrderProjectData::where('order_id', $id)->get();
     
         // Pass data to a view for rendering the PDF
@@ -283,17 +284,18 @@ class OrderController extends Controller
         ]);
     
         // Return the generated PDF
-        return $pdf->download('order_' . $id . '_data.pdf');
+        return $pdf->download('order_' . $order->order_no . '_data.pdf');
     }
     
     public function downloadFiles($id) {
         // Fetch the project data for the order with file uploads
+        $order = Order::findOrFail($id);
         $projectData = OrderProjectData::where('order_id', $id)
             ->where('field_type', 'file_upload')
             ->get();
     
         // Create a temporary file for the ZIP
-        $zipFile = storage_path('app/public/uploads/order_' . $id . '.zip');
+        $zipFile = storage_path('app/public/uploads/order_' . $order->order_no . '.zip');
         
         $zip = new \ZipArchive;
         if ($zip->open($zipFile, \ZipArchive::CREATE) === TRUE) {
