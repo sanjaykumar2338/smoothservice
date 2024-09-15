@@ -71,6 +71,12 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::post('/order/update/{id}', [OrderController::class, 'update'])->name('client.order.update');
     Route::delete('/order/delete/{id}', [OrderController::class, 'destroy'])->name('client.order.destroy');
     Route::post('/order/{id}/save-note', [OrderController::class, 'saveNote']);
+    Route::post('/order/save-task', [OrderController::class, 'saveTask']);
+    Route::get('/order/get-task/{taskId}', [OrderController::class, 'getTask']);
+    Route::get('/order/delete-task/{taskId}', [OrderController::class, 'deleteTask']);
+    Route::post('/order/update-task/{taskId}', [OrderController::class, 'updateTask']);
+    Route::post('/order/update-task-status/{taskId}', [OrderController::class, 'updateTaskStatus']);
+    Route::get('/order/tasks/{id}', [OrderController::class, 'getTasksByStatus']);
 });
 
 Route::group(['middleware' => 'auth:team_members'], function () {

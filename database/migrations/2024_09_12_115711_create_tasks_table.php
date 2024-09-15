@@ -15,6 +15,7 @@ class CreateTasksTable extends Migration
             $table->foreignId('assigned_to')->constrained('team_members')->onDelete('cascade'); // Assigned team member
             $table->dateTime('due_date'); // Due date
             $table->string('due_from_previous')->nullable(); // Previous task reference
+            $table->string('due_type')->nullable(); // Previous task reference
             $table->integer('due_period_value')->nullable(); // Value for the period (e.g., 3)
             $table->string('due_period_type')->nullable(); // Type of period (e.g., days, hours)
             $table->timestamps();

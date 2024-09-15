@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Service;
 use App\Models\Client;
+use App\Models\TeamMember;
+use App\Models\Task;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -58,8 +60,11 @@ class OrderController extends Controller
     // Show order details
     public function show($id)
     {
-        $order = Order::with('client', 'service')->findOrFail($id);  // Fetch order with related client and service
-        return view('client.pages.orders.show', compact('order'));
+        $team_members = TeamMember::where('added_by', auth()->id())->get();
+        $order = Order::with(['client', 'service', 'tasks' => function($query) {
+            $query->where('status', 0);
+        }])->findOrFail($id);
+        return view('client.pages.orders.show', compact('order','team_members'));
     }
 
     // Show form to edit order
@@ -111,5 +116,93 @@ class OrderController extends Controller
         $order->save();
 
         return response()->json(['success' => true, 'message' => 'Note saved successfully.']);
+    }
+
+    public function saveTask(Request $request) {
+        // Validate request
+        $validated = $request->validate([
+            'name' => 'required|string',
+            'description' => 'nullable|string',
+            'due_date' => 'nullable|date',
+            'assigned_to' => 'nullable|array' // Make this optional
+        ]);
+    
+        // Create the task
+        $task = new Task();
+        $task->order_id = $request->order_id;
+        $task->name = $validated['name'];
+        $task->description = $validated['description'];
+        $task->due_date = $validated['due_date'] ?? null;
+        $task->due_type = $request->due_type ?? null;
+        $task->due_period_value = $request->due_period_value ?? null;
+        $task->due_period_type = $request->due_period_type ?? null;
+        $task->save();
+    
+        // Sync members only if assigned_members is provided
+        if (!empty($validated['assigned_to'])) {
+            $task->members()->sync($validated['assigned_to']);
+        }
+    
+        return response()->json(['task' => $task]);
+    }
+
+    public function getTasks(Request $request)
+    {
+        // If no status is passed, show both completed and incomplete tasks
+        $tasks = Task::where(function($query) use ($request) {
+            if ($request->has('status')) {
+                $query->where('status', $request->status);
+            }
+        })->get();
+
+        return response()->json(['tasks' => $tasks]);
+    }
+
+    public function getTasksByStatus(Request $request, $orderId)
+    {
+        $status = $request->get('status', 0); // Default to incomplete tasks (status = 0)
+        
+        // Fetch tasks based on order ID and status
+        $tasks = Task::where('order_id', $orderId)
+                    ->where('status', $status)
+                    ->get();
+
+        return response()->json(['tasks' => $tasks]);
+    }
+
+    public function deleteTask($id) {
+        $task = Task::findOrFail($id);
+        $task->members()->detach();  // Remove associated members
+        $task->delete();
+    
+        return response()->json(['success' => true]);
+    }
+
+    public function updateTask(Request $request, $taskId)
+    {
+        $task = Task::findOrFail($taskId);
+        $task->name = $request->name;
+        $task->description = $request->description;
+        $task->due_date = $request->due_date ?? null;
+        $task->due_type = $request->due_type ?? null;
+        $task->due_period_value = $request->due_period_value ?? null;
+        $task->due_period_type = $request->due_period_type ?? null;
+        $task->save();
+
+        // Sync the members if provided
+        if (!empty($request->assigned_to)) {
+            $task->members()->sync($request->assigned_to);
+        }
+
+        return response()->json(['task' => $task]);
+    }
+
+    public function updateTaskStatus(Request $request, $taskId)
+    {
+        $task = Task::findOrFail($taskId);
+        $task->status = $request->status;
+        $task->save();
+
+        return response()->json(['success' => true]);
     }
 }

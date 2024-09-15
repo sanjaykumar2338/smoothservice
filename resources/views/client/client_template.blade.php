@@ -59,7 +59,7 @@
     <script src="{{asset('/assets/js/config.js')}}"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
+    <script src="{{asset('/assets/vendor/libs/jquery/jquery.js')}}"></script>
   </head>
 
   <body>
@@ -156,7 +156,6 @@
     <!-- Core JS -->
     <!-- build:js assets/vendor/js/core.js -->
 
-    <script src="{{asset('/assets/vendor/libs/jquery/jquery.js')}}"></script>
     <script src="{{asset('/assets/vendor/libs/popper/popper.js')}}"></script>
     <script src="{{asset('/assets/vendor/js/bootstrap.js')}}"></script>
     <script src="{{asset('/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js')}}"></script>

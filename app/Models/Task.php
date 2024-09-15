@@ -8,7 +8,7 @@ class Task extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['order_id', 'name', 'description', 'assigned_to', 'due_date', 'due_from_previous', 'due_period_value', 'due_period_type'];
+    protected $fillable = ['order_id', 'name', 'description', 'assigned_to', 'due_date', 'due_from_previous', 'due_period_value', 'due_period_type', 'due_type', 'status'];
 
     public function order()
     {
@@ -18,5 +18,10 @@ class Task extends Model
     public function assignedTo()
     {
         return $this->belongsTo(TeamMember::class, 'assigned_to');
+    }
+
+    public function members()
+    {
+        return $this->belongsToMany(TeamMember::class, 'task_members', 'task_id', 'member_id');
     }
 }
