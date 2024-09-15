@@ -158,6 +158,11 @@ class OrderController extends Controller
         return response()->json(['tasks' => $tasks]);
     }
 
+    public function getTask($id) {
+        $task = Task::with('members')->findOrFail($id);  // Load task with members
+        return response()->json(['task' => $task]);
+    }
+
     public function getTasksByStatus(Request $request, $orderId)
     {
         $status = $request->get('status', 0); // Default to incomplete tasks (status = 0)
