@@ -113,7 +113,7 @@
                 </a>
             </li>
 
-            <li class="menu-item @php echo in_array(request()->route()->getName(), ['client.order.list', 'client.order.add', 'client.order.edit','client.order.show']) ? 'open active' : '' @endphp">
+            <li class="menu-item @php echo in_array(request()->route()->getName(), ['client.order.list', 'client.order.add', 'client.order.edit','client.order.show','client.order.project_data']) ? 'open active' : '' @endphp">
                 <a href="{{ route('client.order.list') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-cart"></i>
                     <div data-i18n="Orders">Orders</div>

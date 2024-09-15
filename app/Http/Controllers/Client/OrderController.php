@@ -8,7 +8,9 @@ use App\Models\Service;
 use App\Models\Client;
 use App\Models\TeamMember;
 use App\Models\Task;
+use App\Models\OrderProjectData;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
@@ -64,7 +66,22 @@ class OrderController extends Controller
         $order = Order::with(['client', 'service', 'tasks' => function($query) {
             $query->where('status', 0);
         }])->findOrFail($id);
-        return view('client.pages.orders.show', compact('order','team_members'));
+
+        $project_data = OrderProjectData::where('order_id', $id)->get();
+        return view('client.pages.orders.show', compact('order','team_members','project_data'));
+    }
+
+    public function project_data($id)
+    {
+        $team_members = TeamMember::where('added_by', auth()->id())->get();
+        $order = Order::with(['client', 'service', 'tasks' => function($query) {
+            $query->where('status', 0);
+        }])->findOrFail($id);
+
+        // Fetch the saved project data
+        $project_data = OrderProjectData::where('order_id', $id)->get();
+
+        return view('client.pages.orders.project', compact('order', 'team_members', 'project_data'));
     }
 
     // Show form to edit order
@@ -209,5 +226,92 @@ class OrderController extends Controller
         $task->save();
 
         return response()->json(['success' => true]);
+    }
+
+    public function saveProjectData(Request $request)
+    {
+        $projectData = new OrderProjectData();
+        $projectData->order_id = $request->order_id;
+        $projectData->field_name = $request->field_name;
+        $projectData->field_type = $request->field_type;
+        $projectData->save();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function save_project_data(Request $request, $orderId)
+    {
+        foreach ($request->except('_token') as $key => $value) {
+            // Extract field id from the input name (assuming 'field_{id}')
+            $field_id = str_replace('field_', '', $key);
+
+            // Find the specific project data field
+            $projectData = OrderProjectData::find($field_id);
+
+            // Handle file upload
+            if ($projectData->field_type == 'file_upload' && $request->hasFile($key)) {
+                $filePath = $request->file($key)->store('uploads');
+                $projectData->field_value = $filePath;
+            } else {
+                // Save other types of data
+                $projectData->field_value = is_array($value) ? json_encode($value) : $value;
+            }
+
+            $projectData->save();
+        }
+
+        return redirect()->route('client.order.project_data', $orderId)->with('status', 'Data has been saved successfully!');
+    }
+
+    public function removeProjectField($fieldId)
+    {
+        // Find the project data field and delete it
+        $projectData = OrderProjectData::findOrFail($fieldId);
+        $projectData->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function exportData($id) {
+        // Fetch the project data for the order
+        $projectData = OrderProjectData::where('order_id', $id)->get();
+    
+        // Pass data to a view for rendering the PDF
+        $pdf = Pdf::loadView('client.pages.orders.export_pdf', [
+            'project_data' => $projectData,
+            'orderId' => $id
+        ]);
+    
+        // Return the generated PDF
+        return $pdf->download('order_' . $id . '_data.pdf');
+    }
+    
+    public function downloadFiles($id) {
+        // Fetch the project data for the order with file uploads
+        $projectData = OrderProjectData::where('order_id', $id)
+            ->where('field_type', 'file_upload')
+            ->get();
+    
+        // Create a temporary file for the ZIP
+        $zipFile = storage_path('app/public/uploads/order_' . $id . '.zip');
+        
+        $zip = new \ZipArchive;
+        if ($zip->open($zipFile, \ZipArchive::CREATE) === TRUE) {
+            foreach ($projectData as $data) {
+                if ($data->field_value && \Storage::exists('public/' . $data->field_value)) {
+                    $zip->addFile(storage_path('app/public/' . $data->field_value), basename($data->field_value));
+                }
+            }
+            $zip->close();
+        }
+    
+        // Return the ZIP file as a download
+        return response()->download($zipFile)->deleteFileAfterSend(true);
+    }
+    
+    public function deleteData($id) {
+        // Logic to delete project data related to this order
+        OrderProjectData::where('order_id', $id)->delete();
+        return redirect()->back()->with('success', 'Project data deleted successfully.');
     }
 }

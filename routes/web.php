@@ -64,6 +64,7 @@ Route::prefix('client')->middleware('auth')->group(function () {
 
     // Order routes
     Route::get('/order/detail/{id}', [OrderController::class, 'show'])->name('client.order.show');
+    Route::get('/order/projectdata/{id}', [OrderController::class, 'project_data'])->name('client.order.project_data');
     Route::get('/order/list', [OrderController::class, 'index'])->name('client.order.list');
     Route::get('/order/add', [OrderController::class, 'create'])->name('client.order.add');
     Route::post('/order/store', [OrderController::class, 'store'])->name('client.order.store');        
@@ -77,6 +78,12 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::post('/order/update-task/{taskId}', [OrderController::class, 'updateTask']);
     Route::post('/order/update-task-status/{taskId}', [OrderController::class, 'updateTaskStatus']);
     Route::get('/order/tasks/{id}', [OrderController::class, 'getTasksByStatus']);
+    Route::post('/order/save-project-data', [OrderController::class, 'saveProjectData']);
+    Route::post('/order/save-project-data/{id}', [OrderController::class, 'save_project_data'])->name('client.order.save_project_data');
+    Route::post('/order/remove-project-field/{id}', [OrderController::class, 'removeProjectField'])->name('client.order.remove_project_field');
+    Route::get('/order/export-data/{id}', [OrderController::class, 'exportData'])->name('client.order.export_data');
+    Route::get('/order/download-files/{id}', [OrderController::class, 'downloadFiles'])->name('client.order.download_files');
+    Route::delete('/order/delete-data/{id}', [OrderController::class, 'deleteData'])->name('client.order.delete_data');
 });
 
 Route::group(['middleware' => 'auth:team_members'], function () {

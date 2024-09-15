@@ -249,34 +249,46 @@
                            <i class="bx bx-dots-vertical-rounded"></i>
                            </button>
                            <ul class="dropdown-menu dropdown-menu-end">
-                              <li><a class="dropdown-item" href="javascript:void(0);">Share connections</a></li>
-                              <li><a class="dropdown-item" href="javascript:void(0);">Suggest edits</a></li>
-                              <li>
-                                 <hr class="dropdown-divider" />
-                              </li>
-                              <li><a class="dropdown-item" href="javascript:void(0);">Report bug</a></li>
+                              <li><a class="dropdown-item open_data_project" href="javascript:void(0);">Add data</a></li>
+                              <li><a class="dropdown-item" href="{{ route('client.order.project_data', $order->id) }}">Edit data</a></li>
+                              <li><a class="dropdown-item" href="{{ route('client.order.export_data', $order->id) }}">Export data</a></li>
+                              <li><a class="dropdown-item" href="{{ route('client.order.download_files', $order->id) }}">Download files</a></li>
+                              <li><a class="dropdown-item" href="javascript:void(0);" onclick="deleteData({{ $order->id }})">Delete data</a></li>
                            </ul>
+
                         </div>
                      </div>
                   </div>
+
                   <div class="card-body">
                      <ul class="list-unstyled mb-0">
-                        <li class="mb-3">
-                           <div class="d-flex align-items-start">
+                        @foreach($project_data as $data)
+                           <li class="mb-3">
                               <div class="d-flex align-items-start">
-                                 <div class="me-2">
-                                    <h6 class="mb-0">Cecilia Payne</h6>
-                                    <small class="text-muted">45 Connections</small>
+                                 <div class="d-flex align-items-start">
+                                    <div class="me-2">
+                                       <strong>{{ $data->field_name }}:</strong> 
+                                       
+                                       @if($data->field_type === 'file_upload' && $data->field_value)
+                                          <a href="{{ asset('storage/' . $data->field_value) }}" target="_blank">View File</a>
+                                       @else
+                                          <span>{{ $data->field_value ?? 'No value provided' }}</span>
+                                       @endif
+                                    </div>
                                  </div>
                               </div>
-                           </div>
-                        </li>
+                           </li>
+                        @endforeach
                      </ul>
                   </div>
+
+
+
                </div>
             </div>
          </div>
          <!--/ project data -->
+         
          <div class="row">
             <div class="col-lg-12 col-xl-12">
                <div class="card card-action mb-4">
@@ -318,7 +330,7 @@
                   </thead>
                   <tbody>
                     <tr>
-                        <td>no record.<td>
+                        <td style="text-align:center" colspan="6">No record.<td>
                     </tr>
                   </tbody>
                </table>
@@ -383,6 +395,42 @@
          </div>
       </div>
    </div>
+</div>
+
+<div class="modal" id="addDataModal" tabindex="-1" aria-modal="true" role="dialog" style="padding-left: 0px;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addDataModalLabel">Add Project Data</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="project-data-form">
+          <div class="mb-3">
+            <label for="field_name" class="form-label">Field Name</label>
+            <input type="text" class="form-control" id="field_name" name="field_name" required>
+          </div>
+          <div class="mb-3">
+            <label for="field_type" class="form-label">Field Type</label>
+            <select class="form-select" id="field_type" name="field_type" required>
+              <option value="single_line">Single Line Text</option>
+              <option value="multiple_line">Multiple Line Text</option>
+              <option value="checkbox">Checkbox</option>
+              <option value="file_upload">File Upload</option>
+              <option value="hidden_field">Hidden Field</option>
+            </select>
+          </div>
+
+          <input type="hidden" name="order_id" value="{{$order->id}}">
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="save-project-data">Continue</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -688,6 +736,39 @@
       });
    });
 
+   $(document).on('click', '.open_data_project', function() {
+      $('#addDataModal').modal('show');
+   });
+
+   $('#save-project-data').on('click', function() {
+      var formData = $('#project-data-form').serialize();
+
+      $.ajax({
+         url: '/client/order/save-project-data',
+         method: 'POST',
+         data: formData,
+         headers: {
+               'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+         },
+         success: function(response) {
+               // Use the order ID from $order->id for redirection
+               window.location.href = '/client/order/projectdata/' + {{ $order->id }};
+         }
+      });
+   });
+
+   function deleteData(orderId) {
+      if (confirm('Are you sure you want to delete this data?')) {
+         $.ajax({
+               url: `/order/delete-data/${orderId}`,
+               method: 'DELETE',
+               headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+               success: function(response) {
+                  location.reload();  // Reload the page after deletion
+               }
+         });
+      }
+   }
 </script>
 
 @endsection
