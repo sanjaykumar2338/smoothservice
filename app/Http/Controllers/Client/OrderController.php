@@ -8,6 +8,8 @@ use App\Models\Service;
 use App\Models\Client;
 use App\Models\TeamMember;
 use App\Models\Task;
+use App\Models\History;
+use App\Models\ClientReply;
 use App\Models\OrderProjectData;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -29,6 +31,7 @@ class OrderController extends Controller
     {
         $clients = Client::all();  // Fetch list of all clients
         $services = Service::all();  // Fetch list of all services
+
         return view('client.pages.orders.add', compact('clients', 'services'));
     }
 
@@ -55,6 +58,14 @@ class OrderController extends Controller
             'order_no' => $order_no,  // Store the generated 8-character alphanumeric order number
         ]);
 
+         // Store order update in history
+         History::create([
+            'order_id' => $order->id,
+            'user_id' => auth()->id(),
+            'action_type' => 'order_created',
+            'action_details' => 'Order created with the following data: ' . json_encode($request->all()),
+        ]);
+
         // Redirect to the order detail page with success message
         return redirect()->route('client.order.show', ['id' => $order->id])->with('success', 'Order created successfully.');
     }
@@ -65,10 +76,18 @@ class OrderController extends Controller
         $team_members = TeamMember::where('added_by', auth()->id())->get();
         $order = Order::with(['client', 'service', 'tasks' => function($query) {
             $query->where('status', 0);
-        }])->findOrFail($id);
+        }])->where('order_no', $id)->firstOrFail();
 
-        $project_data = OrderProjectData::where('order_id', $id)->get();
-        return view('client.pages.orders.show', compact('order','team_members','project_data'));
+        $project_data = OrderProjectData::where('order_id', $order->id)->get();
+        $client_replies = ClientReply::where('order_id', $order->id)->get();
+        $orderHistory = History::where('order_id', $order->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy(function($date) {
+                return \Carbon\Carbon::parse($date->created_at)->format('Y-m-d'); // Group by date only
+            });
+
+        return view('client.pages.orders.show', compact('order','team_members','project_data','client_replies','orderHistory'));
     }
 
     public function project_data($id)
@@ -108,6 +127,14 @@ class OrderController extends Controller
         // Update order details
         $order->update($validatedData);
 
+         // Store order update in history
+         History::create([
+            'order_id' => $order->id,
+            'user_id' => auth()->id(),
+            'action_type' => 'order_updated',
+            'action_details' => 'Order updated with the following data: ' . json_encode($request->all()),
+        ]);
+
         return redirect()->route('client.order.show', $order->id)->with('success', 'Order updated successfully.');
     }
 
@@ -131,6 +158,14 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $order->note = $request->note;
         $order->save();
+
+         // Store order update in history
+         History::create([
+            'order_id' => $order->id,
+            'user_id' => auth()->id(),
+            'action_type' => 'order_note',
+            'action_details' => 'Order note saved with the following data: ' . json_encode($request->all()),
+        ]);
 
         return response()->json(['success' => true, 'message' => 'Note saved successfully.']);
     }
@@ -159,6 +194,14 @@ class OrderController extends Controller
         if (!empty($validated['assigned_to'])) {
             $task->members()->sync($validated['assigned_to']);
         }
+
+         // Store order update in history
+         History::create([
+            'order_id' => $request->order_id,
+            'user_id' => auth()->id(),
+            'action_type' => 'order_updated',
+            'action_details' => 'Order task created with the following data: ' . json_encode($request->all()),
+        ]);
     
         return response()->json(['task' => $task]);
     }
@@ -196,6 +239,14 @@ class OrderController extends Controller
         $task = Task::findOrFail($id);
         $task->members()->detach();  // Remove associated members
         $task->delete();
+
+        // Store order update in history
+        History::create([
+            'order_id' => $task->order_id,
+            'user_id' => auth()->id(),
+            'action_type' => 'order_updated',
+            'action_details' => 'Order task deleted'
+        ]);
     
         return response()->json(['success' => true]);
     }
@@ -215,6 +266,14 @@ class OrderController extends Controller
         if (!empty($request->assigned_to)) {
             $task->members()->sync($request->assigned_to);
         }
+
+        // Store order update in history
+        History::create([
+            'order_id' => $task->order_id,
+            'user_id' => auth()->id(),
+            'action_type' => 'order_updated',
+            'action_details' => 'Order task updated'
+        ]);
 
         return response()->json(['task' => $task]);
     }
@@ -315,5 +374,64 @@ class OrderController extends Controller
         // Logic to delete project data related to this order
         OrderProjectData::where('order_id', $id)->delete();
         return redirect()->back()->with('success', 'Project data deleted successfully.');
+    }
+
+    public function saveReply(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:orders,id',
+            'client_id' => 'required|exists:clients,id',
+            'message' => 'required|string',
+            'schedule_at' => 'nullable|date',
+            'cancel_if_replied' => 'boolean',
+            'message_type' => 'required|string',
+        ]);
+
+        $user = auth()->user();
+        $senderType = $user instanceof \App\Models\Admin ? 'App\Models\Admin' : 'App\Models\Client';
+
+        // Create a new reply
+        $reply = new ClientReply();
+        $reply->order_id = $request->order_id;
+        $reply->client_id = $request->client_id;
+        $reply->message = $request->message;
+        $reply->scheduled_at = $request->schedule_at;
+        $reply->cancel_on_reply = $request->cancel_if_replied ?? false;
+        $reply->sender_id = $user->id;
+        $reply->sender_type = $senderType;
+        $reply->message_type = $request->message_type;
+        $reply->save();
+
+        // Load sender relation
+        $reply->load('sender');
+
+        History::create([
+            'order_id' => $request->order_id,
+            'user_id' => auth()->id(),
+            'action_type' => 'order_message',
+            'action_details' => 'Order message '. json_encode($request->all()),
+        ]);
+
+        // Return response with null checks
+        return response()->json([
+            'success' => true,
+            'reply' => [
+                'message' => $reply->message,
+                'profile_image' => $reply->sender->profile_image ?? null,
+                'sender_name' => $reply->sender->name ?? 'Unknown Sender', // Handle null sender
+                'created_at' => $reply->created_at->format('Y-m-d H:i:s'),
+            ]
+        ]);
+    }
+
+    public function getOrderHistory(Request $request, $orderId)
+    {
+        // Fetch paginated history for the order
+        $orderHistory = History::where('order_id', $orderId)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->paginate(5); // Paginate with 5 messages per page
+
+        return response()->json($orderHistory);
     }
 }

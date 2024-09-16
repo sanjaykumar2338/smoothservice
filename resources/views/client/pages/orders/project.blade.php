@@ -17,7 +17,7 @@
                <div class="card-header align-items-center">
                   <h5 class="card-action-title mb-0">Edit project data</h5>
                   
-                  <a href="{{ route('client.order.show', $order->id) }}" class="btn btn-secondary mb-3">
+                  <a href="{{ route('client.order.show', $order->order_no) }}" class="btn btn-secondary mb-3">
                     Back to Order
                   </a>
                    &nbsp; 

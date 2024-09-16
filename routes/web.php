@@ -84,6 +84,8 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::get('/order/export-data/{id}', [OrderController::class, 'exportData'])->name('client.order.export_data');
     Route::get('/order/download-files/{id}', [OrderController::class, 'downloadFiles'])->name('client.order.download_files');
     Route::delete('/order/delete-data/{id}', [OrderController::class, 'deleteData'])->name('client.order.delete_data');
+    Route::post('/order/send-reply', [OrderController::class, 'saveReply'])->name('client.order.send_reply');
+    Route::get('/order/{orderId}/history', [OrderController::class, 'getOrderHistory']);
 });
 
 Route::group(['middleware' => 'auth:team_members'], function () {

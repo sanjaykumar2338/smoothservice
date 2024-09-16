@@ -51,7 +51,7 @@
             </li>
             
             <li class="nav-item">
-                  <a class="nav-link" href="pages-profile-teams.html"><i class="bx bx-group me-1"></i> Teams</a>
+                  <a class="nav-link" href=""><i class="bx bx-group me-1"></i> Teams</a>
             </li>
 
             <li class="nav-item">
@@ -298,43 +298,145 @@
                            <div class="d-flex align-items-start">
                               <div class="d-flex align-items-start">
                                  <div class="me-2">
-                                    <h6 class="mb-0">Cecilia Payne</h6>
-                                    <small class="text-muted">45 Connections</small>
+                                 <ul class="list-unstyled mb-0" id="message-list">
+                                 @foreach($client_replies as $reply)
+                                    @if($reply->message_type === 'client')
+                                       <!-- Client Message -->
+                                       <li class="mb-3" style="width:200%;">
+                                             <div class="d-flex align-items-start">
+                                                <div class="me-3">
+                                                   @if($reply->sender)
+                                                         @if($reply->sender_type === 'App\Models\Client')
+                                                            @if($reply->sender->profile_image)
+                                                               <img src="{{ asset('storage/' . $reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                            @else
+                                                               <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                                     <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span>
+                                                               </div>
+                                                            @endif
+                                                         @elseif($reply->sender_type === 'App\Models\Admin')
+                                                            @if($reply->sender->profile_image)
+                                                               <img src="{{ asset('storage/' . $reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                            @else
+                                                               <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                                     <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span>
+                                                               </div>
+                                                            @endif
+                                                         @endif
+                                                   @else
+                                                         <div class="rounded-circle bg-danger d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                            <span class="text-white">?</span>
+                                                         </div>
+                                                   @endif
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                   <strong>{{ $reply->sender ? $reply->sender->name : 'Unknown Sender' }} replied:</strong> <br>
+                                                   <span>{{ $reply->message }}</span><br>
+                                                   <small class="text-muted">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y H:i') }}</small>
+                                                </div>
+                                                <!-- Options Dropdown Menu -->
+                                                <div class="dropdown ms-auto">
+                                                   <button class="btn p-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                         <i class="bx bx-dots-vertical-rounded"></i>
+                                                   </button>
+                                                   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                                         <li><a class="dropdown-item" href="#">Link to this message</a></li>
+                                                         <li><a class="dropdown-item" href="#">Edit</a></li>
+                                                         <li><a class="dropdown-item" href="#">Delete</a></li>
+                                                   </ul>
+                                                </div>
+                                             </div>
+                                       </li>
+                                    @elseif($reply->message_type === 'team')
+                                       <!-- Team Message -->
+                                       <li class="mb-3" style="width:200%;">
+                                             <div class="d-flex align-items-start">
+                                                <div class="me-3">
+                                                   <div class="rounded-circle bg-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                         <span class="text-white">T</span> <!-- Team icon -->
+                                                   </div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                   <strong>{{ $reply->sender ? $reply->sender->name : 'Unknown Sender' }} sent a team message:</strong> <br>
+                                                   <span>{{ $reply->message }}</span><br>
+                                                   <small class="text-muted">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y H:i') }}</small>
+                                                </div>
+                                                <!-- Options Dropdown Menu -->
+                                                <div class="dropdown ms-auto">
+                                                   <button class="btn p-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                         <i class="bx bx-dots-vertical-rounded"></i>
+                                                   </button>
+                                                   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                                         <li><a class="dropdown-item" href="#">Link to this message</a></li>
+                                                         <li><a class="dropdown-item" href="#">Edit</a></li>
+                                                         <li><a class="dropdown-item" href="#">Delete</a></li>
+                                                   </ul>
+                                                </div>
+                                             </div>
+                                       </li>
+                                    @endif
+                                 @endforeach
+
+                                 </ul>
                                  </div>
                               </div>
                            </div>
                         </li>
                      </ul>
+
+                     <!-- Hidden elements: Text editor, schedule options, etc. -->
+                     <div id="reply-editor-section" style="display: none;">
+                        <textarea id="reply-editor" class="form-control" rows="5" placeholder="Type your reply..."></textarea>
+
+                        <div id="schedule-options" style="display:none;">
+                           <div class="d-flex align-items-center mt-3">
+                              <i class="bx bx-calendar"></i>
+                              <label for="schedule-datetime" class="ms-2">Schedule message at:</label>
+                              <input type="datetime-local" id="schedule-datetime" class="form-control ms-2" style="width: 250px;">
+                           </div>
+                           <div class="form-check mt-3">
+                              <input class="form-check-input" type="checkbox" id="cancel-on-reply">
+                              <label class="form-check-label" for="cancel-on-reply">
+                                 Cancel if client replies before send time
+                              </label>
+                           </div>
+                        </div>
+
+                        <div class="mt-3 text-end">
+                           <button id="show-schedule" class="btn btn-primary"><i class="bx bx-calendar"></i></button>
+                           <button id="send-reply-btn" class="btn btn-primary">Send Message</button>
+                           <button id="delete-reply-btn" class="btn btn-danger">Delete</button>
+                        </div>
+                     </div>
                   </div>
+
                   <div class="card-footer d-flex justify-content-end">
-                     <button class="btn btn-label-primary p-1 btn-sm"><i class="bx bx-reply"></i> Reply to Client</button>&nbsp;
-                     <button class="btn btn-label-primary p-1 btn-sm"><i class="bx bx-plus"></i> Message Team</button>
+                  <div class="card-footer d-flex justify-content-end">
+                     <button id="reply-client-btn" class="btn btn-label-primary p-1 btn-sm">
+                        <i class="bx bx-reply"></i> Reply to Client
+                     </button>&nbsp;
+                     <button id="message-team-btn" class="btn btn-label-primary p-1 btn-sm">
+                        <i class="bx bx-plus"></i> Message Team
+                     </button>
+                  </div>
                   </div>
                </div>
             </div>
          </div>
+
+
          <!-- Projects table -->
          <div class="card mb-4">
             <h5 class="card-header">History</h5>
-            <div class="table-responsive mb-3">
-               <table class="table datatable-project">
-                  <thead class="">
-                     <tr>
-                        <th></th>
-                        <th></th>
-                        <th>Project</th>
-                        <th class="text-nowrap">Total Task</th>
-                        <th>Progress</th>
-                        <th>Hours</th>
-                     </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                        <td style="text-align:center" colspan="6">No record.<td>
-                    </tr>
-                  </tbody>
-               </table>
+            <ul id="history-list" class="list-group">
+               <!-- The first 5 history messages will be loaded here via JavaScript -->
+            </ul>
+
+            <!-- Load More Button -->
+            <div id="load-more-container" class="text-center mt-3">
+               <button id="load-more-btn" class="btn btn-primary">Load More</button>
             </div>
+            <br>
          </div>
          <!--/ Projects table -->
       </div>
@@ -760,7 +862,7 @@
    function deleteData(orderId) {
       if (confirm('Are you sure you want to delete this data?')) {
          $.ajax({
-               url: `/order/delete-data/${orderId}`,
+               url: `/client/order/delete-data/${orderId}`,
                method: 'DELETE',
                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                success: function(response) {
@@ -769,6 +871,188 @@
          });
       }
    }
+
+   $(document).ready(function() {
+      let isTeamMessage = false; // Track if sending to the team or client
+
+      // Show/hide reply editor for the client
+      $('#reply-client-btn').on('click', function() {
+         isTeamMessage = false; // Reset to client message mode
+         $('#reply-editor-section').show();
+         $('#reply-editor').attr('placeholder', 'Type your reply to the client...');
+      });
+
+      // Show/hide reply editor for the team
+      $('#message-team-btn').on('click', function() {
+         isTeamMessage = true; // Switch to team message mode
+         $('#reply-editor-section').show();
+         $('#reply-editor').attr('placeholder', 'Type your message to the team...');
+      });
+
+      // Toggle the schedule options
+      $('#show-schedule').on('click', function() {
+         $('#schedule-options').toggle();
+      });
+
+      // Send message to client or team
+      $('#send-reply-btn').on('click', function() {
+         const message = $('#reply-editor').val();
+         const scheduleAt = $('#schedule-datetime').val();
+         const cancelOnReply = $('#cancel-on-reply').is(':checked') ? 1 : 0; // Ensure it's a boolean
+         const messageType = isTeamMessage ? 'team' : 'client'; // Set message type
+
+         if (!message) {
+            alert('Please enter a reply.');
+            return;
+         }
+
+         $.ajax({
+            url: '/client/order/send-reply', // Using the same route
+            method: 'POST',
+            data: {
+                  message: message,
+                  schedule_at: scheduleAt,
+                  cancel_if_replied: cancelOnReply,
+                  order_id: '{{ $order->id }}',
+                  client_id: '{{ $order->client->id }}',
+                  message_type: messageType, // Differentiating between client and team messages
+                  _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                  alert('Message sent successfully.');
+                  $('#reply-editor-section').hide();  // Hide editor
+                  $('#reply-editor').val('');  // Reset editor
+
+                  // Append the new message to the message list dynamically
+                  $('#message-list').append(`
+                  <li class="mb-3" style="width: 200%;">
+                     <div class="d-flex align-items-start">
+                           <!-- Profile Icon or Avatar -->
+                           <div class="me-2">
+                              ${response.reply.profile_image 
+                                 ? `<img src="${response.reply.profile_image}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">` 
+                                 : `<i class="bx bx-user-circle" style="font-size: 40px;"></i>`}
+                           </div>
+
+                           <!-- Message Content -->
+                           <div class="flex-grow-1">
+                              <strong>${isTeamMessage ? 'You messaged the team' : 'You replied'}:</strong><br>
+                              <span>${response.reply.message}</span><br>
+                              <small class="text-muted">${new Date().toLocaleString()}</small>
+                           </div>
+
+                           <!-- Dropdown Menu -->
+                           <div class="dropdown ms-auto">
+                              <button class="btn p-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                 <i class="bx bx-dots-vertical-rounded"></i>
+                              </button>
+                              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                 <li><a class="dropdown-item" href="#">Link to this message</a></li>
+                                 <li><a class="dropdown-item" href="#">View original</a></li>
+                                 <li><a class="dropdown-item" href="#">Edit</a></li>
+                                 <li><a class="dropdown-item" href="#">Delete</a></li>
+                              </ul>
+                           </div>
+                     </div>
+                  </li>
+               `);
+            },
+            error: function(xhr, status, error) {
+                  alert('Failed to send message: ' + xhr.responseText);
+            }
+         });
+      });
+
+      // Delete reply content (reset form)
+      $('#delete-reply-btn').on('click', function() {
+         $('#reply-editor').val('');
+         $('#schedule-datetime').val('');
+         $('#cancel-on-reply').prop('checked', false);
+         $('#reply-editor-section').hide();  // Hide editor
+      });
+   });
+
+   // Toggle the display of the schedule options
+   document.getElementById('show-schedule').addEventListener('click', function() {
+      const scheduleOptions = document.getElementById('schedule-options');
+      scheduleOptions.style.display = scheduleOptions.style.display === 'none' ? 'block' : 'none';
+   });
+
+   let currentPage = 1; // Track the current page
+   let lastPage = false; // Flag to track if we are on the last page
+
+   $(document).ready(function() {
+      // Function to load history data
+      var orderId = '{{ $order->id }}'
+      function loadHistory(page) {
+         $.ajax({
+               url: `/client/order/${orderId}/history?page=${page}`,
+               method: 'GET',
+               success: function(response) {
+                  const data = response.data;
+                  
+                  // Append the history messages
+                  data.forEach(function(history) {
+                     let messageContent = history.action_details;
+
+                     // Check if message is valid JSON and format it
+                     if (isJson(messageContent)) {
+                           messageContent = `<pre>${JSON.stringify(JSON.parse(messageContent), null, 4)}</pre>`;
+                     }
+
+                     // Append history to the list
+                     $('#history-list').append(`
+                           <li class="list-group-item">
+                              <strong>${history.user.name}:</strong> ${capitalize(history.action_type)} <br>
+                              <small class="text-muted">${formatTime(history.created_at)}</small>
+                              <p>${messageContent}</p>
+                           </li>
+                     `);
+                  });
+
+                  // Check if we are on the last page
+                  if (response.current_page >= response.last_page) {
+                     lastPage = true;
+                     $('#load-more-btn').hide(); // Hide the Load More button if no more pages
+                  }
+               }
+         });
+      }
+
+      // Function to check if a string is valid JSON
+      function isJson(str) {
+         try {
+               JSON.parse(str);
+         } catch (e) {
+               return false;
+         }
+         return true;
+      }
+
+      // Format time to a readable format
+      function formatTime(dateTime) {
+         const date = new Date(dateTime);
+         return date.toLocaleString();
+      }
+
+      // Capitalize the first letter of a string
+      function capitalize(str) {
+         return str.charAt(0).toUpperCase() + str.slice(1).replace(/_/g, ' ');
+      }
+
+      // Initially load the first 5 messages
+      loadHistory(currentPage);
+
+      // Load more messages when "Load More" button is clicked
+      $('#load-more-btn').on('click', function() {
+         if (!lastPage) {
+               currentPage++;
+               loadHistory(currentPage);
+         }
+      });
+   });
+
+
 </script>
 
 @endsection

@@ -67,7 +67,7 @@
                                 <!-- Edit Button -->
                                 <a style="display:none;" href="{{ route('client.order.edit', $order->id) }}" class="btn btn-sm btn-primary">Edit</a>
 
-                                <a href="{{ route('client.order.show', $order->id) }}" class="btn btn-sm btn-info">Details</a>
+                                <a href="{{ route('client.order.show', $order->order_no) }}" class="btn btn-sm btn-info">Details</a>
 
                                 <!-- Delete Button -->
                                 <form action="{{ route('client.order.destroy', $order->id) }}" method="POST" style="display:inline-block;">
