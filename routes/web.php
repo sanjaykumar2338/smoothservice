@@ -7,8 +7,11 @@ use App\Http\Controllers\Client\IntakeformController;
 use App\Http\Controllers\Client\ServiceController;
 use App\Http\Controllers\Client\TeamController;
 use App\Http\Controllers\Client\OrderController;
+use App\Http\Controllers\Client\SettingController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Client\TagController;
+use App\Http\Controllers\Client\ClientStatusController;
 
 //Route for login , register
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
@@ -86,6 +89,29 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::delete('/order/delete-data/{id}', [OrderController::class, 'deleteData'])->name('client.order.delete_data');
     Route::post('/order/send-reply', [OrderController::class, 'saveReply'])->name('client.order.send_reply');
     Route::get('/order/{orderId}/history', [OrderController::class, 'getOrderHistory']);
+
+
+    //order statuses
+    Route::get('/orderstatuses/list', [SettingController::class, 'index'])->name('setting.orderstatuses.list');
+    Route::get('/orderstatuses/create', [SettingController::class, 'create'])->name('setting.orderstatuses.create');
+    Route::post('/orderstatuses/store', [SettingController::class, 'store'])->name('setting.orderstatuses.store');
+    Route::get('/orderstatuses/edit/{id}', [SettingController::class, 'edit'])->name('setting.orderstatuses.edit');
+    Route::post('/orderstatuses/update/{id}', [SettingController::class, 'update'])->name('setting.orderstatuses.update');
+    Route::delete('/orderstatuses/delete/{id}', [SettingController::class, 'destroy'])->name('setting.orderstatuses.delete');
+
+    Route::get('/tags/list', [TagController::class, 'index'])->name('client.tags.list');
+    Route::get('/tags/create', [TagController::class, 'create'])->name('client.tags.create');
+    Route::post('/tags/store', [TagController::class, 'store'])->name('client.tags.store');
+    Route::get('/tags/edit/{id}', [TagController::class, 'edit'])->name('client.tags.edit');
+    Route::put('/tags/update/{id}', [TagController::class, 'update'])->name('client.tags.update');
+    Route::delete('/tags/delete/{id}', [TagController::class, 'destroy'])->name('client.tags.delete');
+
+    Route::get('/clientstatuses/list', [ClientStatusController::class, 'index'])->name('client.statuses.list');
+    Route::get('/clientstatuses/create', [ClientStatusController::class, 'create'])->name('client.statuses.create');
+    Route::post('/clientstatuses/store', [ClientStatusController::class, 'store'])->name('client.statuses.store');
+    Route::get('/clientstatuses/edit/{id}', [ClientStatusController::class, 'edit'])->name('client.statuses.edit');
+    Route::put('/clientstatuses/update/{id}', [ClientStatusController::class, 'update'])->name('client.statuses.update');
+    Route::delete('/clientstatuses/delete/{id}', [ClientStatusController::class, 'destroy'])->name('client.statuses.delete');
 });
 
 Route::group(['middleware' => 'auth:team_members'], function () {

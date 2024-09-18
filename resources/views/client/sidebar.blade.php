@@ -124,30 +124,44 @@
             <li class="menu-header small text-uppercase">
               <span class="menu-header-text" data-i18n="Setup">Setup</span>
             </li>
-            <li class="menu-item @php echo in_array(request()->route()->getName(),['client.service.list','client.service.add','client.service.edit','client.service.intakeform.list','client.service.intakeform.add','client.service.intakeform.edit','client.team.list','client.team.add','client.team.edit']) ? 'open':''@endphp">
+            
+            <li class="menu-item {{ request()->routeIs([
+                    'setting.orderstatuses.list',
+                    'setting.orderstatuses.create',
+                    'setting.orderstatuses.edit',
+                    'setting.orderstatuses.update',
+                    'setting.orderstatuses.delete',
+                    'client.tags.list',
+                    'client.tags.create',
+                    'client.tags.edit',
+                    'client.statuses.list',
+                    'client.statuses.create',
+                    'client.statuses.edit'
+                ]) ? 'open active' : '' }}">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-cog"></i>
                 <div data-i18n="Settings">Settings</div>
               </a>
 
               <ul class="menu-sub">
-                <li class="menu-item {{request()->route()->getName()=='client.service.list' || request()->route()->getName()=='client.service.add' || request()->route()->getName()=='client.service.edit' ? 'active':''}}">
-                  <a href="{{route('client.service.list')}}" class="menu-link">
-                    <div data-i18n="Orders">Orders</div>
+                <li class="menu-item {{ request()->routeIs(['setting.orderstatuses.list', 'setting.orderstatuses.create', 'setting.orderstatuses.edit', 'setting.orderstatuses.update', 'setting.orderstatuses.delete']) ? 'active' : '' }}">
+                  <a href="{{ route('setting.orderstatuses.list') }}" class="menu-link">
+                    <div data-i18n="Order Statuses">Order Statuses</div>
                   </a>
                 </li>
 
-                <li class="menu-item {{request()->route()->getName()=='client.service.intakeform.list' || request()->route()->getName()=='client.service.intakeform.add' || request()->route()->getName()=='client.service.intakeform.edit' ? 'active':''}}">
-                  <a href="{{route('client.service.intakeform.list')}}" class="menu-link">
-                    <div data-i18n="Clients">Clients</div>
+              <li class="menu-item {{ request()->routeIs(['client.statuses.list', 'client.statuses.create', 'client.statuses.edit']) ? 'active' : '' }}">
+                  <a href="{{ route('client.statuses.list') }}" class="menu-link">
+                      <div data-i18n="Clients">Client Statuses</div>
                   </a>
+              </li>
+
+                <li class="menu-item {{request()->routeIs(['client.tags.list', 'client.tags.create', 'client.tags.edit']) ? 'active' : ''}}">
+                    <a href="{{ route('client.tags.list') }}" class="menu-link">
+                        <div data-i18n="Tags">Tags</div>
+                    </a>
                 </li>
 
-                <li class="menu-item {{request()->route()->getName()=='client.service.intakeform.list' || request()->route()->getName()=='client.service.intakeform.add' || request()->route()->getName()=='client.service.intakeform.edit' ? 'active':''}}">
-                  <a href="{{route('client.service.intakeform.list')}}" class="menu-link">
-                    <div data-i18n="Tags">Tags</div>
-                  </a>
-                </li>
               </ul>
             </li>
 
