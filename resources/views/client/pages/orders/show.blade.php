@@ -43,9 +43,10 @@
     <div class="col-md-6 d-flex justify-content-end">
          <ul class="nav nav-pills flex-sm-row mb-4">
             <li class="nav-item dropdown">
-               <a class="nav-link active dropdown-toggle" style="background-color: {{ $orderStatus->color }}" href="javascript:void(0);" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  <span id="selectedStatus">{{ $orderStatus->name }}</span>
-               </a>
+            <a class="nav-link active dropdown-toggle" style="background-color: {{ $orderStatus?->color }}" href="javascript:void(0);" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+               <span id="selectedStatus">{{ $orderStatus?->name }}</span>
+            </a>
+
                <ul class="dropdown-menu" aria-labelledby="profileDropdown">
                   @foreach($orderstatus as $status)
                         <li>
