@@ -25,6 +25,10 @@
    .completed-task {
       opacity: 0.5;
    }
+
+   .tagify{
+      height: auto;
+   }
 </style>
 
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -39,19 +43,32 @@
     <div class="col-md-6 d-flex justify-content-end">
          <ul class="nav nav-pills flex-sm-row mb-4">
             <li class="nav-item dropdown">
+               <a class="nav-link active dropdown-toggle" style="background-color: {{ $orderStatus->color }}" href="javascript:void(0);" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <span id="selectedStatus">{{ $orderStatus->name }}</span>
+               </a>
+               <ul class="dropdown-menu" aria-labelledby="profileDropdown">
+                  @foreach($orderstatus as $status)
+                        <li>
+                           <a class="dropdown-item" href="javascript:void(0);" 
+                              onclick="changeStatus('{{ $status->id }}', '{{ $status->name }}', '{{ $status->color }}')">{{ $status->name }}</a>
+                        </li>
+                  @endforeach
+               </ul>
+            </li>
+
+            <li class="nav-item">
+               <li class="nav-item dropdown">
                   <a class="nav-link active dropdown-toggle" href="javascript:void(0);" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Status
+                     <span id="selectedStatus">Teams</span>
                   </a>
                   <ul class="dropdown-menu" aria-labelledby="profileDropdown">
-                     <li><a class="dropdown-item" href="#">Submitted</a></li>
-                     <li><a class="dropdown-item" href="#">Working</a></li>
-                     <li><a class="dropdown-item" href="#">Completed</a></li>
-                     <li><a class="dropdown-item" href="#">Canceled</a></li>
+                     @foreach($teamMembers as $team)
+                           <li>
+                              <a class="dropdown-item" href="javascript:void(0);">{{ $team->first_name }} {{ $team->last_name }}</a>
+                           </li>
+                     @endforeach
                   </ul>
-            </li>
-            
-            <li class="nav-item">
-                  <a class="nav-link" href=""><i class="bx bx-group me-1"></i> Teams</a>
+               </li>
             </li>
 
             <li class="nav-item">
@@ -443,7 +460,7 @@
       <div class="col-xl-4 col-lg-5 col-md-5">
          <!-- About User -->
          <div class="card mb-4">
-            <div class="card-body">
+            <div class="card-body" style="height: 600px;">
                <ul class="list-unstyled mb-4">
                   <li class="d-flex align-items-center mb-3">
                     <span class="fw-medium mx-2">{{$order->order_no}}</span>
@@ -481,18 +498,15 @@
                      </span>
                   </li>
                </ul>
-               <small class="text-muted text-uppercase">Tags</small>
-               
-               <ul class="list-unstyled mt-3 mb-0" style="display: -webkit-box;">
-                  <li class="d-flex align-items-center mb-3">
-                     <div class="d-flex flex-wrap">
-                        <span class="fw-medium me-2">TEST</span>
-                     </div>
-                  </li>
-                  <li>
-                     <button class="btn" style="padding-top: 1px;padding-left: 0px;"><i class="bx bx-plus"></i> Add</button>
-                  </li>
-               </ul>
+               <small class="text-muted text-uppercase">Select Tags</small>
+               <div class="">
+                  <input
+                     id="TagifyCustomInlineSuggestion"
+                     name="TagifyCustomInlineSuggestion"
+                     class="form-control"
+                     placeholder="select tags"
+                     value="{{$existingTagsName}}" />
+               </div>
             </div>
          </div>
       </div>
@@ -1052,6 +1066,96 @@
       });
    });
 
+   function changeStatus(statusId, statusName, statusColor) {
+      const orderId = {{ $order->id }}; // Pass the order ID from the Blade variable
+
+      fetch(`/client/order/update-status/${orderId}`, {
+         method: 'POST',
+         headers: {
+               'Content-Type': 'application/json',
+               'X-CSRF-TOKEN': '{{ csrf_token() }}' // Add your CSRF token here
+         },
+         body: JSON.stringify({ status_id: statusId })
+      })
+      .then(response => response.json())
+      .then(data => {
+         if (data.success) {
+               // Update the displayed selected status
+               document.getElementById('selectedStatus').innerText = statusName;
+               document.getElementById('profileDropdown').style.backgroundColor = statusColor; // Change background color
+               //alert('Status updated successfully!');
+         } else {
+               alert('Failed to update status.');
+         }
+      })
+      .catch(error => {
+         console.error('Error:', error);
+         alert('Error updating status.');
+      });
+   }
+
+   const whitelist = @json($tags->map(function($tag) {
+      return ['id' => $tag->id, 'name' => $tag->name];
+   }));
+
+   const existingTags = @json($existingTags); // Fetch existing tag IDs from the controller
+
+   const TagifyCustomInlineSuggestionEl = document.querySelector('#TagifyCustomInlineSuggestion');
+   let TagifyCustomInlineSuggestion = new Tagify(TagifyCustomInlineSuggestionEl, {
+      whitelist: whitelist.map(tag => tag.name), // Set only names for display
+      maxTags: 10,
+      dropdown: {
+         maxItems: 20,
+         classname: 'tags-inline',
+         enabled: 0,
+         closeOnSelect: false
+      }
+   });
+
+   console.log(existingTags,'existingTags')
+   // Initialize Tagify with existing tags
+   TagifyCustomInlineSuggestion.addTags(existingTags.map(tagId => {
+      const foundTag = whitelist.find(item => item.id === tagId);
+      return foundTag ? foundTag.name : null; // Add existing tags by name
+   }).filter(tag => tag !== null)); // Filter out null values
+
+   // Debounce function to limit the frequency of the AJAX call
+   let debounceTimer;
+   function saveTagsDebounced() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+         const selectedTags = TagifyCustomInlineSuggestion.value.map(tag => {
+               const foundTag = whitelist.find(item => item.name === tag.value);
+               return foundTag ? foundTag.id : null; // Get the ID or null
+         }).filter(id => id !== null); // Filter out null values
+
+         // AJAX request to save selected tags
+         const orderId = {{ $order->id }}; // Assuming you have the order ID available
+         fetch(`/client/order/${orderId}/update-tags`, {
+               method: 'POST',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': '{{ csrf_token() }}' // Include CSRF token
+               },
+               body: JSON.stringify({ tags: selectedTags.join(',') }) // Send tags as a comma-separated string
+         })
+         .then(response => response.json())
+         .then(data => {
+               if (data.success) {
+                  //alert(data.message);
+               } else {
+                  alert('Failed to update tags.');
+               }
+         })
+         .catch(error => {
+               console.error('Error:', error);
+               alert('Error updating tags.');
+         });
+      }, 500); // 500 milliseconds delay
+   }
+
+   // Listen for changes on Tagify
+   TagifyCustomInlineSuggestion.on('change', saveTagsDebounced);
 
 </script>
 

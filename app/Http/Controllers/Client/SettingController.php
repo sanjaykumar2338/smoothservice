@@ -14,7 +14,7 @@ class SettingController extends Controller
 
         $orderStatuses = OrderStatus::when($search, function ($query, $search) {
             return $query->where('name', 'LIKE', "%{$search}%");
-        })->paginate(8); // Apply search and paginate results
+        })->where('added_by', auth()->id())->paginate(8); // Apply search and paginate results
 
         return view('client.pages.settings.orderstatuses.index', compact('orderStatuses', 'search'));
     }
@@ -47,6 +47,7 @@ class SettingController extends Controller
             'lock_completed_orders' => $request->has('lock_completed') ? 1 : 0,  // Handle checkbox
             'change_status_on_revision' => $request->has('change_status_on_message') ? 1 : 0, // Handle checkbox
             'enable_ratings' => $request->has('enable_ratings') ? 1 : 0, // Handle checkbox
+            'added_by' => auth()->id()
         ]);
     
         return redirect()->route('setting.orderstatuses.list')->with('success', 'Order Status created successfully');

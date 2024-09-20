@@ -14,7 +14,7 @@ class ClientStatusController extends Controller
         $clientStatuses = ClientStatus::when($search, function($query, $search) {
             return $query->where('label', 'LIKE', "%{$search}%")
                         ->orWhere('description', 'LIKE', "%{$search}%");
-        })->paginate(8);
+        })->where('added_by', auth()->id())->paginate(8);
 
         return view('client.pages.settings.clientstatuses.index', compact('clientStatuses', 'search'));
     }
@@ -33,9 +33,17 @@ class ClientStatusController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        ClientStatus::create($request->all());
+        // Create a new ClientStatus and set added_by to the authenticated user's ID
+        ClientStatus::create([
+            'label' => $request->label,
+            'color' => $request->color,
+            'description' => $request->description,
+            'added_by' => auth()->id(),  // Set the added_by field
+        ]);
+
         return redirect()->route('client.statuses.list')->with('success', 'Client Status created successfully');
     }
+
 
     public function edit($id)
     {

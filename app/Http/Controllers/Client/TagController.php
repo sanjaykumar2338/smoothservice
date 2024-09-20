@@ -15,7 +15,7 @@ class TagController extends Controller
 
         $tags = Tag::when($search, function ($query, $search) {
             return $query->where('name', 'LIKE', "%{$search}%");
-        })->paginate(8); // Apply search and paginate results
+        })->where('added_by', auth()->id())->paginate(8); // Apply search and paginate results
 
         return view('client.pages.settings.tags.index', compact('tags', 'search'));
     }
@@ -37,6 +37,7 @@ class TagController extends Controller
         // Create new Tag
         Tag::create([
             'name' => $request->name,
+            'added_by' => auth()->id()
         ]);
 
         return redirect()->route('client.tags.list')->with('success', 'Tag created successfully');

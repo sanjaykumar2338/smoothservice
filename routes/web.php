@@ -89,7 +89,8 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::delete('/order/delete-data/{id}', [OrderController::class, 'deleteData'])->name('client.order.delete_data');
     Route::post('/order/send-reply', [OrderController::class, 'saveReply'])->name('client.order.send_reply');
     Route::get('/order/{orderId}/history', [OrderController::class, 'getOrderHistory']);
-
+    Route::post('/order/update-status/{id}', [OrderController::class, 'updateStatus']);
+    Route::post('/order/{id}/update-tags', [OrderController::class, 'updateTags'])->name('order.updateTags');
 
     //order statuses
     Route::get('/orderstatuses/list', [SettingController::class, 'index'])->name('setting.orderstatuses.list');

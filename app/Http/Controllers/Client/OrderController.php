@@ -9,6 +9,9 @@ use App\Models\Client;
 use App\Models\TeamMember;
 use App\Models\Task;
 use App\Models\History;
+use App\Models\ClientStatus;
+use App\Models\OrderStatus;
+use App\Models\Tag;
 use App\Models\ClientReply;
 use App\Models\OrderProjectData;
 use Illuminate\Http\Request;
@@ -24,6 +27,76 @@ class OrderController extends Controller
         $clients = Client::all();  // Fetch list of all clients
         $services = Service::all();  // Fetch list of all services
         return view('client.pages.orders.index', compact('orders', 'clients', 'services'));
+    }
+
+    // Show order details
+    public function show($id)
+    {
+        $team_members = TeamMember::where('added_by', auth()->id())->get();
+        $order = Order::with(['client', 'service', 'tasks' => function($query) {
+            $query->where('status', 0);
+        }])->where('order_no', $id)->firstOrFail();
+
+        $orderStatus = OrderStatus::find($order->status_id);
+        $project_data = OrderProjectData::where('order_id', $order->id)->get();
+        $client_replies = ClientReply::where('order_id', $order->id)->get();
+        $orderstatus = OrderStatus::where('added_by', auth()->id())->get();
+        $tags = Tag::where('added_by', auth()->id())->get();
+        $existingTags = \DB::table('tags')
+            ->join('order_tag', 'tags.id', '=', 'order_tag.tag_id')
+            ->select('tags.id', 'tags.name') // Specify the table name for the id
+            ->where('order_tag.order_id', $order->id) // Replace $orderId with your variable
+            ->get();
+        
+        $existingTagsName = \DB::table('tags')
+            ->join('order_tag', 'tags.id', '=', 'order_tag.tag_id')
+            ->select('tags.name') // Only select the name
+            ->where('order_tag.order_id', $order->id)
+            ->pluck('name') // Get the names as a collection
+            ->implode(','); // Convert the collection to a comma-separated string
+        
+
+        $orderHistory = History::where('order_id', $order->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy(function($date) {
+                return \Carbon\Carbon::parse($date->created_at)->format('Y-m-d'); // Group by date only
+            });
+
+        $teamMembers = TeamMember::with('role')->where('added_by', auth()->id())->get();
+        //echo "<pre>"; print_r($teamMembers); die;
+        
+        return view('client.pages.orders.show', compact('order','team_members','project_data','client_replies','orderHistory','orderstatus','orderStatus','tags','existingTags','existingTagsName','teamMembers'));
+    }
+
+    public function updateTags(Request $request, $id)
+    {
+        $request->validate([
+            'tags' => 'required|string', // Assuming you are sending comma-separated IDs
+        ]);
+
+        $order = Order::findOrFail($id);
+        $tagIds = explode(',', $request->input('tags')); // Split the string into an array of IDs
+
+        // Assuming you have a relationship set up for tags in the Order model
+        $order->tags()->sync($tagIds); // Sync tags with the order
+
+        return response()->json(['success' => true, 'message' => 'Tags updated successfully']);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        // Validate and update the status
+        $validated = $request->validate([
+            'status_id' => 'required|exists:order_statuses,id',
+        ]);
+
+        //echo "<pre>"; print_r($validated); die;
+        $order = Order::find($id); // Fetch the order based on your logic
+        $order->status_id = $validated['status_id'];
+        $order->save();
+
+        return response()->json(['success' => true]);
     }
 
     // Show form to create a new order
@@ -68,26 +141,6 @@ class OrderController extends Controller
 
         // Redirect to the order detail page with success message
         return redirect()->route('client.order.show', ['id' => $order->id])->with('success', 'Order created successfully.');
-    }
-    
-    // Show order details
-    public function show($id)
-    {
-        $team_members = TeamMember::where('added_by', auth()->id())->get();
-        $order = Order::with(['client', 'service', 'tasks' => function($query) {
-            $query->where('status', 0);
-        }])->where('order_no', $id)->firstOrFail();
-
-        $project_data = OrderProjectData::where('order_id', $order->id)->get();
-        $client_replies = ClientReply::where('order_id', $order->id)->get();
-        $orderHistory = History::where('order_id', $order->id)
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->groupBy(function($date) {
-                return \Carbon\Carbon::parse($date->created_at)->format('Y-m-d'); // Group by date only
-            });
-
-        return view('client.pages.orders.show', compact('order','team_members','project_data','client_replies','orderHistory'));
     }
 
     public function project_data($id)

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrderStatus extends Model
 {
-    protected $fillable = ['name', 'color', 'description', 'lock_completed_orders', 'change_status_on_revision', 'enable_ratings'];
+    protected $fillable = ['name', 'color', 'description', 'lock_completed_orders', 'change_status_on_revision', 'enable_ratings', 'added_by','status_id'];
 
     public function orders()
     {

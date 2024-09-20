@@ -60,6 +60,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="{{asset('/assets/vendor/libs/jquery/jquery.js')}}"></script>
+    <script src="{{asset('/assets/vendor/libs/tagify/tagify.js')}}"></script>
   </head>
 
   <body>
@@ -175,7 +176,6 @@
     <script src="{{asset('/assets/vendor/libs/@form-validation/umd/plugin-auto-focus/index.min.js')}}"></script>
     <script src="{{asset('/assets/vendor/libs/cleavejs/cleave.js')}}"></script>
     <script src="{{asset('/assets/vendor/libs/cleavejs/cleave-phone.js')}}"></script>
-    <script src="{{asset('/assets/js/forms-tagify.js')}}"></script>
     <script src="{{asset('/assets/js/forms-typeahead.js')}}"></script>
     <script src="{{asset('/assets/vendor/libs/quill/katex.js')}}"></script>
     <script src="{{asset('/assets/vendor/libs/quill/quill.js')}}"></script>

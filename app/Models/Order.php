@@ -8,7 +8,7 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['order_no', 'service_id', 'client_id', 'note', 'status', 'user_id'];
+    protected $fillable = ['order_no', 'service_id', 'client_id', 'note', 'status', 'user_id', 'tags'];
 
     public function service()
     {
@@ -35,8 +35,13 @@ class Order extends Model
         return $this->hasMany(OrderHistory::class);
     }
 
-    public function status()
+    public function status_order()
     {
         return $this->belongsTo(OrderStatus::class, 'status_id');
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'order_tag', 'order_id', 'tag_id'); // Adjust pivot table and foreign keys accordingly
     }
 }

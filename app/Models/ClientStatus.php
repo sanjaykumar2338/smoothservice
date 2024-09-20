@@ -9,5 +9,5 @@ class ClientStatus extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['label', 'color', 'description'];
+    protected $fillable = ['label', 'color', 'description', 'added_by'];
 }
