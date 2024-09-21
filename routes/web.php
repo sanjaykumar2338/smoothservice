@@ -91,6 +91,8 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::get('/order/{orderId}/history', [OrderController::class, 'getOrderHistory']);
     Route::post('/order/update-status/{id}', [OrderController::class, 'updateStatus']);
     Route::post('/order/{id}/update-tags', [OrderController::class, 'updateTags'])->name('order.updateTags');
+    Route::post('/order/save-team-members', [OrderController::class, 'saveTeamMembers'])->name('order.saveTeamMembers');
+    Route::post('/order/save-notification', [OrderController::class, 'saveNotification'])->name('order.saveNotification');
 
     //order statuses
     Route::get('/orderstatuses/list', [SettingController::class, 'index'])->name('setting.orderstatuses.list');

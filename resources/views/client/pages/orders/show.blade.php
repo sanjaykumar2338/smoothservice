@@ -59,22 +59,7 @@
             </li>
 
             <li class="nav-item">
-               <li class="nav-item dropdown">
-                  <a class="nav-link active dropdown-toggle" href="javascript:void(0);" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                     <span id="selectedStatus">Teams</span>
-                  </a>
-                  <ul class="dropdown-menu" aria-labelledby="profileDropdown">
-                     @foreach($teamMembers as $team)
-                           <li>
-                              <a class="dropdown-item" href="javascript:void(0);">{{ $team->first_name }} {{ $team->last_name }}</a>
-                           </li>
-                     @endforeach
-                  </ul>
-               </li>
-            </li>
-
-            <li class="nav-item">
-               <a class="nav-link" href="javascript:void(0);" id="notification-icon" onclick="toggleIcon()">
+               <a class="nav-link {{ $order->notification == 0 ? 'cross-overlay' : '' }}" href="javascript:void(0);" id="notification-icon" onclick="toggleIcon()">
                   <i class="bx bx-bell me-1" id="icon"></i>
                </a>
             </li>
@@ -481,11 +466,6 @@
                   </li>
 
                   <li class="d-flex align-items-center mb-3">
-                     <span class="fw-medium mx-2">Created</span> <span>{{ $order->created_at->format('M d') }}
-                     </span>
-                  </li>
-
-                  <li class="d-flex align-items-center mb-3">
                      <span class="fw-medium mx-2">Started</span> <span>--
                      </span>
                   </li>
@@ -499,7 +479,26 @@
                      <span class="fw-medium mx-2">Completed</span> <span>--
                      </span>
                   </li>
-               </ul>
+                  </ul>
+
+                  <small class="text-muted text-uppercase">Select Team Members</small>
+                  <div class="">
+                     <select
+                        id="order_team_member"
+                        class="selectpicker w-100"
+                        data-style="btn-default"
+                        multiple
+                        data-max-options="2">
+                        @foreach($teamMembers as $team)
+                           <option value="{{ $team->id }}"
+                              @if($order->teamMembers->contains($team->id)) selected @endif>
+                              {{ $team->first_name }} {{ $team->last_name }}
+                           </option>
+                        @endforeach
+                     </select>
+                  </div>
+
+
                <small class="text-muted text-uppercase">Select Tags</small>
                <div class="">
                   <input
@@ -586,17 +585,37 @@
       });
    });
 
-    function toggleIcon() {
-        var icon = document.getElementById("icon");
-        var parent = document.getElementById("notification-icon");
-        
-        // Toggle the cross overlay
-        if (parent.classList.contains('cross-overlay')) {
-            parent.classList.remove('cross-overlay');
-        } else {
-            parent.classList.add('cross-overlay');
-        }
-    }
+   function toggleIcon() {
+      var icon = document.getElementById("icon");
+      var parent = document.getElementById("notification-icon");
+      
+      // Toggle the cross-overlay class
+      if (parent.classList.contains('cross-overlay')) {
+         parent.classList.remove('cross-overlay');
+         saveNotificationStatus(1);  // Set notification to 1 (on)
+      } else {
+         parent.classList.add('cross-overlay');
+         saveNotificationStatus(0);  // Set notification to 0 (off)
+      }
+   }
+
+   function saveNotificationStatus(status) {
+      $.ajax({
+         url: "{{ route('order.saveNotification') }}",  // Replace with your route
+         method: "POST",
+         data: {
+               _token: "{{ csrf_token() }}",  // CSRF token for security
+               order_id: {{ $order->id }},    // Pass the order ID
+               notification: status           // Pass the new notification status (0 or 1)
+         },
+         success: function(response) {
+               console.log('Notification status updated successfully!');
+         },
+         error: function(error) {
+               console.log('Error updating notification status.');
+         }
+      });
+   }
 
    document.getElementById('add-task-btn').addEventListener('click', function() {
       document.getElementById('task-form').style.display = 'block';
@@ -1159,6 +1178,37 @@
    // Listen for changes on Tagify
    TagifyCustomInlineSuggestion.on('change', saveTagsDebounced);
 
+   // Listen for changes in the selectpicker
+   timer = 500;
+   $(document.body).on("change","#order_team_member",function(){
+      clearTimeout(timer); // Clear any previous timer
+
+      // Set a timeout of 0.5 seconds (500 milliseconds)
+      timer = setTimeout(function() {
+            // Get the selected team member IDs
+            var selectedTeamMembers = $('#order_team_member').val();
+
+            // Make sure some members are selected
+            if (selectedTeamMembers.length > 0) {
+               // Perform AJAX request to save team members
+               $.ajax({
+                  url: "{{ route('order.saveTeamMembers') }}", // Your route to save team members
+                  method: "POST",
+                  data: {
+                        _token: "{{ csrf_token() }}", // CSRF token for Laravel
+                        order_id: {{ $order->id }},   // Pass the order ID
+                        team_member_ids: selectedTeamMembers // Pass the selected team member IDs
+                  },
+                  success: function(response) {
+                        console.log('Team members saved successfully!');
+                  },
+                  error: function(error) {
+                        alert('Error saving team members.');
+                  }
+               });
+            }
+      }, 500); // 0.5 second delay before saving
+   });
 </script>
 
 @endsection

@@ -11,6 +11,7 @@ use App\Models\Task;
 use App\Models\History;
 use App\Models\ClientStatus;
 use App\Models\OrderStatus;
+use App\Models\OrderTeam;
 use App\Models\Tag;
 use App\Models\ClientReply;
 use App\Models\OrderProjectData;
@@ -33,7 +34,7 @@ class OrderController extends Controller
     public function show($id)
     {
         $team_members = TeamMember::where('added_by', auth()->id())->get();
-        $order = Order::with(['client', 'service', 'tasks' => function($query) {
+        $order = Order::with(['client', 'teamMembers', 'service', 'tasks' => function($query) {
             $query->where('status', 0);
         }])->where('order_no', $id)->firstOrFail();
 
@@ -64,9 +65,33 @@ class OrderController extends Controller
             });
 
         $teamMembers = TeamMember::with('role')->where('added_by', auth()->id())->get();
-        //echo "<pre>"; print_r($teamMembers); die;
+        //echo "<pre>"; print_r($order->teamMembers); die;
         
         return view('client.pages.orders.show', compact('order','team_members','project_data','client_replies','orderHistory','orderstatus','orderStatus','tags','existingTags','existingTagsName','teamMembers'));
+    }
+
+    public function saveTeamMembers(Request $request)
+    {
+        $orderId = $request->input('order_id');
+        $teamMemberIds = $request->input('team_member_ids');
+
+        // Validate that order ID and team member IDs are provided
+        if (!$orderId || !$teamMemberIds) {
+            return response()->json(['error' => 'Invalid data provided'], 400);
+        }
+
+        // First, remove any existing team members for this order
+        OrderTeam::where('order_id', $orderId)->delete();
+
+        // Now, insert the new selected team members
+        foreach ($teamMemberIds as $teamMemberId) {
+            OrderTeam::create([
+                'order_id' => $orderId,
+                'team_member_id' => $teamMemberId,
+            ]);
+        }
+
+        return response()->json(['success' => 'Team members saved successfully!']);
     }
 
     public function updateTags(Request $request, $id)
@@ -486,5 +511,22 @@ class OrderController extends Controller
             ->paginate(5); // Paginate with 5 messages per page
 
         return response()->json($orderHistory);
+    }
+    
+    public function saveNotification(Request $request)
+    {
+        $orderId = $request->input('order_id');
+        $notificationStatus = $request->input('notification');
+
+        // Find the order by ID and update the notification status
+        $order = Order::find($orderId);
+        if ($order) {
+            $order->notification = $notificationStatus;
+            $order->save();
+
+            return response()->json(['success' => 'Notification status updated successfully.']);
+        } else {
+            return response()->json(['error' => 'Order not found.'], 404);
+        }
     }
 }
