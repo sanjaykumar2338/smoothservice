@@ -45,24 +45,29 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label" for="date_added">Date Added</label>
-                                <input type="datetime-local" class="form-control" id="date_added" name="date_added" value="{{ old('date_added', $order->date_added) }}" />
+                                <input type="datetime-local" class="form-control" id="date_added" name="date_added" 
+                                    value="{{ old('date_added', $order->date_added ? $order->date_added->format('Y-m-d\TH:i') : '') }}" />
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label" for="date_due">Date Due</label>
-                                <input type="datetime-local" class="form-control" id="date_due" name="date_due" value="{{ old('date_due', $order->date_due) }}" />
+                                <input type="datetime-local" class="form-control" id="date_due" name="date_due" 
+                                    value="{{ old('date_due', $order->date_due ? $order->date_due->format('Y-m-d\TH:i') : '') }}" />
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label" for="date_started">Date Started</label>
-                                <input type="datetime-local" class="form-control" id="date_started" name="date_started" value="{{ old('date_started', $order->date_started) }}" />
+                                <input type="datetime-local" class="form-control" id="date_started" name="date_started" 
+                                    value="{{ old('date_started', $order->date_started ? $order->date_started->format('Y-m-d\TH:i') : '') }}" />
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label" for="date_completed">Date Completed</label>
-                                <input type="datetime-local" class="form-control" id="date_completed" name="date_completed" value="{{ old('date_completed', $order->date_completed) }}" />
+                                <input type="datetime-local" class="form-control" id="date_completed" name="date_completed" 
+                                    value="{{ old('date_completed', $order->date_completed ? $order->date_completed->format('Y-m-d\TH:i') : '') }}" />
                             </div>
                         </div>
+
 
                         <!-- Client -->
                         <div class="mb-3">
