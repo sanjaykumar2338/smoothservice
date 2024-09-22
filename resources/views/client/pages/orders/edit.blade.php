@@ -42,27 +42,6 @@
                         </div>
 
                         <!-- Date Fields -->
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label" for="date_added">Date Added</label>
-                                <input type="datetime-local" class="form-control" id="date_added" name="date_added" value="{{ old('date_added', $order->date_added) }}" />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label" for="date_due">Date Due</label>
-                                <input type="datetime-local" class="form-control" id="date_due" name="date_due" value="{{ old('date_due', $order->date_due) }}" />
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label" for="date_started">Date Started</label>
-                                <input type="datetime-local" class="form-control" id="date_started" name="date_started" value="{{ old('date_started', $order->date_started) }}" />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label" for="date_completed">Date Completed</label>
-                                <input type="datetime-local" class="form-control" id="date_completed" name="date_completed" value="{{ old('date_completed', $order->date_completed) }}" />
-                            </div>
-                        </div>
 
                         <!-- Client -->
                         <div class="mb-3">
@@ -90,6 +69,28 @@
                         <div class="mb-3">
                             <label class="form-label" for="amount">Amount ($)</label>
                             <input type="number" step="0.01" class="form-control" id="amount" name="amount" value="{{ old('amount', $order->amount) }}" placeholder="Enter Amount" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="date_added">Date Added</label>
+                                <input type="datetime-local" class="form-control" id="date_added" name="date_added" value="{{ old('date_added', $order->date_added) }}" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="date_due">Date Due</label>
+                                <input type="datetime-local" class="form-control" id="date_due" name="date_due" value="{{ old('date_due', $order->date_due) }}" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="date_started">Date Started</label>
+                                <input type="datetime-local" class="form-control" id="date_started" name="date_started" value="{{ old('date_started', $order->date_started) }}" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="date_completed">Date Completed</label>
+                                <input type="datetime-local" class="form-control" id="date_completed" name="date_completed" value="{{ old('date_completed', $order->date_completed) }}" />
+                            </div>
                         </div>
 
                     </div>
