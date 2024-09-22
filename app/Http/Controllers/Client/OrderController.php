@@ -203,7 +203,7 @@ class OrderController extends Controller
             'title' => 'required|string|max:255',
             'client_id' => 'required|exists:clients,id',
             'service_id' => 'required|exists:services,id',
-            'date_added' => 'date',
+            'date_added' => 'nullable|date',
             'date_due' => 'nullable|date',
             'date_started' => 'nullable|date',
             'date_completed' => 'nullable|date',
