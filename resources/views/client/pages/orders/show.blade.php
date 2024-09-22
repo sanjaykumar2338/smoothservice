@@ -465,24 +465,33 @@
                      <span>{{$order->client->first_name}} {{$order->client->last_name}}</span>
                   </li>
                   <li class="d-flex align-items-center mb-3">
-                     <span class="fw-medium mx-2">Created</span> <span>{{ $order->date_added->format('M d') }}
+                     <span class="fw-medium mx-2">Created</span>
+                     <span>
+                        {{ $order->date_added ? $order->date_added->format('M d') : 'N/A' }}
                      </span>
                   </li>
 
                   <li class="d-flex align-items-center mb-3">
-                     <span class="fw-medium mx-2">Started</span> <span>{{ $order->date_started->format('M d') }}
+                     <span class="fw-medium mx-2">Started</span>
+                     <span>
+                        {{ $order->date_started ? $order->date_started->format('M d') : 'N/A' }}
                      </span>
                   </li>
 
                   <li class="d-flex align-items-center mb-3">
-                     <span class="fw-medium mx-2">Due</span> <span>{{ $order->date_due->format('M d') }}
+                     <span class="fw-medium mx-2">Due</span>
+                     <span>
+                        {{ $order->date_due ? $order->date_due->format('M d') : 'N/A' }}
                      </span>
                   </li>
 
                   <li class="d-flex align-items-center mb-3">
-                     <span class="fw-medium mx-2">Completed</span> <span>{{ $order->date_completed->format('M d') }}
+                     <span class="fw-medium mx-2">Completed</span>
+                     <span>
+                        {{ $order->date_completed ? $order->date_completed->format('M d') : 'N/A' }}
                      </span>
                   </li>
+
                   </ul>
 
                   <small class="text-muted text-uppercase">Select Team Members</small>
