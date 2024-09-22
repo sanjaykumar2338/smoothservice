@@ -494,7 +494,7 @@
 
                   </ul>
 
-                  <small class="text-muted text-uppercase">Select Team Members</small>
+                  <small class=" text-uppercase">Select Team Members</small>
                   <div class="">
                      <select
                         id="order_team_member"
@@ -512,7 +512,7 @@
                   </div>
 
 
-               <small class="text-muted text-uppercase">Select Tags</small>
+               <small class=" text-uppercase">Select Tags</small>
                <div class="">
                   <input
                      id="TagifyCustomInlineSuggestion"
