@@ -145,9 +145,11 @@ class OrderController extends Controller
 
         // Generate an 8-character alphanumeric order number
         $order_no = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8)); // Generates exactly 8 characters
+        $service = Service::find($validatedData['service_id']);
 
         // Create the new order
         $order = Order::create([
+            'title' => $service->service_name,
             'client_id' => $validatedData['client_id'],
             'user_id' => auth()->id(),
             'service_id' => $validatedData['service_id'],
@@ -165,7 +167,7 @@ class OrderController extends Controller
         ]);
 
         // Redirect to the order detail page with success message
-        return redirect()->route('client.order.show', ['id' => $order->id])->with('success', 'Order created successfully.');
+        return redirect()->route('client.order.show', ['id' => $order->order_no])->with('success', 'Order created successfully.');
     }
 
     public function project_data($id)
@@ -193,27 +195,34 @@ class OrderController extends Controller
     // Update order
     public function update(Request $request, $id)
     {
+        // Fetch the order or return 404 if not found
         $order = Order::findOrFail($id);
 
+        // Validate the request
         $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
             'client_id' => 'required|exists:clients,id',
             'service_id' => 'required|exists:services,id',
-            'order_date' => 'required|date',
-            'order_details' => 'nullable|string|max:255',
+            'date_added' => 'date',
+            'date_due' => 'nullable|date',
+            'date_started' => 'nullable|date',
+            'date_completed' => 'nullable|date',
+            'amount' => 'numeric|min:0',
         ]);
 
-        // Update order details
+        // Update the order with validated data
         $order->update($validatedData);
 
-         // Store order update in history
-         History::create([
+        // Store order update in history
+        History::create([
             'order_id' => $order->id,
             'user_id' => auth()->id(),
             'action_type' => 'order_updated',
-            'action_details' => 'Order updated with the following data: ' . json_encode($request->all()),
+            'action_details' => 'Order updated with the following data: ' . json_encode($validatedData),
         ]);
 
-        return redirect()->route('client.order.show', $order->id)->with('success', 'Order updated successfully.');
+        // Redirect back to the order details with success message
+        return redirect()->route('client.order.show', $order->order_no)->with('success', 'Order updated successfully.');
     }
 
     // Delete order
@@ -528,5 +537,20 @@ class OrderController extends Controller
         } else {
             return response()->json(['error' => 'Order not found.'], 404);
         }
+    }
+
+    public function deleteOrder(Order $order)
+    {
+        $order->deleteOrder();
+        return response()->json(['success' => 'Order deleted successfully!']);
+    }
+
+    /**
+     * Duplicate an order.
+     */
+    public function duplicateOrder(Order $order)
+    {
+        $newOrder = $order->duplicateOrder();
+        return response()->json(['success' => 'Order duplicated successfully!', 'new_order_id' => $newOrder->id]);
     }
 }

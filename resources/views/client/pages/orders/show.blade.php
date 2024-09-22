@@ -38,7 +38,7 @@
 
    <div class="row align-items-center">
     <div class="col-md-6">
-        <h5 class="card-action-title mb-4 fs-2 text-black">{{$order->service->service_name}}</h5>
+        <h5 class="card-action-title mb-4 fs-2 text-black">{{$order->title}}</h5>
     </div>
     <div class="col-md-6 d-flex justify-content-end">
          <ul class="nav nav-pills flex-sm-row mb-4">
@@ -74,11 +74,15 @@
                   <i class="bx bx-dots-vertical-rounded"></i>
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end">
-                     <li><a class="dropdown-item" href="javascript:void(0);">Edit</a></li>
-                     <li><a class="dropdown-item" href="javascript:void(0);">Add Project data</a></li>
-                     <li><a class="dropdown-item" href="javascript:void(0);">Create an invoice</a></li>
-                     <li><a class="dropdown-item" href="javascript:void(0);">Duplicate order</a></li>
-                     <li><a class="dropdown-item" href="javascript:void(0);">Delete order</a></li>
+                     <li><a class="dropdown-item" href="{{route('client.order.edit',$order->id)}}">Edit</a></li>
+                     <li><a class="dropdown-item" href="{{route('client.order.project_data',$order->id)}}">Add Project data</a></li>
+                     <li><a style="display:none;" class="dropdown-item" href="javascript:void(0);">Create an invoice</a></li>
+                     <li>
+                        <a class="dropdown-item" href="javascript:void(0);" onclick="duplicateOrder({{ $order->id }})">Duplicate order</a>
+                     </li>
+                     <li>
+                        <a class="dropdown-item" href="javascript:void(0);" onclick="deleteOrder({{ $order->id }})">Delete order</a>
+                     </li>
                   </ul>
                </div>
             </li>
@@ -461,22 +465,22 @@
                      <span>{{$order->client->first_name}} {{$order->client->last_name}}</span>
                   </li>
                   <li class="d-flex align-items-center mb-3">
-                     <span class="fw-medium mx-2">Created</span> <span>{{ $order->created_at->format('M d') }}
+                     <span class="fw-medium mx-2">Created</span> <span>{{ $order->date_added->format('M d') }}
                      </span>
                   </li>
 
                   <li class="d-flex align-items-center mb-3">
-                     <span class="fw-medium mx-2">Started</span> <span>--
+                     <span class="fw-medium mx-2">Started</span> <span>{{ $order->date_started->format('M d') }}
                      </span>
                   </li>
 
                   <li class="d-flex align-items-center mb-3">
-                     <span class="fw-medium mx-2">Due</span> <span>--
+                     <span class="fw-medium mx-2">Due</span> <span>{{ $order->date_due->format('M d') }}
                      </span>
                   </li>
 
                   <li class="d-flex align-items-center mb-3">
-                     <span class="fw-medium mx-2">Completed</span> <span>--
+                     <span class="fw-medium mx-2">Completed</span> <span>{{ $order->date_completed->format('M d') }}
                      </span>
                   </li>
                   </ul>
@@ -1210,5 +1214,62 @@
       }, 500); // 0.5 second delay before saving
    });
 </script>
+
+<script>
+   function duplicateOrder(orderId) {
+      if (confirm('Are you sure you want to duplicate this order?')) {
+         // Make an AJAX POST request to duplicate the order
+         fetch(`/client/orders/${orderId}/duplicate`, {
+               method: 'POST',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': '{{ csrf_token() }}' // Add CSRF token for security
+               }
+         })
+         .then(response => response.json())
+         .then(data => {
+               if (data.success) {
+                  alert('Order duplicated successfully!');
+                  // Optionally reload the page or update the UI to show the new order
+                  window.location.reload();
+               } else {
+                  alert('Failed to duplicate the order.');
+               }
+         })
+         .catch(error => {
+               console.error('Error duplicating order:', error);
+               alert('An error occurred.');
+         });
+      }
+   }
+
+   function deleteOrder(orderId) {
+      if (confirm('Are you sure you want to delete this order?')) {
+         // Make an AJAX DELETE request to delete the order
+         fetch(`/client/orders/${orderId}/delete`, {
+               method: 'DELETE',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': '{{ csrf_token() }}' // Add CSRF token for security
+               }
+         })
+         .then(response => response.json())
+         .then(data => {
+               if (data.success) {
+                  alert('Order deleted successfully!');
+                  // Optionally redirect or update the UI
+                  window.location.href = '/client/order/list'; // Redirect to the orders list
+               } else {
+                  alert('Failed to delete the order.');
+               }
+         })
+         .catch(error => {
+               console.error('Error deleting order:', error);
+               alert('An error occurred.');
+         });
+      }
+   }
+</script>
+
 
 @endsection

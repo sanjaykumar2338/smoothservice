@@ -72,7 +72,7 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::get('/order/add', [OrderController::class, 'create'])->name('client.order.add');
     Route::post('/order/store', [OrderController::class, 'store'])->name('client.order.store');        
     Route::get('/order/edit/{id}', [OrderController::class, 'edit'])->name('client.order.edit');
-    Route::post('/order/update/{id}', [OrderController::class, 'update'])->name('client.order.update');
+    Route::put('/order/update/{id}', [OrderController::class, 'update'])->name('client.order.update');
     Route::delete('/order/delete/{id}', [OrderController::class, 'destroy'])->name('client.order.destroy');
     Route::post('/order/{id}/save-note', [OrderController::class, 'saveNote']);
     Route::post('/order/save-task', [OrderController::class, 'saveTask']);
@@ -93,6 +93,8 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::post('/order/{id}/update-tags', [OrderController::class, 'updateTags'])->name('order.updateTags');
     Route::post('/order/save-team-members', [OrderController::class, 'saveTeamMembers'])->name('order.saveTeamMembers');
     Route::post('/order/save-notification', [OrderController::class, 'saveNotification'])->name('order.saveNotification');
+    Route::delete('/orders/{order}/delete', [OrderController::class, 'deleteOrder'])->name('orders.delete');
+    Route::post('/orders/{order}/duplicate', [OrderController::class, 'duplicateOrder'])->name('orders.duplicate');
 
     //order statuses
     Route::get('/orderstatuses/list', [SettingController::class, 'index'])->name('setting.orderstatuses.list');

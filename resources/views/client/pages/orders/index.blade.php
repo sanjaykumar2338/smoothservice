@@ -46,6 +46,7 @@
                     <tr class="text-nowrap">
                         <th><input type="checkbox" id="select-all"></th>
                         <th>#</th>
+                        <th>Order Title</th>
                         <th>Client</th>
                         <th>Service</th>
                         <th>Status</th>
@@ -59,6 +60,7 @@
                         <tr>
                             <td><input type="checkbox" class="order-checkbox" value="{{ $order->id }}"></td>
                             <th scope="row"><a href="{{ route('client.order.show', $order->id) }}">{{ $order->id }}</a></th>
+                            <td>{{ $order->title }}</td>
                             <td>{{ $order->client->first_name }} {{ $order->client->last_name }}</td>
                             <td>{{ $order->service->service_name }}</td>
                             <td>{{ ucfirst($order->status) }}</td>
