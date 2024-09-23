@@ -31,12 +31,14 @@ class LoginController extends Controller
         ]);
 
         $credentials = $request->only('email', 'password');
-
-        if (Auth::attempt($credentials)) {
-            // Authentication passed...
+        if (Auth::guard('web')->attempt($credentials)) {
             return redirect()->intended(route('client.dashboard'));
         }
 
+        if (Auth::guard('team')->attempt($credentials)) {
+            return redirect()->intended(route('team.dashboard')); // Team member dashboard
+        }
+        
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->withInput($request->only('email'));

@@ -41,11 +41,12 @@ return [
             'provider' => 'users',
         ],
 
-        'team_members' => [
+        'team' => [
             'driver' => 'session',
             'provider' => 'team_members',
         ],
     ],
+
 
     /*
     |--------------------------------------------------------------------------
@@ -67,19 +68,15 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'model' => App\Models\User::class,
         ],
 
         'team_members' => [
             'driver' => 'eloquent',
             'model' => App\Models\TeamMember::class,
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
     ],
+
 
     /*
     |--------------------------------------------------------------------------

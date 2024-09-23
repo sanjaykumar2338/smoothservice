@@ -13,6 +13,9 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Client\TagController;
 use App\Http\Controllers\Client\ClientStatusController;
 
+//for team members
+require __DIR__.'/team.php';
+
 //Route for login , register
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
 Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -20,15 +23,15 @@ Route::post('login', [LoginController::class, 'login']);
 Route::get('register', [LoginController::class, 'register'])->name('register');
 Route::post('register', [LoginController::class, 'create_account'])->name('register');
 Route::get('forget', [LoginController::class, 'forget'])->name('forget');
-Route::get('logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 Route::post('password/email', [ForgotPasswordController::class,'sendResetLinkEmail'])->name('password.email');
 Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // For client after login
-Route::prefix('client')->middleware('auth')->group(function () {
+Route::prefix('client')->middleware('auth:web')->group(function () {
     Route::get('dashboard', [ClientController::class, 'index'])->name('client.dashboard');
     
     // Service routes
@@ -119,10 +122,12 @@ Route::prefix('client')->middleware('auth')->group(function () {
     Route::delete('/clientstatuses/delete/{id}', [ClientStatusController::class, 'destroy'])->name('client.statuses.delete');
 });
 
-Route::group(['middleware' => 'auth:team_members'], function () {
-    Route::get('/dashboard', [TeamController::class, 'index'])->name('team.dashboard');
-});
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
-
+Route::get('logout', function() {
+    if (Auth::guard('web')->check()) {
+        Auth::guard('web')->logout();
+    }
+    if (Auth::guard('team')->check()) {
+        Auth::guard('team')->logout();
+    }
+    return redirect('/');
+})->name('logout');
