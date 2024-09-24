@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Client\TagController;
 use App\Http\Controllers\Client\ClientStatusController;
+use App\Http\Controllers\Client\RoleController;
 
 //for team members
 require __DIR__.'/team.php';
@@ -120,6 +121,13 @@ Route::prefix('client')->middleware('auth:web')->group(function () {
     Route::get('/clientstatuses/edit/{id}', [ClientStatusController::class, 'edit'])->name('client.statuses.edit');
     Route::put('/clientstatuses/update/{id}', [ClientStatusController::class, 'update'])->name('client.statuses.update');
     Route::delete('/clientstatuses/delete/{id}', [ClientStatusController::class, 'destroy'])->name('client.statuses.delete');
+
+    Route::get('/roles/list', [RoleController::class, 'index'])->name('client.roles.list');
+    Route::get('/roles/create', [RoleController::class, 'create'])->name('client.roles.create');
+    Route::post('/roles/store', [RoleController::class, 'store'])->name('client.roles.store');
+    Route::get('/roles/edit/{id}', [RoleController::class, 'edit'])->name('client.roles.edit');
+    Route::put('/roles/update/{id}', [RoleController::class, 'update'])->name('client.roles.update');
+    Route::delete('/roles/delete/{id}', [RoleController::class, 'destroy'])->name('client.roles.delete');
 });
 
 Route::get('logout', function() {

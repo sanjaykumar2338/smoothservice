@@ -136,7 +136,10 @@
                     'client.tags.edit',
                     'client.statuses.list',
                     'client.statuses.create',
-                    'client.statuses.edit'
+                    'client.statuses.edit',
+                    'client.roles.list',
+                    'client.roles.create',
+                    'client.roles.edit'
                 ]) ? 'open active' : '' }}">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-cog"></i>
@@ -161,6 +164,12 @@
                         <div data-i18n="Tags">Tags</div>
                     </a>
                 </li>
+
+                <li class="menu-item {{request()->routeIs(['client.roles.list', 'client.roles.create', 'client.roles.edit']) ? 'active' : ''}}">
+                  <a href="{{ route('client.roles.list') }}" class="menu-link">
+                      <div data-i18n="Roles">Roles</div>
+                  </a>
+              </li>
 
               </ul>
             </li>
