@@ -189,9 +189,6 @@
 
                 <!-- Services -->
                 <div class="mb-4">
-                    <h6 class="fw-bold">Services```php
-                <!-- Services -->
-                <div class="mb-4">
                     <h6 class="fw-bold">Services</h6>
                     <div class="form-check">
                         <input type="checkbox" class="form-check-input" id="view_services" name="permissions[]" value="view_services">

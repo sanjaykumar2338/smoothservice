@@ -22,7 +22,8 @@ class TeamMemberController extends Controller
                 ->orWhere('email', 'like', '%' . $request->search . '%');
         }
 
+        //echo auth()->user()->hasPermission('assigned_orders'); die;
         $clients = $query->orderBy('id', 'desc')->paginate(10);
-        return view('client.pages.clients.index', compact('clients'));
+        return view('team_member.team_member_pages.dashboard_page', compact('clients'));
     }
 }

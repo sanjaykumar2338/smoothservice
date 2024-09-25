@@ -76,6 +76,7 @@ class RoleController extends Controller
         RoleAccess::where('role_id', $id)->delete();
 
         // Re-save permissions
+        //echo "<pre>"; print_r($request->input('permissions')); die;
         foreach ($request->permissions as $permission) {
             // Determine if the permission was checked or unchecked
             RoleAccess::create([

@@ -44,4 +44,10 @@ class TeamMember extends Authenticatable // Extending Authenticatable for Larave
     {
         return $this->belongsToMany(Task::class, 'task_members');
     }
+
+    public function hasPermission($permission)
+    {
+        $roleAccess = $this->role->roleAccesses; // assuming the relationship is defined
+        return $roleAccess->contains('access_name', $permission);
+    }
 }
