@@ -13,9 +13,10 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Client\TagController;
 use App\Http\Controllers\Client\ClientStatusController;
 use App\Http\Controllers\Client\RoleController;
+use App\Http\Middleware\CheckWebOrTeam;
 
 //for team members
-require __DIR__.'/team.php';
+//require __DIR__.'/team.php';
 
 //Route for login , register
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
@@ -32,7 +33,7 @@ Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // For client after login
-Route::prefix('client')->middleware('auth:web')->group(function () {
+Route::prefix('client')->group(function () {
     Route::get('dashboard', [ClientController::class, 'index'])->name('client.dashboard');
     
     // Service routes
@@ -128,7 +129,7 @@ Route::prefix('client')->middleware('auth:web')->group(function () {
     Route::get('/roles/edit/{id}', [RoleController::class, 'edit'])->name('client.roles.edit');
     Route::put('/roles/update/{id}', [RoleController::class, 'update'])->name('client.roles.update');
     Route::delete('/roles/delete/{id}', [RoleController::class, 'destroy'])->name('client.roles.delete');
-});
+})->middleware(CheckWebOrTeam::class);
 
 Route::get('logout', function() {
     if (Auth::guard('web')->check()) {

@@ -21,7 +21,8 @@ class TeamMemberController extends Controller
                 ->orWhere('last_name', 'like', '%' . $request->search . '%')
                 ->orWhere('email', 'like', '%' . $request->search . '%');
         }
-
+        
+        //echo checkPermission('assigned_orders'); die;
         //echo auth()->user()->hasPermission('assigned_orders'); die;
         $clients = $query->orderBy('id', 'desc')->paginate(10);
         return view('team_member.team_member_pages.dashboard_page', compact('clients'));

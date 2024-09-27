@@ -68,8 +68,13 @@
     <div class="layout-wrapper layout-content-navbar">
       <div class="layout-container">
         <!-- Menu -->
-        @include('client.sidebar')
-        
+
+
+        @if(getUserType()=='web')
+          @include('client.sidebar')
+        @else
+          @include('client.teamsidebar')
+        @endif
         <!-- / Menu -->
 
         <!-- Layout container -->
