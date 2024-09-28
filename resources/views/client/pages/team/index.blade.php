@@ -28,12 +28,14 @@
                             </label>
                         </form>
                     </div>
+                    @if(checkPermission('add_edit_delete_team'))
                     <div class="dt-buttons">
                         &nbsp;
                         <button onclick="window.location.href='{{ route('client.team.add') }}'" class="dt-button add-new btn btn-primary ms-n1" tabindex="0" aria-controls="DataTables_Table_0" type="button">
                             <span><i class="bx bx-plus me-0 me-lg-2"></i><span class="d-none d-lg-inline-block">Add Team Member</span></span>
                         </button>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -48,7 +50,9 @@
                         <th>Last Name</th>
                         <th>Email</th>
                         <th>Role</th>
-                        <th>Actions</th>
+                        @if(checkPermission('add_edit_delete_team'))
+                            <th>Actions</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
@@ -60,6 +64,7 @@
                             <td>{{ $teamMember->last_name }}</td>
                             <td>{{ $teamMember->email }}</td>
                             <td>{{ ucfirst($teamMember->role->name) }}</td>
+                            @if(checkPermission('add_edit_delete_team'))
                             <td>
                                 <!-- Edit Button -->
                                 <a href="{{ route('client.team.edit', $teamMember->id) }}" class="btn btn-sm btn-primary">Edit</a>
@@ -71,6 +76,7 @@
                                     <button type="submit" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</button>
                                 </form>
                             </td>
+                            @endif
                         </tr>
                         @endforeach
                     @else

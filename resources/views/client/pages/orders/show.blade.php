@@ -247,25 +247,26 @@
                <div class="card card-action mb-4">
                   <div class="card-header align-items-center">
                      <h5 class="card-action-title mb-0">Project Data</h5>
-                     <div class="card-action-element btn-pinned">
-                        <div class="dropdown">
-                           <button
-                              type="button"
-                              class="btn dropdown-toggle hide-arrow p-0"
-                              data-bs-toggle="dropdown"
-                              aria-expanded="false">
-                           <i class="bx bx-dots-vertical-rounded"></i>
-                           </button>
-                           <ul class="dropdown-menu dropdown-menu-end">
-                              <li><a class="dropdown-item open_data_project" href="javascript:void(0);">Add data</a></li>
-                              <li><a class="dropdown-item" href="{{ route('client.order.project_data', $order->id) }}">Edit data</a></li>
-                              <li><a class="dropdown-item" href="{{ route('client.order.export_data', $order->id) }}">Export data</a></li>
-                              <li><a class="dropdown-item" href="{{ route('client.order.download_files', $order->id) }}">Download files</a></li>
-                              <li><a class="dropdown-item" href="javascript:void(0);" onclick="deleteData({{ $order->id }})">Delete data</a></li>
-                           </ul>
-
+                     @if(checkPermission('edit_data'))
+                        <div class="card-action-element btn-pinned">
+                           <div class="dropdown">
+                              <button
+                                 type="button"
+                                 class="btn dropdown-toggle hide-arrow p-0"
+                                 data-bs-toggle="dropdown"
+                                 aria-expanded="false">
+                              <i class="bx bx-dots-vertical-rounded"></i>
+                              </button>
+                              <ul class="dropdown-menu dropdown-menu-end">
+                                 <li><a class="dropdown-item open_data_project" href="javascript:void(0);">Add data</a></li>
+                                 <li><a class="dropdown-item" href="{{ route('client.order.project_data', $order->id) }}">Edit data</a></li>
+                                 <li><a class="dropdown-item" href="{{ route('client.order.export_data', $order->id) }}">Export data</a></li>
+                                 <li><a class="dropdown-item" href="{{ route('client.order.download_files', $order->id) }}">Download files</a></li>
+                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="deleteData({{ $order->id }})">Delete data</a></li>
+                              </ul>
+                           </div>
                         </div>
-                     </div>
+                     @endif
                   </div>
 
                   <div class="card-body">
@@ -417,15 +418,18 @@
                         </div>
                      </div>
                   </div>
-
+                  
                   <div class="card-footer d-flex justify-content-end">
                   <div class="card-footer d-flex justify-content-end">
+                     @if(checkPermission('message_client'))
                      <button id="reply-client-btn" class="btn btn-label-primary p-1 btn-sm">
                         <i class="bx bx-reply"></i> Reply to Client
-                     </button>&nbsp;
-                     <button id="message-team-btn" class="btn btn-label-primary p-1 btn-sm">
-                        <i class="bx bx-plus"></i> Message Team
-                     </button>
+                     </button>@endif &nbsp;
+                     @if(checkPermission('message_team'))
+                        <button id="message-team-btn" class="btn btn-label-primary p-1 btn-sm">
+                           <i class="bx bx-plus"></i> Message Team
+                        </button>
+                     @endif
                   </div>
                   </div>
                </div>
@@ -491,26 +495,40 @@
                         {{ $order->date_completed ? $order->date_completed->format('M d') : 'N/A' }}
                      </span>
                   </li>
+               </ul>
 
-                  </ul>
+               <small class="text-uppercase">Select Team Members</small>
+               <div>
+                  <select
+                     id="order_team_member"
+                     class="selectpicker w-100"
+                     data-style="btn-default"
+                     multiple
+                     data-max-options="2">
+                     
+                     @foreach($teamMembers as $team)
+                        <option value="{{ $team->id }}"
+                           {{-- Mark as selected if this team member is already assigned to the order --}}
+                           @if($order->teamMembers->contains($team->id)) selected @endif
+                           
+                           {{-- Disable the selection if permission logic dictates it --}}
+                           @if(
+                                 (!checkPermission('assign_to_self') && $team->id === getUserID()) || 
+                                 (!checkPermission('assign_to_others') && $team->id !== getUserID())
+                           ) disabled @endif>
+                           
+                           {{ $team->first_name }} {{ $team->last_name }} 
 
-                  <small class=" text-uppercase">Select Team Members</small>
-                  <div class="">
-                     <select
-                        id="order_team_member"
-                        class="selectpicker w-100"
-                        data-style="btn-default"
-                        multiple
-                        data-max-options="2">
-                        @foreach($teamMembers as $team)
-                           <option value="{{ $team->id }}"
-                              @if($order->teamMembers->contains($team->id)) selected @endif>
-                              {{ $team->first_name }} {{ $team->last_name }}
-                           </option>
-                        @endforeach
-                     </select>
-                  </div>
+                           {{-- If already assigned, mark it clearly (optional, for better visibility) --}}
+                           @if($order->teamMembers->contains($team->id))
+                                 (Already Assigned)
+                           @endif
+                        </option>
+                     @endforeach
 
+
+                  </select>
+               </div>
 
                <small class=" text-uppercase">Select Tags</small>
                <div class="">
@@ -1193,35 +1211,60 @@
 
    // Listen for changes in the selectpicker
    timer = 500;
-   $(document.body).on("change","#order_team_member",function(){
+   $(document.body).on("change", "#order_team_member", function() {
       clearTimeout(timer); // Clear any previous timer
 
       // Set a timeout of 0.5 seconds (500 milliseconds)
       timer = setTimeout(function() {
-            // Get the selected team member IDs
-            var selectedTeamMembers = $('#order_team_member').val();
+         // Get the selected team member IDs
+         var selectedTeamMembers = $('#order_team_member').val();
 
-            // Make sure some members are selected
-            if (selectedTeamMembers.length > 0) {
+         // Check if permissions allow assigning to self or others
+         var canAssignToSelf = "{{ checkPermission('assign_to_self') }}"; // Check permission for assign_to_self
+         var canAssignToOthers = "{{ checkPermission('assign_to_others') }}"; // Check permission for assign_to_others
+         var loggedInUserId = "{{ getUserID() }}"; // Get the logged-in user's ID
+
+         // Filter the selected team members based on permissions
+         var validSelectedMembers = selectedTeamMembers.filter(function(memberId) {
+               // If they have 'assign_to_self' permission, they can select themselves
+               if (canAssignToSelf && memberId == loggedInUserId) {
+                  return true;
+               }
+
+               // If they have 'assign_to_others' permission, they can select other members
+               if (canAssignToOthers && memberId != loggedInUserId) {
+                  return true;
+               }
+
+               // If no permission, reject the member
+               return false;
+         });
+
+         // Make sure valid members are selected
+         if (validSelectedMembers.length > 0) {
                // Perform AJAX request to save team members
                $.ajax({
                   url: "{{ route('order.saveTeamMembers') }}", // Your route to save team members
                   method: "POST",
                   data: {
-                        _token: "{{ csrf_token() }}", // CSRF token for Laravel
-                        order_id: {{ $order->id }},   // Pass the order ID
-                        team_member_ids: selectedTeamMembers // Pass the selected team member IDs
+                     _token: "{{ csrf_token() }}", // CSRF token for Laravel
+                     order_id: {{ $order->id }},   // Pass the order ID
+                     team_member_ids: validSelectedMembers // Pass the valid selected team member IDs
                   },
                   success: function(response) {
-                        console.log('Team members saved successfully!');
+                     console.log('Team members saved successfully!');
                   },
                   error: function(error) {
-                        alert('Error saving team members.');
+                     alert('Error saving team members.');
                   }
                });
-            }
+         } else {
+               alert('You do not have permission to assign these team members.');
+               location.reload(true);
+         }
       }, 500); // 0.5 second delay before saving
    });
+
 </script>
 
 <script>

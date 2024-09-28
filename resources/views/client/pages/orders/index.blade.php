@@ -75,11 +75,13 @@
                                 <a href="{{ route('client.order.show', $order->order_no) }}" class="btn btn-sm btn-info">Details</a>
 
                                 <!-- Delete Button -->
-                                <form action="{{ route('client.order.destroy', $order->id) }}" method="POST" style="display:inline-block;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</button>
-                                </form>
+                                @if(checkPermission('delete_order'))
+                                    <form action="{{ route('client.order.destroy', $order->id) }}" method="POST" style="display:inline-block;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                @endif
                             </td>
                         </tr>
                         @endforeach

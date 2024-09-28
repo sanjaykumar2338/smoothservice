@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Middleware;
 
 use Closure;
@@ -16,12 +15,14 @@ class CheckWebOrTeam
      */
     public function handle($request, Closure $next)
     {
-        // Check if the user is authenticated via the 'web' (client) or 'team' guard
-        if (Auth::guard('web')->check() || Auth::guard('team')->check()) {
-            return $next($request); // Allow access if authenticated by either guard
+        // Check if the user is authenticated via 'web' or 'team' guard
+        if (Auth::guard('web')->check()) {
+            return $next($request);
+        } elseif (Auth::guard('team')->check()) {
+            return $next($request);
         }
 
-        // If not authenticated, redirect to login page
-        return redirect()->route('login');
+        // If not authenticated, redirect to a generic login route or based on the guard
+        return redirect()->route('login'); // You can change 'login' to your actual login route
     }
 }

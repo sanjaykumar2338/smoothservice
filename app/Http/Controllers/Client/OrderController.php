@@ -39,7 +39,7 @@ class OrderController extends Controller
                     ->orWhereHas('teamMembers', function ($query) use ($teamMemberId) {
                         // Fetch orders where the team member is directly assigned
                         $query->where('team_member_id', $teamMemberId);
-                    })
+                    })->with('client', 'service')
                     ->paginate(10);
             } elseif (checkPermission('assigned_orders')) {
                 // Fetch only orders assigned to the team member
@@ -52,6 +52,7 @@ class OrderController extends Controller
             }
         }
 
+        //echo "<pre>"; print_r($order->teamMembers); die;
         // Fetch all clients and services (common for both types)
         $clients = Client::all();
         $services = Service::all();
@@ -62,16 +63,17 @@ class OrderController extends Controller
     // Show order details
     public function show($id)
     {
-        $team_members = TeamMember::where('added_by', auth()->id())->get();
         $order = Order::with(['client', 'teamMembers', 'service', 'tasks' => function($query) {
             $query->where('status', 0);
         }])->where('order_no', $id)->firstOrFail();
 
+        $team_members = TeamMember::where('added_by', $order->user_id)->get();
+
         $orderStatus = OrderStatus::find($order->status_id);
         $project_data = OrderProjectData::where('order_id', $order->id)->get();
         $client_replies = ClientReply::where('order_id', $order->id)->get();
-        $orderstatus = OrderStatus::where('added_by', auth()->id())->get();
-        $tags = Tag::where('added_by', auth()->id())->get();
+        $orderstatus = OrderStatus::where('added_by', $order->user_id)->get();
+        $tags = Tag::where('added_by', $order->user_id)->get();
         $existingTags = \DB::table('tags')
             ->join('order_tag', 'tags.id', '=', 'order_tag.tag_id')
             ->select('tags.id', 'tags.name') // Specify the table name for the id
@@ -93,8 +95,8 @@ class OrderController extends Controller
                 return \Carbon\Carbon::parse($date->created_at)->format('Y-m-d'); // Group by date only
             });
 
-        $teamMembers = TeamMember::with('role')->where('added_by', auth()->id())->get();
-        //echo "<pre>"; print_r($order->teamMembers); die;
+        $teamMembers = TeamMember::with('role')->where('added_by', $order->user_id)->get();
+        //echo "<pre>"; print_r($order->added_by); die;
         
         return view('client.pages.orders.show', compact('order','team_members','project_data','client_replies','orderHistory','orderstatus','orderStatus','tags','existingTags','existingTagsName','teamMembers'));
     }
@@ -103,6 +105,14 @@ class OrderController extends Controller
     {
         $orderId = $request->input('order_id');
         $teamMemberIds = $request->input('team_member_ids');
+
+        if(!checkPermission('assign_to_others')){
+            return response()->json(['error' => 'no permission'], 400);
+        }
+
+        if(!checkPermission('assign_to_self')){
+            return response()->json(['error' => 'no permission'], 400);
+        }
 
         // Validate that order ID and team member IDs are provided
         if (!$orderId || !$teamMemberIds) {

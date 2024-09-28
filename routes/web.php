@@ -33,7 +33,7 @@ Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // For client after login
-Route::prefix('client')->group(function () {
+Route::prefix('client')->middleware(CheckWebOrTeam::class)->group(function () {
     Route::get('dashboard', [ClientController::class, 'index'])->name('client.dashboard');
     
     // Service routes
@@ -129,7 +129,7 @@ Route::prefix('client')->group(function () {
     Route::get('/roles/edit/{id}', [RoleController::class, 'edit'])->name('client.roles.edit');
     Route::put('/roles/update/{id}', [RoleController::class, 'update'])->name('client.roles.update');
     Route::delete('/roles/delete/{id}', [RoleController::class, 'destroy'])->name('client.roles.delete');
-})->middleware(CheckWebOrTeam::class);
+});
 
 Route::get('logout', function() {
     if (Auth::guard('web')->check()) {

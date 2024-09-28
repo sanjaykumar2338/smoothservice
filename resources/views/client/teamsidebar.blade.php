@@ -71,6 +71,27 @@
                 </li>
               </ul>
             </li>
+
+            <li class="menu-item @php echo in_array(request()->route()->getName(),['client.service.list','client.service.add','client.service.edit','client.service.intakeform.list','client.service.intakeform.add','client.service.intakeform.edit','client.team.list','client.team.add','client.team.edit']) ? 'open':''@endphp">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-briefcase"></i>
+                <div data-i18n="Services">Services</div>
+              </a>
+
+              <ul class="menu-sub">
+                
+
+                @if(checkPermission('view_team'))
+
+                <li class="menu-item {{request()->route()->getName()=='client.team.list' || request()->route()->getName()=='client.team.add' || request()->route()->getName()=='client.team.edit' ? 'active':''}}">
+                  <a href="{{route('client.team.list')}}" class="menu-link">
+                    <div data-i18n="Team Members">Team Members</div>
+                  </a>
+                </li>
+
+                @endif
+              </ul>
+            </li>
             
             <li class="menu-item @php echo in_array(request()->route()->getName(), ['client.order.list', 'client.order.add', 'client.order.edit','client.order.show','client.order.project_data']) ? 'open active' : '' @endphp">
                 <a href="{{ route('client.order.list') }}" class="menu-link">
