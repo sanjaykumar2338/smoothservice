@@ -31,9 +31,12 @@
                     <div class="dt-buttons">
                         &nbsp;
                         <!-- Button to trigger modal for adding an order -->
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOrderModal">
-                            <i class="bx bx-plus me-0 me-lg-2"></i><span class="d-none d-lg-inline-block">Add Order</span>
-                        </button>
+                        @if (getUserType() == 'web')
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOrderModal">
+                                <i class="bx bx-plus me-0 me-lg-2"></i><span class="d-none d-lg-inline-block">Add Order</span>
+                            </button>
+                        @endif
+
                     </div>
                 </div>
             </div>

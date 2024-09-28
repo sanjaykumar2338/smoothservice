@@ -435,8 +435,18 @@
                               </div>
                             </div>
                             <div class="flex-grow-1">
-                              <span class="fw-medium d-block lh-1">John Doe</span>
-                              <small>Admin</small>
+                            @php $user_type = ''; @endphp  
+                            @if (Auth::guard('web')->check())
+                                @php $user_type = 'Admin'; @endphp  
+                                <span class="fw-medium d-block lh-1">{{ Auth::guard('web')->user()->first_name }} {{ Auth::guard('web')->user()->last_name }}</span>
+                            @elseif (Auth::guard('team')->check())
+                                @php $user_type = 'Team'; @endphp 
+                                <span class="fw-medium d-block lh-1">{{ Auth::guard('team')->user()->first_name }} {{ Auth::guard('team')->user()->last_name }}</span>
+                            @else
+                                @php $user_type = 'Guest'; @endphp 
+                                <span class="fw-medium d-block lh-1">Guest</span>
+                            @endif
+                              <small>{{$user_type}}</small>
                             </div>
                           </div>
                         </a>

@@ -19,8 +19,39 @@ if (!function_exists('getUserType')) {
 }
 
 if (!function_exists('checkPermission')) {
-    function checkPermission($permission=false)
+    function checkPermission($permission)
     {
-        return auth()->user()->hasPermission($permission);
+        // Check if the user is authenticated via the web guard
+        if (auth()->guard('web')->check()) {
+            return true;
+            //return auth()->guard('web')->user()->hasPermission($permission);
+        }
+        
+        // Check if the user is authenticated via the team guard
+        if (auth()->guard('team')->check()) {
+            return auth()->guard('team')->user()->hasPermission($permission);
+        }
+
+        // If no user is authenticated or no permission is available, return false
+        return false;
     }
 }
+
+if (!function_exists('getUserID')) {
+    function getUserID()
+    {
+        // Check if the user is authenticated via the web guard
+        if (auth()->guard('web')->check()) {
+            return auth()->guard('web')->user()->id;
+        }
+        
+        // Check if the user is authenticated via the team guard
+        if (auth()->guard('team')->check()) {
+            return auth()->guard('team')->user()->id;
+        }
+
+        // If no user is authenticated or no permission is available, return false
+        return false;
+    }
+}
+

@@ -36,7 +36,7 @@ class LoginController extends Controller
         }
 
         if (Auth::guard('team')->attempt($credentials)) {
-            return redirect()->intended(route('client.dashboard')); // Team member dashboard
+            return redirect()->intended(route('client.order.list')); // Team member dashboard
         }
         
         return back()->withErrors([

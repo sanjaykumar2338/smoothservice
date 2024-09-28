@@ -17,18 +17,47 @@ use App\Models\ClientReply;
 use App\Models\OrderProjectData;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class OrderController extends Controller
 {
-    // List all orders
     public function index()
     {
-        $orders = Order::with('client', 'service')->where('user_id', auth()->id())->paginate(10); 
-        //echo "<pre>"; print_r($orders); die;
-        $clients = Client::all();  // Fetch list of all clients
-        $services = Service::all();  // Fetch list of all services
+        $teamMemberId = getUserID();
+        
+        if (getUserType() == 'web') {
+            // For web users (clients), fetch orders based on the logged-in user ID
+            $orders = Order::with('client', 'service')->where('user_id', auth()->id())->paginate(10);
+        } elseif (getUserType() == 'team') {
+            $teamMember = TeamMember::find($teamMemberId);
+            $addedByUserId = $teamMember->added_by;
+
+            if (checkPermission('open_orders') || checkPermission('all_orders')) {
+                // Fetch all orders where user_id is the added_by user (team member creator)
+                $orders = Order::with('client', 'service')
+                    ->where('user_id', $addedByUserId)
+                    ->orWhereHas('teamMembers', function ($query) use ($teamMemberId) {
+                        // Fetch orders where the team member is directly assigned
+                        $query->where('team_member_id', $teamMemberId);
+                    })
+                    ->paginate(10);
+            } elseif (checkPermission('assigned_orders')) {
+                // Fetch only orders assigned to the team member
+                $orders = Order::whereHas('teamMembers', function ($query) use ($teamMemberId) {
+                    $query->where('team_member_id', $teamMemberId);
+                })->with('client', 'service')->paginate(10);
+            } else {
+                // If the team member doesn't have any permission, return an empty order collection
+                $orders = new LengthAwarePaginator([], 0, 10);
+            }
+        }
+
+        // Fetch all clients and services (common for both types)
+        $clients = Client::all();
+        $services = Service::all();
+
         return view('client.pages.orders.index', compact('orders', 'clients', 'services'));
-    }
+    }    
 
     // Show order details
     public function show($id)
