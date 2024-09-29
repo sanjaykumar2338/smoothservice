@@ -28,12 +28,14 @@
                             </label>
                         </form>
                     </div>
+                    @if(checkPermission('add_edit_login_clients'))
                     <div class="dt-buttons">
                         &nbsp;
                         <button onclick="window.location.href='{{ route('client.add') }}'" class="dt-button add-new btn btn-primary ms-n1" tabindex="0" aria-controls="DataTables_Table_0" type="button">
                             <span><i class="bx bx-plus me-0 me-lg-2"></i><span class="d-none d-lg-inline-block">Add Client</span></span>
                         </button>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -50,7 +52,9 @@
                         <th>Company</th>
                         <th>Billing Address</th>
                         <th>Country</th>
+                        @if(checkPermission('add_edit_login_clients') || checkPermission('delete_clients'))
                         <th>Actions</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
@@ -66,14 +70,19 @@
                             <td>{{ $client->country }}</td>
                             <td>
                                 <!-- Edit Button -->
+                                @if(checkPermission('add_edit_login_clients'))
                                 <a href="{{ route('client.edit', $client->id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                @endif
 
+                                @if(checkPermission('delete_clients'))
                                 <!-- Delete Button -->
                                 <form action="{{ route('client.destroy', $client->id) }}" method="POST" style="display:inline-block;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</button>
                                 </form>
+                                @endif
+
                             </td>
                         </tr>
                         @endforeach

@@ -72,6 +72,7 @@
               </ul>
             </li>
 
+            @if(checkPermission('view_services') || checkPermission('view_team'))
             <li class="menu-item @php echo in_array(request()->route()->getName(),['client.service.list','client.service.add','client.service.edit','client.service.intakeform.list','client.service.intakeform.add','client.service.intakeform.edit','client.team.list','client.team.add','client.team.edit']) ? 'open':''@endphp">
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-briefcase"></i>
@@ -80,6 +81,13 @@
 
               <ul class="menu-sub">
                 
+                @if(checkPermission('view_services'))
+                  <li class="menu-item {{request()->route()->getName()=='client.service.list' || request()->route()->getName()=='client.service.add' || request()->route()->getName()=='client.service.edit' ? 'active':''}}">
+                    <a href="{{route('client.service.list')}}" class="menu-link">
+                      <div data-i18n="Services List">Services List</div>
+                    </a>
+                  </li>
+                @endif
 
                 @if(checkPermission('view_team'))
 
@@ -92,6 +100,16 @@
                 @endif
               </ul>
             </li>
+            @endif
+
+            @if(checkPermission('view_clients'))
+            <li class="menu-item @php echo in_array(request()->route()->getName(), ['client.list', 'client.add', 'client.edit']) ? 'open active' : '' @endphp">
+                <a href="{{ route('client.list') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-user"></i>
+                    <div data-i18n="Clients">Clients</div>
+                </a>
+            </li>
+            @endif
             
             <li class="menu-item @php echo in_array(request()->route()->getName(), ['client.order.list', 'client.order.add', 'client.order.edit','client.order.show','client.order.project_data']) ? 'open active' : '' @endphp">
                 <a href="{{ route('client.order.list') }}" class="menu-link">

@@ -25,15 +25,17 @@
                             </label>
                         </form>
                     </div>
-                    <div class="dt-buttons">
-                        &nbsp;
-                        <button style="display:none" class="dt-button buttons-collection dropdown-toggle btn btn-label-secondary mx-3" tabindex="0" aria-controls="DataTables_Table_0" type="button" aria-haspopup="dialog" aria-expanded="false">
-                            <span><i class="bx bx-export me-1"></i>Export</span><span class="dt-down-arrow">▼</span>
-                        </button>
-                        <button onclick="window.location.href='{{ route('client.service.add') }}'" class="dt-button add-new btn btn-primary ms-n1" tabindex="0" aria-controls="DataTables_Table_0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAddUser">
-                            <span><i class="bx bx-plus me-0 me-lg-2"></i><span class="d-none d-lg-inline-block">Add Service</span></span>
-                        </button>
-                    </div>
+                    @if(checkPermission('add_edit_delete_services'))
+                        <div class="dt-buttons">
+                            &nbsp;
+                            <button style="display:none" class="dt-button buttons-collection dropdown-toggle btn btn-label-secondary mx-3" tabindex="0" aria-controls="DataTables_Table_0" type="button" aria-haspopup="dialog" aria-expanded="false">
+                                <span><i class="bx bx-export me-1"></i>Export</span><span class="dt-down-arrow">▼</span>
+                            </button>
+                            <button onclick="window.location.href='{{ route('client.service.add') }}'" class="dt-button add-new btn btn-primary ms-n1" tabindex="0" aria-controls="DataTables_Table_0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAddUser">
+                                <span><i class="bx bx-plus me-0 me-lg-2"></i><span class="d-none d-lg-inline-block">Add Service</span></span>
+                            </button>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -49,7 +51,9 @@
                         <th>Group Multiple</th>
                         <th>Assign Team Member</th>
                         <th>Set Deadline</th>
-                        <th>Actions</th>
+                        @if(checkPermission('add_edit_delete_services'))
+                            <th>Actions</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
@@ -62,6 +66,7 @@
                             <td>{{ $service->group_multiple ? 'Yes' : 'No' }}</td>
                             <td>{{ $service->assign_team_member ? 'Yes' : 'No' }}</td>
                             <td>{{ $service->set_deadline_check ? ($service->set_a_deadline . ' ' . $service->set_a_deadline_duration) : 'No' }}</td>
+                            @if(checkPermission('add_edit_delete_services'))
                             <td>
                                 <a href="{{ route('client.service.edit', $service->id) }}" class="btn btn-sm btn-primary">Edit</a>
                                 <form action="{{ route('client.service.destroy', $service->id) }}" method="POST" style="display:inline-block;">
@@ -70,6 +75,7 @@
                                     <button type="submit" onclick="return confirm('are you sure?')" class="btn btn-sm btn-danger">Delete</button>
                                 </form>
                             </td>
+                            @endif
                         </tr>
                         @endforeach
                     @else

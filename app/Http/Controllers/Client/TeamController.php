@@ -19,13 +19,30 @@ class TeamController extends Controller
     {
         $query = TeamMember::query();
 
-        if ($request->has('search')) {
-            $query->where('first_name', 'like', '%' . $request->search . '%')
-                ->orWhere('last_name', 'like', '%' . $request->search . '%')
-                ->orWhere('email', 'like', '%' . $request->search . '%');
+        // If the user is a 'team' member, filter by 'added_by' with the user who added the logged-in team member
+        if (getUserType() == 'team') {
+            // Get the user who added the logged-in team member
+            $addedBy = TeamMember::where('id', getUserID())->value('added_by');
+            // Only show team members added by the same user who added the logged-in team member
+            $query->where('added_by', $addedBy);
+        } else {
+            // If the user is a web user, show team members they have added
+            $query->where('added_by', auth()->id());
         }
 
-        $teamMembers = $query->with('role')->where('added_by', auth()->id())->orderBy('id', 'desc')->paginate(10);
+        // Apply search filter if provided
+        if ($request->has('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('first_name', 'like', '%' . $request->search . '%')
+                    ->orWhere('last_name', 'like', '%' . $request->search . '%')
+                    ->orWhere('email', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // Fetch and paginate team members
+        $teamMembers = $query->with('role')->orderBy('id', 'desc')->paginate(10);
+
+        // Return the view with the filtered results
         return view('client.pages.team.index', compact('teamMembers'));
     }
 
@@ -113,6 +130,10 @@ class TeamController extends Controller
     // Delete team member
     public function destroy(TeamMember $teamMember)
     {
+        if(!checkPermission('add_edit_delete_team')){
+            return redirect()->route('client.service.intakeform.list')->with('error', 'No permission');
+        }
+
         Mail::to($teamMember->email)->send(new TeamMemberRemoved($teamMember));
 
         $teamMember->delete();

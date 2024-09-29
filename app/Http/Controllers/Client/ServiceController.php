@@ -193,6 +193,10 @@ class ServiceController extends Controller
 
     public function destroy(Service $service)
     {
+        if(!checkPermission('add_edit_delete_services')){
+            return redirect()->route('client.service.intakeform.list')->with('error', 'No permission');
+        }
+
         if(!$service){
             return redirect()->route('client.service.intakeform.list')->with('error', 'Intake form not found!');
         }
