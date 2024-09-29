@@ -199,84 +199,19 @@
     <script src="{{asset('/assets/js/custom.js')}}?v={{time()}}"></script>
 
     <script>
-    $(document).ready(function(){  
-      //for creating usage
-      if($('#intake_form_save').length > 0){
-        jQuery($ => {
-            const fbTemplate = document.getElementById('build-wrap');
-            const options = {
-              disableFields: ['roles','access'], // Assuming 'roles' is the control you want to remove
-              // Other options can be configured here as needed
-            };
-            const formBuilder = $(fbTemplate).formBuilder(options);
-
-            console.log('formBuilder', formBuilder);
-
-            $('#intake_form_save').on('submit', function(e) {
-                e.preventDefault(); // Prevent the default form submission
-
-                // Clear any previous errors
-                $('#error-list').empty();
-                $('#error-messages').hide();
-
-                // Get the form data
-                const formData = formBuilder.actions.getData('json');
-
-                // Collect additional data if needed
-                const formName = $('#form_name').val();
-                const checkmark = $('#checkmark').is(':checked') ? 1 : 0;
-                const onboardingField = $('#onboarding_field').val();
-
-                // Send the data to the backend
-                $.ajax({
-                    url: '{{ route("client.intakeform.store") }}', // Your backend route
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}', // CSRF token for Laravel
-                        form_name: formName,
-                        form_fields: formData, // JSON data from form builder
-                        checkmark: checkmark,
-                        onboarding_field: onboardingField
-                    },
-                    success: function(response) {
-                        alert('Form saved successfully!');
-                        window.location.href = '{{ route("client.service.intakeform.list") }}';
-                        // You can redirect or update the UI as needed here
-                    },
-                    error: function(xhr) {
-                        // Parse and display the errors
-                        if (xhr.status === 422) { // Laravel validation error status
-                            const errors = xhr.responseJSON.errors;
-                            for (let field in errors) {
-                                if (errors.hasOwnProperty(field)) {
-                                    $('#error-list').append('<li>' + errors[field][0] + '</li>');
-                                }
-                            }
-                            $('#error-messages').show();
-                        } else {
-                            console.error('Error saving form:', xhr);
-                            alert('There was an error saving the form.');
-                        }
-                    }
-                });
-            });
-        });
-      }
-
-      if ($('#intake_form_edit').length > 0) {
+      $(document).ready(function(){  
+        //for creating usage
+        if($('#intake_form_save').length > 0){
           jQuery($ => {
-              var fields = $('#intake_frm_details').val();
-              const existingFormData = fields;
-              const id = $('#iding').val();
-
-              const fbTemplate = document.getElementById('build-wrap-edit');
-              const optionsedit = {
-                  formData: existingFormData
+              const fbTemplate = document.getElementById('build-wrap');
+              const options = {
+                disableFields: ['roles','access'], // Assuming 'roles' is the control you want to remove
               };
+              const formBuilder = $(fbTemplate).formBuilder(options);
 
-              const formBuilder = $(fbTemplate).formBuilder(optionsedit);
+              console.log('formBuilder', formBuilder);
 
-              $('#intake_form_edit').on('submit', function(e) {
+              $('#intake_form_save').on('submit', function(e) {
                   e.preventDefault(); // Prevent the default form submission
 
                   // Clear any previous errors
@@ -293,20 +228,18 @@
 
                   // Send the data to the backend
                   $.ajax({
-                      url: '{{ route("client.service.intakeform.update_intake") }}', // Your backend route
+                      url: '{{ route("intakeform.store") }}', // Your updated backend route
                       method: 'POST',
                       data: {
                           _token: '{{ csrf_token() }}', // CSRF token for Laravel
                           form_name: formName,
                           form_fields: formData, // JSON data from form builder
                           checkmark: checkmark,
-                          onboarding_field: onboardingField,
-                          id: id
+                          onboarding_field: onboardingField
                       },
                       success: function(response) {
                           alert('Form saved successfully!');
-                          window.location.href = '{{ route("client.service.intakeform.list") }}';
-                          // You can redirect or update the UI as needed here
+                          window.location.href = '{{ route("service.intakeform.list") }}'; // Updated route
                       },
                       error: function(xhr) {
                           // Parse and display the errors
@@ -325,26 +258,91 @@
                       }
                   });
               });
-
-              // Initialize select2 and set selected values
-              var selectedtxt = $('#onboarding_field_val').val();
-              if(selectedtxt!=""){
-                const selectedValues = selectedtxt.split(','); // Move this outside the if condition
-
-                if (selectedValues && selectedValues.length > 0) {
-                    $('#onboarding_field').select2();
-                    $('#onboarding_field').val(selectedValues).trigger('change');
-                } else {
-                    console.log('No selected values to apply.');
-                }
-              }
           });
-      }
+        }
 
-      setInterval(function() {
-        $('.access-wrap').remove();
-      }, 1000);
-    })  
-    </script>
+        if ($('#intake_form_edit').length > 0) {
+            jQuery($ => {
+                var fields = $('#intake_frm_details').val();
+                const existingFormData = fields;
+                const id = $('#iding').val();
+
+                const fbTemplate = document.getElementById('build-wrap-edit');
+                const optionsedit = {
+                    formData: existingFormData
+                };
+
+                const formBuilder = $(fbTemplate).formBuilder(optionsedit);
+
+                $('#intake_form_edit').on('submit', function(e) {
+                    e.preventDefault(); // Prevent the default form submission
+
+                    // Clear any previous errors
+                    $('#error-list').empty();
+                    $('#error-messages').hide();
+
+                    // Get the form data
+                    const formData = formBuilder.actions.getData('json');
+
+                    // Collect additional data if needed
+                    const formName = $('#form_name').val();
+                    const checkmark = $('#checkmark').is(':checked') ? 1 : 0;
+                    const onboardingField = $('#onboarding_field').val();
+
+                    // Send the data to the backend
+                    $.ajax({
+                        url: '{{ route("service.intakeform.update_intake") }}', // Your updated backend route
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}', // CSRF token for Laravel
+                            form_name: formName,
+                            form_fields: formData, // JSON data from form builder
+                            checkmark: checkmark,
+                            onboarding_field: onboardingField,
+                            id: id
+                        },
+                        success: function(response) {
+                            alert('Form saved successfully!');
+                            window.location.href = '{{ route("service.intakeform.list") }}'; // Updated route
+                        },
+                        error: function(xhr) {
+                            // Parse and display the errors
+                            if (xhr.status === 422) { // Laravel validation error status
+                                const errors = xhr.responseJSON.errors;
+                                for (let field in errors) {
+                                    if (errors.hasOwnProperty(field)) {
+                                        $('#error-list').append('<li>' + errors[field][0] + '</li>');
+                                    }
+                                }
+                                $('#error-messages').show();
+                            } else {
+                                console.error('Error saving form:', xhr);
+                                alert('There was an error saving the form.');
+                            }
+                        }
+                    });
+                });
+
+                // Initialize select2 and set selected values
+                var selectedtxt = $('#onboarding_field_val').val();
+                if(selectedtxt!=""){
+                  const selectedValues = selectedtxt.split(',');
+
+                  if (selectedValues && selectedValues.length > 0) {
+                      $('#onboarding_field').select2();
+                      $('#onboarding_field').val(selectedValues).trigger('change');
+                  } else {
+                      console.log('No selected values to apply.');
+                  }
+                }
+            });
+        }
+
+        setInterval(function() {
+          $('.access-wrap').remove();
+        }, 1000);
+      })  
+      </script>
+
   </body>
 </html>

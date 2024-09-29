@@ -21,6 +21,7 @@ class Client extends Model
         'tax_id',
         'phone',
         'password',
+        'added_by',
     ];
 
     protected $hidden = [

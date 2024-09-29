@@ -25,7 +25,7 @@
     <div class="row">
         <div class="col-xl">
             
-            <form id="client_status_form" method="POST" action="{{ route('client.statuses.store') }}">
+            <form id="client_status_form" method="POST" action="{{ route('statuses.store') }}">
                 {{ csrf_field() }}
 
                 <div class="card mb-4">

@@ -110,7 +110,7 @@
                     <h5 class="mb-0">Service Info.</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('client.service.store') }}" method="POST">
+                    <form action="{{ route('service.store') }}" method="POST">
                         @csrf
                         <div class="mb-3">
                             <label class="form-label" for="service_name">Service Name</label>

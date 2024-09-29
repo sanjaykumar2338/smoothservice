@@ -22,7 +22,7 @@
             <div class="col-md-12">
                 <div class="dt-action-buttons text-xl-end text-lg-start text-md-end text-start d-flex align-items-center justify-content-end flex-md-row flex-column mb-3 mb-md-0">
                     <div id="DataTables_Table_0_filter" class="dataTables_filter">
-                        <form action="{{ route('client.team.list') }}" method="GET" class="dataTables_filter" id="DataTables_Table_0_filter">
+                        <form action="{{ route('team.list') }}" method="GET" class="dataTables_filter" id="DataTables_Table_0_filter">
                             <label>
                                 <input type="search" name="search" class="form-control" placeholder="Search by team member name or role" aria-controls="DataTables_Table_0" value="{{ request()->get('search') }}">
                             </label>
@@ -31,7 +31,7 @@
                     @if(checkPermission('add_edit_delete_team'))
                     <div class="dt-buttons">
                         &nbsp;
-                        <button onclick="window.location.href='{{ route('client.team.add') }}'" class="dt-button add-new btn btn-primary ms-n1" tabindex="0" aria-controls="DataTables_Table_0" type="button">
+                        <button onclick="window.location.href='{{ route('team.add') }}'" class="dt-button add-new btn btn-primary ms-n1" tabindex="0" aria-controls="DataTables_Table_0" type="button">
                             <span><i class="bx bx-plus me-0 me-lg-2"></i><span class="d-none d-lg-inline-block">Add Team Member</span></span>
                         </button>
                     </div>
@@ -67,10 +67,10 @@
                             @if(checkPermission('add_edit_delete_team'))
                             <td>
                                 <!-- Edit Button -->
-                                <a href="{{ route('client.team.edit', $teamMember->id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                <a href="{{ route('team.edit', $teamMember->id) }}" class="btn btn-sm btn-primary">Edit</a>
 
                                 <!-- Delete Button -->
-                                <form action="{{ route('client.team.destroy', $teamMember->id) }}" method="POST" style="display:inline-block;">
+                                <form action="{{ route('team.destroy', $teamMember->id) }}" method="POST" style="display:inline-block;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</button>

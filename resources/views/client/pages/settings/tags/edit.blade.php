@@ -25,7 +25,7 @@
     <div class="row">
         <div class="col-xl">
             
-            <form id="tag_form" method="POST" action="{{ route('client.tags.update', $tag->id) }}">
+            <form id="tag_form" method="POST" action="{{ route('tags.update', $tag->id) }}">
                 @csrf
                 @method('PUT') <!-- Use PUT for update operations -->
 

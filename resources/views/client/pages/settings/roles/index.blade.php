@@ -22,7 +22,7 @@
             <div class="col-md-12">
                 <div class="dt-action-buttons text-xl-end text-lg-start text-md-end text-start d-flex align-items-center justify-content-end flex-md-row flex-column mb-3 mb-md-0">
                     <div class="dt-buttons">
-                        <button onclick="window.location.href='{{ route('client.roles.create') }}'" class="dt-button add-new btn btn-primary ms-n1" tabindex="0" aria-controls="DataTables_Table_0" type="button">
+                        <button onclick="window.location.href='{{ route('roles.create') }}'" class="dt-button add-new btn btn-primary ms-n1" tabindex="0" aria-controls="DataTables_Table_0" type="button">
                             <span><i class="bx bx-plus me-0 me-lg-2"></i><span class="d-none d-lg-inline-block">Add Role</span></span>
                         </button>
                     </div>
@@ -48,10 +48,10 @@
                             <td>{{ $role->name }}</td>
                             <td>
                                 <!-- Edit Button -->
-                                <a href="{{ route('client.roles.edit', $role->id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                <a href="{{ route('roles.edit', $role->id) }}" class="btn btn-sm btn-primary">Edit</a>
 
                                 <!-- Delete Button -->
-                                <form action="{{ route('client.roles.delete', $role->id) }}" method="POST" style="display:inline-block;">
+                                <form action="{{ route('roles.delete', $role->id) }}" method="POST" style="display:inline-block;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</button>

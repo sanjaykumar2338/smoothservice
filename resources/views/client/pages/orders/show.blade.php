@@ -74,8 +74,8 @@
                   <i class="bx bx-dots-vertical-rounded"></i>
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end">
-                     <li><a class="dropdown-item" href="{{route('client.order.edit',$order->id)}}">Edit</a></li>
-                     <li><a class="dropdown-item" href="{{route('client.order.project_data',$order->id)}}">Add Project data</a></li>
+                     <li><a class="dropdown-item" href="{{route('order.edit',$order->id)}}">Edit</a></li>
+                     <li><a class="dropdown-item" href="{{route('order.project_data',$order->id)}}">Add Project data</a></li>
                      <li><a style="display:none;" class="dropdown-item" href="javascript:void(0);">Create an invoice</a></li>
                      <li>
                         <a class="dropdown-item" href="javascript:void(0);" onclick="duplicateOrder({{ $order->id }})">Duplicate order</a>
@@ -259,9 +259,9 @@
                               </button>
                               <ul class="dropdown-menu dropdown-menu-end">
                                  <li><a class="dropdown-item open_data_project" href="javascript:void(0);">Add data</a></li>
-                                 <li><a class="dropdown-item" href="{{ route('client.order.project_data', $order->id) }}">Edit data</a></li>
-                                 <li><a class="dropdown-item" href="{{ route('client.order.export_data', $order->id) }}">Export data</a></li>
-                                 <li><a class="dropdown-item" href="{{ route('client.order.download_files', $order->id) }}">Download files</a></li>
+                                 <li><a class="dropdown-item" href="{{ route('order.project_data', $order->id) }}">Edit data</a></li>
+                                 <li><a class="dropdown-item" href="{{ route('order.export_data', $order->id) }}">Export data</a></li>
+                                 <li><a class="dropdown-item" href="{{ route('order.download_files', $order->id) }}">Download files</a></li>
                                  <li><a class="dropdown-item" href="javascript:void(0);" onclick="deleteData({{ $order->id }})">Delete data</a></li>
                               </ul>
                            </div>
@@ -596,7 +596,7 @@
 
       // Make an AJAX request to save the note
       $.ajax({
-         url: '/client/order/' + orderId + '/save-note',
+         url: '/order/' + orderId + '/save-note',
          method: 'POST',
          data: {
                note: noteContent, // Send the content from the textarea
@@ -681,9 +681,9 @@
       e.preventDefault();
       var url;
       if (editingTaskId) {
-         url = `/client/order/update-task/${editingTaskId}`;
+         url = `/order/update-task/${editingTaskId}`;
       } else {
-         url = '/client/order/save-task';
+         url = '/order/save-task';
       }
 
       $.ajax({
@@ -738,7 +738,7 @@
       document.getElementById('cancel-task-btn').style.display = 'block';
 
       $.ajax({
-         url: `/client/order/get-task/${taskId}`,
+         url: `/order/get-task/${taskId}`,
          method: 'GET',
          success: function(response) {
                $('#task-name').val(response.task.name);
@@ -778,7 +778,7 @@
 
       if(confirm('Are you sure?')) {
          $.ajax({
-               url: `/client/order/delete-task/${taskId}`, // Your controller route
+               url: `/order/delete-task/${taskId}`, // Your controller route
                method: 'GET',
                success: function() {
                   // Remove the task row
@@ -822,7 +822,7 @@
       var isCompleted = $(this).is(':checked') ? 1 : 0;
 
       $.ajax({
-         url: `/client/order/update-task-status/${taskId}`,
+         url: `/order/update-task-status/${taskId}`,
          method: 'POST',
          data: {
                _token: '{{ csrf_token() }}',
@@ -858,7 +858,7 @@
 
          // Make AJAX request to fetch tasks based on order_id and status
          $.ajax({
-               url: `/client/order/tasks/${orderId}`, // Update to pass order_id in the route
+               url: `/order/tasks/${orderId}`, // Update to pass order_id in the route
                method: 'GET',
                data: {
                   status: showCompleted ? 1 : 0 // 1 for completed, 0 for incomplete
@@ -912,7 +912,7 @@
       var formData = $('#project-data-form').serialize();
 
       $.ajax({
-         url: '/client/order/save-project-data',
+         url: '/order/save-project-data',
          method: 'POST',
          data: formData,
          headers: {
@@ -920,7 +920,7 @@
          },
          success: function(response) {
                // Use the order ID from $order->id for redirection
-               window.location.href = '/client/order/projectdata/' + {{ $order->id }};
+               window.location.href = '/order/projectdata/' + {{ $order->id }};
          }
       });
    });
@@ -928,7 +928,7 @@
    function deleteData(orderId) {
       if (confirm('Are you sure you want to delete this data?')) {
          $.ajax({
-               url: `/client/order/delete-data/${orderId}`,
+               url: `/order/delete-data/${orderId}`,
                method: 'DELETE',
                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                success: function(response) {
@@ -973,7 +973,7 @@
          }
 
          $.ajax({
-            url: '/client/order/send-reply', // Using the same route
+            url: '/order/send-reply', // Using the same route
             method: 'POST',
             data: {
                   message: message,
@@ -1052,7 +1052,7 @@
       var orderId = '{{ $order->id }}'
       function loadHistory(page) {
          $.ajax({
-               url: `/client/order/${orderId}/history?page=${page}`,
+               url: `/order/${orderId}/history?page=${page}`,
                method: 'GET',
                success: function(response) {
                   const data = response.data;
@@ -1121,7 +1121,7 @@
    function changeStatus(statusId, statusName, statusColor) {
       const orderId = {{ $order->id }}; // Pass the order ID from the Blade variable
 
-      fetch(`/client/order/update-status/${orderId}`, {
+      fetch(`/order/update-status/${orderId}`, {
          method: 'POST',
          headers: {
                'Content-Type': 'application/json',
@@ -1183,7 +1183,7 @@
 
          // AJAX request to save selected tags
          const orderId = {{ $order->id }}; // Assuming you have the order ID available
-         fetch(`/client/order/${orderId}/update-tags`, {
+         fetch(`/order/${orderId}/update-tags`, {
                method: 'POST',
                headers: {
                   'Content-Type': 'application/json',
@@ -1271,7 +1271,7 @@
    function duplicateOrder(orderId) {
       if (confirm('Are you sure you want to duplicate this order?')) {
          // Make an AJAX POST request to duplicate the order
-         fetch(`/client/orders/${orderId}/duplicate`, {
+         fetch(`/orders/${orderId}/duplicate`, {
                method: 'POST',
                headers: {
                   'Content-Type': 'application/json',
@@ -1298,7 +1298,7 @@
    function deleteOrder(orderId) {
       if (confirm('Are you sure you want to delete this order?')) {
          // Make an AJAX DELETE request to delete the order
-         fetch(`/client/orders/${orderId}/delete`, {
+         fetch(`/orders/${orderId}/delete`, {
                method: 'DELETE',
                headers: {
                   'Content-Type': 'application/json',

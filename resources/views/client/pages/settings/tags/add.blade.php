@@ -25,7 +25,7 @@
     <div class="row">
         <div class="col-xl">
             
-            <form id="tag_form" method="POST" action="{{ route('client.tags.store') }}">
+            <form id="tag_form" method="POST" action="{{ route('tags.store') }}">
                 {{ csrf_field() }}
 
                 <div class="card mb-4">

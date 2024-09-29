@@ -85,7 +85,7 @@ class TeamController extends Controller
         // Send the welcome email with login details
         Mail::to($teamMember->email)->send(new TeamMemberWelcome($teamMember, $roleName, $password));
     
-        return redirect()->route('client.team.list')->with('success', 'Team member added successfully, and email sent with login details.');
+        return redirect()->route('team.list')->with('success', 'Team member added successfully, and email sent with login details.');
     }    
 
     // Show form to edit team member
@@ -123,7 +123,7 @@ class TeamController extends Controller
             Mail::to($teamMember->email)->send(new TeamMemberUpdated($teamMember));
         }
 
-        return redirect()->route('client.team.list')->with('success', 'Team member updated successfully.');
+        return redirect()->route('team.list')->with('success', 'Team member updated successfully.');
     }
 
 
@@ -138,6 +138,6 @@ class TeamController extends Controller
 
         $teamMember->delete();
 
-        return redirect()->route('client.team.list')->with('success', 'Team member deleted successfully.');
+        return redirect()->route('team.list')->with('success', 'Team member deleted successfully.');
     }
 }

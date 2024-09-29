@@ -33,7 +33,7 @@
             <div class="col-md-12">
                 <div class="dt-action-buttons text-xl-end text-lg-start text-md-end text-start d-flex align-items-center justify-content-end flex-md-row flex-column mb-3 mb-md-0">
                     <div id="DataTables_Table_0_filter" class="dataTables_filter">
-                        <form action="{{ route('client.statuses.list') }}" method="GET" class="dataTables_filter" id="DataTables_Table_0_filter">
+                        <form action="{{ route('statuses.list') }}" method="GET" class="dataTables_filter" id="DataTables_Table_0_filter">
                             <label>
                                 <input type="search" name="search" class="form-control" placeholder="Search by status name" aria-controls="DataTables_Table_0" value="{{ request()->get('search') }}">
                             </label>
@@ -41,7 +41,7 @@
                     </div>
                     <div class="dt-buttons">
                         &nbsp;
-                        <button onclick="window.location.href='{{ route('client.statuses.create') }}'" class="dt-button add-new btn btn-primary ms-n1" tabindex="0" aria-controls="DataTables_Table_0" type="button">
+                        <button onclick="window.location.href='{{ route('statuses.create') }}'" class="dt-button add-new btn btn-primary ms-n1" tabindex="0" aria-controls="DataTables_Table_0" type="button">
                             <span><i class="bx bx-plus me-0 me-lg-2"></i><span class="d-none d-lg-inline-block">Add Status</span></span>
                         </button>
                     </div>
@@ -74,10 +74,10 @@
                             </td>
                             <td>
                                 <!-- Edit Button -->
-                                <a href="{{ route('client.statuses.edit', $status->id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                <a href="{{ route('statuses.edit', $status->id) }}" class="btn btn-sm btn-primary">Edit</a>
 
                                 <!-- Delete Button -->
-                                <form action="{{ route('client.statuses.delete', $status->id) }}" method="POST" style="display:inline-block;">
+                                <form action="{{ route('statuses.delete', $status->id) }}" method="POST" style="display:inline-block;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</button>

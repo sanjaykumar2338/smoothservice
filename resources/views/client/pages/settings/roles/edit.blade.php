@@ -32,7 +32,7 @@
         </h5>
 
         <div class="card-body">
-            <form action="{{ route('client.roles.update', $role->id) }}" method="POST">
+            <form action="{{ route('roles.update', $role->id) }}" method="POST">
                 @csrf
                 @method('PUT')
 

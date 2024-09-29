@@ -19,9 +19,9 @@ class RoleController extends Controller
     {
         // Validate the request
         $request->validate([
-            'role_name' => 'required|string|max:255', // Role name is required
-            'permissions' => 'required|array',   // Permissions must be an array
-        ]);
+            'role_name' => 'required|string|max:255|unique:roles,name', // Use 'name' if that's the column name in your roles table
+            'permissions' => 'required|array', // Permissions must be an array
+        ]);        
 
         // Create the role
         $role = Role::create(['name' => $request->role_name]);
@@ -39,7 +39,7 @@ class RoleController extends Controller
         }
 
         // Redirect with success message
-        return redirect()->route('client.roles.list')->with('success', 'Role created successfully.');
+        return redirect()->route('roles.list')->with('success', 'Role created successfully.');
     }
 
     // Show the list of roles
@@ -64,9 +64,9 @@ class RoleController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'role_name' => 'required|string|max:255',
-            'permissions' => 'required|array',
-        ]);
+            'role_name' => 'required|string|max:255|unique:roles,name,' . $id, // Make sure 'name' is the correct column in your roles table
+            'permissions' => 'required|array', // Permissions must be an array
+        ]);        
 
         // Update the role name
         $role = Role::findOrFail($id);
@@ -89,7 +89,7 @@ class RoleController extends Controller
             ]);
         }
 
-        return redirect()->route('client.roles.list')->with('success', 'Role updated successfully.');
+        return redirect()->route('roles.list')->with('success', 'Role updated successfully.');
     }
 
 
@@ -102,6 +102,6 @@ class RoleController extends Controller
         $role->delete();
 
         // Redirect back with a success message
-        return redirect()->route('client.roles.list')->with('success', 'Role deleted successfully.');
+        return redirect()->route('roles.list')->with('success', 'Role deleted successfully.');
     }
 }

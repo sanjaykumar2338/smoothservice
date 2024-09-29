@@ -25,7 +25,7 @@
     <div class="row">
         <div class="col-xl">
             
-            <form id="client_status_form" method="POST" action="{{ route('client.statuses.update', $status->id) }}">
+            <form id="client_status_form" method="POST" action="{{ route('statuses.update', $status->id) }}">
                 @csrf
                 @method('PUT') <!-- Use PUT for update operations -->
 

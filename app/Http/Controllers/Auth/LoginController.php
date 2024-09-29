@@ -32,11 +32,11 @@ class LoginController extends Controller
 
         $credentials = $request->only('email', 'password');
         if (Auth::guard('web')->attempt($credentials)) {
-            return redirect()->intended(route('client.dashboard'));
+            return redirect()->intended(route('dashboard'));
         }
 
         if (Auth::guard('team')->attempt($credentials)) {
-            return redirect()->intended(route('client.order.list')); // Team member dashboard
+            return redirect()->intended(route('order.list')); // Team member dashboard
         }
         
         return back()->withErrors([
@@ -71,6 +71,6 @@ class LoginController extends Controller
 
         Auth::login($user);
 
-        return redirect()->intended(route('client.dashboard'));
+        return redirect()->intended(route('dashboard'));
     }
 }

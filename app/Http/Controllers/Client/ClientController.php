@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Client;
+USE App\Models\Order;
+use App\Models\Service;
 use App\Models\Country;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -22,8 +24,16 @@ class ClientController extends Controller
                 ->orWhere('email', 'like', '%' . $request->search . '%');
         }
 
-        $clients = $query->orderBy('id', 'desc')->paginate(10);
+        $clients = $query->orderBy('id', 'desc')->where('added_by',getUserID())->paginate(10);
         return view('client.pages.clients.index', compact('clients'));
+    }
+
+    public function dashboard(){
+        $clients = Client::where('added_by', getUserID())->count();
+        $services = Service::where('user_id', getUserID())->count();
+        $orders = Order::where('user_id',getUserID())->count();
+
+        return view('client.dashboard_page', compact('clients','services','orders'));
     }
 
     // Show form to create a new client
@@ -69,6 +79,7 @@ class ClientController extends Controller
             'tax_id' => $validatedData['tax_id'],
             'phone' => $validatedData['phone'],
             'password' => $hashedPassword,
+            'added_by' => getUserID(),
         ]);
 
         // Send the welcome email if checked

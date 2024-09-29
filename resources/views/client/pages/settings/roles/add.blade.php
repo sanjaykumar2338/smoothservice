@@ -34,7 +34,7 @@
         @endif
 
         <div class="card-body">
-            <form action="{{ route('client.roles.store') }}" method="POST">
+            <form action="{{ route('roles.store') }}" method="POST">
                 @csrf
 
                 <!-- Role Name Input -->

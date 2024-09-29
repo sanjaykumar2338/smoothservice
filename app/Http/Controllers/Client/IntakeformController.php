@@ -20,7 +20,7 @@ class IntakeformController extends Controller
                 ->orWhere('description', 'like', '%' . $request->search . '%');
         }
 
-        $intakeforms = $query->paginate(10);
+        $intakeforms = $query->where('user_id', getUserID())->paginate(10);
 
         return view('client.pages.intakeform.index', compact('intakeforms'));
     }

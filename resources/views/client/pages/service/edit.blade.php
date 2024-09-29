@@ -110,7 +110,7 @@
                     <h5 class="mb-0">Service Info.</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('client.service.update', $service->id) }}" method="POST" id="serviceForm">
+                    <form action="{{ route('service.update', $service->id) }}" method="POST" id="serviceForm">
                         @csrf
                         @method('PUT')
 

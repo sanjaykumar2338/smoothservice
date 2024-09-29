@@ -40,7 +40,7 @@ class TagController extends Controller
             'added_by' => auth()->id()
         ]);
 
-        return redirect()->route('client.tags.list')->with('success', 'Tag created successfully');
+        return redirect()->route('tags.list')->with('success', 'Tag created successfully');
     }
 
     // Show the form to edit an existing tag
@@ -62,7 +62,7 @@ class TagController extends Controller
             'name' => $request->name,
         ]);
 
-        return redirect()->route('client.tags.list')->with('success', 'Tag updated successfully');
+        return redirect()->route('tags.list')->with('success', 'Tag updated successfully');
     }
 
     // Delete a tag from the database
@@ -71,6 +71,6 @@ class TagController extends Controller
         $tag = Tag::findOrFail($id);
         $tag->delete();
 
-        return redirect()->route('client.tags.list')->with('success', 'Tag deleted successfully');
+        return redirect()->route('tags.list')->with('success', 'Tag deleted successfully');
     }
 }

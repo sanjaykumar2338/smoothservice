@@ -25,7 +25,7 @@
     <div class="row">
         <div class="col-xl">
             
-            <form id="team_member_form" method="POST" action="{{ route('client.team.update', ['teamMember' => $teamMember->id]) }}">
+            <form id="team_member_form" method="POST" action="{{ route('team.update', ['teamMember' => $teamMember->id]) }}">
 
                 {{ csrf_field() }}
                 @method('PUT')

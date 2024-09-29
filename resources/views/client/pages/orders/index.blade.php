@@ -22,7 +22,7 @@
             <div class="col-md-12">
                 <div class="dt-action-buttons text-xl-end text-lg-start text-md-end text-start d-flex align-items-center justify-content-end flex-md-row flex-column mb-3 mb-md-0">
                     <div id="DataTables_Table_0_filter" class="dataTables_filter">
-                        <form action="{{ route('client.order.list') }}" method="GET" class="dataTables_filter" id="DataTables_Table_0_filter">
+                        <form action="{{ route('order.list') }}" method="GET" class="dataTables_filter" id="DataTables_Table_0_filter">
                             <label>
                                 <input type="search" name="search" class="form-control" placeholder="Search by client name or service" aria-controls="DataTables_Table_0" value="{{ request()->get('search') }}">
                             </label>
@@ -62,7 +62,7 @@
                         @foreach($orders as $order)
                         <tr>
                             <td><input type="checkbox" class="order-checkbox" value="{{ $order->id }}"></td>
-                            <th scope="row"><a href="{{ route('client.order.show', $order->id) }}">{{ $order->id }}</a></th>
+                            <th scope="row"><a href="{{ route('order.show', $order->id) }}">{{ $order->id }}</a></th>
                             <td>{{ $order->title }}</td>
                             <td>{{ $order->client->first_name }} {{ $order->client->last_name }}</td>
                             <td>{{ $order->service->service_name }}</td>
@@ -70,13 +70,13 @@
                             <td>{{ $order->created_at->format('Y-m-d') }}</td>
                             <td>
                                 <!-- Edit Button -->
-                                <a style="display:none;" href="{{ route('client.order.edit', $order->id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                <a style="display:none;" href="{{ route('order.edit', $order->id) }}" class="btn btn-sm btn-primary">Edit</a>
 
-                                <a href="{{ route('client.order.show', $order->order_no) }}" class="btn btn-sm btn-info">Details</a>
+                                <a href="{{ route('order.show', $order->order_no) }}" class="btn btn-sm btn-info">Details</a>
 
                                 <!-- Delete Button -->
                                 @if(checkPermission('delete_order'))
-                                    <form action="{{ route('client.order.destroy', $order->id) }}" method="POST" style="display:inline-block;">
+                                    <form action="{{ route('order.destroy', $order->id) }}" method="POST" style="display:inline-block;">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</button>
@@ -124,7 +124,7 @@
 <div class="modal" id="addOrderModal" tabindex="-1" aria-modal="true" role="dialog" style="padding-left: 0px;">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="{{ route('client.order.store') }}" method="POST">
+            <form action="{{ route('order.store') }}" method="POST">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title" id="addOrderModalLabel">Add Order</h5>

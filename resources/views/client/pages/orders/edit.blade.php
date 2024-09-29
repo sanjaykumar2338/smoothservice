@@ -25,7 +25,7 @@
     <div class="row">
         <div class="col-xl">
             
-            <form id="edit_order_form" method="POST" action="{{ route('client.order.update', $order->id) }}">
+            <form id="edit_order_form" method="POST" action="{{ route('order.update', $order->id) }}">
                 {{ csrf_field() }}
                 {{ method_field('PUT') }}
 

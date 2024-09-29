@@ -20,7 +20,7 @@ class ServiceController extends Controller
                 ->orWhere('description', 'like', '%' . $request->search . '%');
         }
 
-        $services = $query->orderBy('id','desc')->paginate(10);
+        $services = $query->orderBy('id','desc')->where('user_id',getUserID())->paginate(10);
 
         return view('client.pages.service.index', compact('services'));
     }
@@ -89,7 +89,8 @@ class ServiceController extends Controller
             'with_trial_or_setup_fee' => $validatedData['with_trial_or_setup_fee'] ?? false,
             'when_recurring_payment_received' => $request->when_recurring_payment_received,
             'when_recurring_payment_received_two_order_currency' => $request->when_recurring_payment_received_two_order_currency,
-            'when_recurring_payment_received_two_order_currency_value' => $request->when_recurring_payment_received_two_order_currency_value
+            'when_recurring_payment_received_two_order_currency_value' => $request->when_recurring_payment_received_two_order_currency_value,
+            'user_id' => getUserID(),
         ]);
 
         // Sync parent services
@@ -104,7 +105,7 @@ class ServiceController extends Controller
             $service->teamMembers()->sync($request->team_member);
         }
 
-        return redirect()->route('client.service.list')->with('success', 'Service updated successfully.');
+        return redirect()->route('service.list')->with('success', 'Service updated successfully.');
     }
 
     public function store(Request $request)
@@ -164,6 +165,7 @@ class ServiceController extends Controller
             'when_recurring_payment_received_two_order_currency_value' => $request->when_recurring_payment_received_two_order_currency_value,
             'price_options' => $request->price_options, // Save price_options
             'combinations' => $request->combinations,   // Save combinations
+            'user_id' => getUserID(),
         ]);
 
         // Attach parent services
@@ -188,21 +190,21 @@ class ServiceController extends Controller
             }
         }
         
-        return redirect()->route('client.service.list')->with('success', 'Service created successfully.');
+        return redirect()->route('service.list')->with('success', 'Service created successfully.');
     }
 
     public function destroy(Service $service)
     {
         if(!checkPermission('add_edit_delete_services')){
-            return redirect()->route('client.service.intakeform.list')->with('error', 'No permission');
+            return redirect()->route('service.intakeform.list')->with('error', 'No permission');
         }
 
         if(!$service){
-            return redirect()->route('client.service.intakeform.list')->with('error', 'Intake form not found!');
+            return redirect()->route('service.intakeform.list')->with('error', 'Intake form not found!');
         }
         
         $service->delete();
-        return redirect()->route('client.service.list')->with('success', 'Service deleted successfully.');
+        return redirect()->route('service.list')->with('success', 'Service deleted successfully.');
     }
 
     public function saveOptions(Request $request)

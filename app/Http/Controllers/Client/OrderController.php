@@ -27,7 +27,7 @@ class OrderController extends Controller
         
         if (getUserType() == 'web') {
             // For web users (clients), fetch orders based on the logged-in user ID
-            $orders = Order::with('client', 'service')->where('user_id', auth()->id())->paginate(10);
+            $orders = Order::with('client', 'service')->where('user_id',getUserID())->paginate(10);
         } elseif (getUserType() == 'team') {
             $teamMember = TeamMember::find($teamMemberId);
             $addedByUserId = $teamMember->added_by;
@@ -54,8 +54,8 @@ class OrderController extends Controller
 
         //echo "<pre>"; print_r($order->teamMembers); die;
         // Fetch all clients and services (common for both types)
-        $clients = Client::all();
-        $services = Service::all();
+        $clients = Client::where('added_by',$teamMemberId)->get();
+        $services = Service::where('user_id',$teamMemberId)->get();
 
         return view('client.pages.orders.index', compact('orders', 'clients', 'services'));
     }    
@@ -166,8 +166,10 @@ class OrderController extends Controller
     // Show form to create a new order
     public function create()
     {
-        $clients = Client::all();  // Fetch list of all clients
-        $services = Service::all();  // Fetch list of all services
+      
+        $teamMemberId = getUserID();
+        $clients = Client::where('added_by',$teamMemberId)->get();
+        $services = Service::where('user_id',$teamMemberId)->get();
 
         return view('client.pages.orders.add', compact('clients', 'services'));
     }
@@ -206,7 +208,7 @@ class OrderController extends Controller
         ]);
 
         // Redirect to the order detail page with success message
-        return redirect()->route('client.order.show', ['id' => $order->order_no])->with('success', 'Order created successfully.');
+        return redirect()->route('order.show', ['id' => $order->order_no])->with('success', 'Order created successfully.');
     }
 
     public function project_data($id)
@@ -261,7 +263,7 @@ class OrderController extends Controller
         ]);
 
         // Redirect back to the order details with success message
-        return redirect()->route('client.order.show', $order->order_no)->with('success', 'Order updated successfully.');
+        return redirect()->route('order.show', $order->order_no)->with('success', 'Order updated successfully.');
     }
 
     // Delete order
@@ -270,7 +272,7 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $order->delete();
 
-        return redirect()->route('client.order.list')->with('success', 'Order deleted successfully.');
+        return redirect()->route('order.list')->with('success', 'Order deleted successfully.');
     }
 
     public function saveNote(Request $request, $id)
@@ -445,7 +447,7 @@ class OrderController extends Controller
             $projectData->save();
         }
 
-        return redirect()->route('client.order.project_data', $orderId)->with('status', 'Data has been saved successfully!');
+        return redirect()->route('order.project_data', $orderId)->with('status', 'Data has been saved successfully!');
     }
 
     public function removeProjectField($fieldId)

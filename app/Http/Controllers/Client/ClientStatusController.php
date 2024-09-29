@@ -41,7 +41,7 @@ class ClientStatusController extends Controller
             'added_by' => auth()->id(),  // Set the added_by field
         ]);
 
-        return redirect()->route('client.statuses.list')->with('success', 'Client Status created successfully');
+        return redirect()->route('statuses.list')->with('success', 'Client Status created successfully');
     }
 
 
@@ -61,13 +61,13 @@ class ClientStatusController extends Controller
 
         $status = ClientStatus::findOrFail($id);
         $status->update($request->all());
-        return redirect()->route('client.statuses.list')->with('success', 'Client Status updated successfully');
+        return redirect()->route('statuses.list')->with('success', 'Client Status updated successfully');
     }
 
     public function destroy($id)
     {
         $status = ClientStatus::findOrFail($id);
         $status->delete();
-        return redirect()->route('client.statuses.list')->with('success', 'Client Status deleted successfully');
+        return redirect()->route('statuses.list')->with('success', 'Client Status deleted successfully');
     }
 }

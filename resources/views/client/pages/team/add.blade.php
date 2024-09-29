@@ -25,7 +25,7 @@
     <div class="row">
         <div class="col-xl">
             
-            <form id="team_member_form" method="POST" action="{{ route('client.team.store') }}">
+            <form id="team_member_form" method="POST" action="{{ route('team.store') }}">
                 {{ csrf_field() }}
 
                 <!-- Error messages will be displayed here -->
