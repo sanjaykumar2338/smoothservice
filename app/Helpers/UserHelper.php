@@ -55,3 +55,22 @@ if (!function_exists('getUserID')) {
     }
 }
 
+if (!function_exists('getAuthenticatedUser')) {
+    function getAuthenticatedUser()
+    {
+        // Check if the user is authenticated via the 'web' guard
+        if (auth()->guard('web')->check()) {
+            return auth()->guard('web')->user();
+        }
+
+        // Check if the user is authenticated via the 'team' guard
+        if (auth()->guard('team')->check()) {
+            return auth()->guard('team')->user();
+        }
+
+        // Return null if no user is authenticated
+        return null;
+    }
+}
+
+

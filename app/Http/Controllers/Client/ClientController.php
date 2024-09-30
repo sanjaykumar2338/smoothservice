@@ -138,4 +138,117 @@ class ClientController extends Controller
         $client->delete();
         return redirect()->route('client.list')->with('success', 'Client deleted successfully.');
     }
+
+    public function profile(){
+        return view('client.profile');
+    }
+
+    public function updateprofile(Request $request)
+    {
+        // Determine the user type and get the authenticated user
+        $user = null;
+        $tableName = ''; // Define the table name based on the user type
+
+        if (getUserType() == 'web') {
+            $user = auth()->guard('web')->user();
+            $tableName = 'users'; // For web users
+        } else {
+            $user = auth()->guard('team')->user();
+            $tableName = 'team_members'; // For team users
+        }
+
+        // Validate request data
+        $request->validate([
+            'firstName' => 'required|string|max:255',
+            'lastName' => 'nullable|string|max:255',
+            'email' => 'required|email|unique:' . $tableName . ',email,' . $user->id, // Unique email in specific table
+            'password' => 'nullable|string|min:8',
+            'phoneNumber' => 'nullable|string|max:15',
+            'profile_image' => 'nullable|image|max:800', // Validate image size (max 800KB)
+        ]);
+
+        // Update the user's basic information
+        if (getUserType() == 'web') {
+            $user->name = $request->input('firstName');
+        } else {
+            // Make sure both first and last names are updated for team users
+            $user->first_name = $request->input('firstName');
+            $user->last_name = $request->input('lastName');
+        }
+
+        $user->email = $request->input('email');
+        $user->phone_number = $request->input('phoneNumber');
+        $user->timezone = $request->input('timezone');
+        $user->push_notification = $request->input('push_notification') ? 1 : 0;
+
+        // Handle password update, only if provided
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->input('password'));
+        }
+
+        // Handle profile image upload
+        if ($request->hasFile('profile_image')) {
+            $fileName = time() . '.' . $request->file('profile_image')->extension();
+            $request->file('profile_image')->move(public_path('images/profile'), $fileName);
+            $user->profile_image = '/images/profile/' . $fileName;
+        }
+
+        // Save user details
+        $user->save();
+
+        return redirect()->back()->with('success', 'Profile updated successfully.');
+    }
+
+    public function updateImage(Request $request)
+    {
+        // Get the authenticated user from the 'team' guard
+        $user = getAuthenticatedUser();
+
+        // Validate the image file
+        $request->validate([
+            'profile_image' => 'required|image|mimes:jpg,jpeg,png,gif|max:800', // 800KB max size
+        ]);
+
+        // Handle profile image upload
+        if ($request->hasFile('profile_image')) {
+            // Delete old image if exists
+            if ($user->profile_image && file_exists(public_path($user->profile_image))) {
+                unlink(public_path($user->profile_image));
+            }
+
+            // Save the new image
+            $fileName = time() . '.' . $request->file('profile_image')->extension();
+            $filePath = $request->file('profile_image')->storeAs('images/profile', $fileName, 'public');
+            $user->profile_image = '/storage/' . $filePath;  // Store path in database
+            $user->save();
+
+            // Return the new image URL as a JSON response
+            return response()->json([
+                'success' => true,
+                'image_url' => asset($user->profile_image)
+            ]);
+        }
+
+        return response()->json(['success' => false], 400);
+    }
+
+    public function deleteImage(Request $request)
+    {
+        // Get the authenticated user from the 'team' guard
+        $user = auth()->user();
+
+        // Check if the user has a profile image
+        if ($user->profile_image && file_exists(public_path($user->profile_image))) {
+            // Delete the image file from the server
+            unlink(public_path($user->profile_image));
+            
+            // Remove the image path from the database
+            $user->profile_image = null;
+            $user->save();
+
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false], 400);
+    }
 }

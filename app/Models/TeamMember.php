@@ -22,6 +22,7 @@ class TeamMember extends Authenticatable // Extending Authenticatable for Larave
         'role_id', // Assuming role_id links to the roles table
         'password',
         'added_by',
+        'phone_number', // Add this
     ];
 
     // Exclude remember_token and email_verified_at

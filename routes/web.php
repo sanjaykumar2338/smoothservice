@@ -132,6 +132,12 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::get('/roles/edit/{id}', [RoleController::class, 'edit'])->name('roles.edit');
     Route::put('/roles/update/{id}', [RoleController::class, 'update'])->name('roles.update');
     Route::delete('/roles/delete/{id}', [RoleController::class, 'destroy'])->name('roles.delete');
+
+    //profile
+    Route::get('/profile', [ClientController::class, 'profile'])->name('profile');
+    Route::post('/profile/update', [ClientController::class, 'updateprofile'])->name('profile.update');
+    Route::post('/profile/update-image', [ClientController::class, 'updateImage'])->name('profile.updateImage');
+    Route::post('/profile/delete-image', [ClientController::class, 'deleteImage'])->name('profile.deleteImage');
 });
 
 Route::get('logout', function() {
