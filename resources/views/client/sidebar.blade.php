@@ -100,6 +100,25 @@
       </a>
     </li>
 
+    <!-- billing -->
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text" data-i18n="Billing">Billing</span>
+    </li>
+
+    <li class="menu-item {{ request()->routeIs(['invoices.list', 'invoices.create', 'invoices.edit', 'invoices.update', 'invoices.destroy']) ? 'active' : '' }}">
+        <a href="{{ route('invoices.list') }}" class="menu-link">
+            <i class="menu-icon tf-icons bx bx-receipt"></i> <!-- Invoice icon -->
+            <div data-i18n="Invoices">Invoices</div>
+        </a>
+    </li>
+    
+    <li class="menu-item">
+        <a href="" class="menu-link">
+            <i class="menu-icon tf-icons bx bx-book"></i> <!-- You can replace the icon as needed -->
+            <div data-i18n="Subscriptions">Subscriptions</div>
+        </a>
+    </li>
+
     <!-- Setup and settings -->
     <li class="menu-header small text-uppercase">
       <span class="menu-header-text" data-i18n="Setup">Setup</span>

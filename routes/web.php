@@ -13,6 +13,7 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Client\TagController;
 use App\Http\Controllers\Client\ClientStatusController;
 use App\Http\Controllers\Client\RoleController;
+use App\Http\Controllers\Client\InvoiceController;
 use App\Http\Middleware\CheckWebOrTeam;
 
 //for team members
@@ -138,6 +139,14 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::post('/profile/update', [ClientController::class, 'updateprofile'])->name('profile.update');
     Route::post('/profile/update-image', [ClientController::class, 'updateImage'])->name('profile.updateImage');
     Route::post('/profile/delete-image', [ClientController::class, 'deleteImage'])->name('profile.deleteImage');
+
+    //invoice
+    Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.list');
+    Route::get('invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
+    Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+    Route::get('invoices/{id}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
+    Route::put('invoices/{id}', [InvoiceController::class, 'update'])->name('invoices.update');
+    Route::delete('invoices/{id}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
 });
 
 Route::get('logout', function() {
