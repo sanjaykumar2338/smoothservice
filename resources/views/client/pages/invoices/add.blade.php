@@ -108,7 +108,10 @@
 
                                 <!-- Remove Item Button -->
                                 <div class="actions">
-                                    <button type="button" class="btn btn-danger remove-item" style="display:none;">Remove Item</button>
+                                <button type="button" class="btn btn-danger remove-item" style="display:none">
+    <i class="fas fa-trash"></i>
+</button>
+
                                 </div>
                             </div>
 
