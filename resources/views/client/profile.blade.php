@@ -39,33 +39,32 @@
                 </div>
             @endif
             <div class="card-body">
-                <div class="d-flex align-items-start align-items-sm-center gap-4">
-                    <img
-                        src="{{ getAuthenticatedUser()->profile_image ? asset(getAuthenticatedUser()->profile_image) : asset('assets/img/avatars/1.png') }}"
-                        alt="user-avatar"
-                        class="d-block rounded"
-                        height="100"
-                        width="100"
-                        id="uploadedAvatar" />
-                    <div class="button-wrapper">
-                        <label for="upload" class="btn btn-primary me-2 mb-4" tabindex="0">
-                            <span class="d-none d-sm-block">Upload new photo</span>
-                            <i class="bx bx-upload d-block d-sm-none"></i>
-                            <input
-                                type="file"
-                                id="upload"
-                                class="account-file-input"
-                                hidden
-                                accept="image/png, image/jpeg"
-                                name="profile_image"
-                                onchange="uploadImage(event)" />
-                        </label>
-                        <label class="me-2 mt-2" tabindex="0" onclick="deleteImage()">
-                            <button type="reset" style="margin-bottom:24px;" class="account-image-reset btn btn-label-secondary">Delete Photo</button>
-                        </label>
-                        <p class="mb-0">Allowed JPG, GIF, or PNG.</p>
-                    </div>
+            <div class="d-flex align-items-start align-items-sm-center gap-4">
+                <img
+                    src="{{ getAuthenticatedUser()->profile_image ? asset(getAuthenticatedUser()->profile_image) : asset('assets/img/avatars/1.png') }}"
+                    alt="user-avatar"
+                    class="d-block rounded"
+                    height="100"
+                    width="100"
+                    id="uploadedAvatar" />
+                <div class="button-wrapper">
+                    <label for="upload" class="btn btn-primary me-2 mb-4" tabindex="0">
+                        <span class="d-none d-sm-block">Upload new photo</span>
+                        <i class="bx bx-upload d-block d-sm-none"></i>
+                        <input
+                            type="file"
+                            id="upload"
+                            class="account-file-input"
+                            hidden
+                            accept="image/png, image/jpeg"
+                            name="profile_image" />
+                    </label>
+
+                    <button type="reset" style="margin-bottom:24px;" class="account-image-reset btn btn-label-secondary">Delete Photo</button>
+                    <p class="mb-0">Allowed JPG, GIF, or PNG. Max size 5MB.</p>
                 </div>
+            </div>
+
             </div>
             <hr class="my-0" />
             <div class="card-body">
@@ -145,14 +144,33 @@
 </div>
 
 <script>
+    $(document).ready(function() {
+    // Upload image function
     function uploadImage(event) {
         let formData = new FormData();
         let file = event.target.files[0];
 
+        // Check if a file is selected
+        if (!file) {
+            alert('Please select a file to upload.');
+            return;
+        }
+
+        // File type and size validation
+        if (file.size > 5 * 1024 * 1024) { // Limit size to 5MB
+            alert('File size exceeds 5MB.');
+            return;
+        }
+        
+        if (!file.type.match('image/jpeg|image/png|image/gif')) {
+            alert('Only JPG, PNG, or GIF files are allowed.');
+            return;
+        }
+
         formData.append('profile_image', file);
         formData.append('_token', '{{ csrf_token() }}'); // Add CSRF token for Laravel
 
-        // AJAX request
+        // AJAX request to upload the image
         $.ajax({
             url: '{{ route('profile.updateImage') }}', // Route to handle the image upload
             type: 'POST',
@@ -162,18 +180,19 @@
             success: function(response) {
                 if (response.success) {
                     // Update the avatar preview with the new image
-                    document.getElementById('uploadedAvatar').src = response.image_url;
+                    $('#uploadedAvatar').attr('src', response.image_url);
                     alert('Profile image updated successfully.');
                 } else {
                     alert('Image upload failed. Please try again.');
                 }
             },
             error: function(xhr) {
-                alert('An error occurred. Please try again.');
+                alert('An error occurred while uploading the image. Please try again.');
             }
         });
     }
 
+    // Delete image function
     function deleteImage() {
         // AJAX request to delete the image
         $.ajax({
@@ -185,16 +204,24 @@
             success: function(response) {
                 if (response.success) {
                     // Replace the image with the default avatar
-                    document.getElementById('uploadedAvatar').src = '{{ asset("assets/img/avatars/1.png") }}';
+                    $('#uploadedAvatar').attr('src', '{{ asset("assets/img/avatars/1.png") }}');
                     alert('Profile image deleted successfully.');
                 } else {
                     alert('Image deletion failed. Please try again.');
                 }
             },
             error: function(xhr) {
-                alert('An error occurred. Please try again.');
+                alert('An error occurred while deleting the image. Please try again.');
             }
         });
     }
+
+    // Bind event listeners dynamically
+    $('.account-file-input').on('change', uploadImage);
+
+    // Handle delete image
+    $('.account-image-reset').on('click', deleteImage);
+});
+
 </script>
 @endsection
