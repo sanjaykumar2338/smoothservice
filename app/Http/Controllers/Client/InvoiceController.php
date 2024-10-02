@@ -18,9 +18,10 @@ class InvoiceController extends Controller
         $invoices = Invoice::with('client', 'service')
             ->when($search, function ($query, $search) {
                 return $query->whereHas('client', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%");
+                    $q->where('first_name', 'like', "%{$search}%")
+                    ->orwhere('last_name', 'like', "%{$search}%");
                 })->orWhereHas('service', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%");
+                    $q->where('service_name', 'like', "%{$search}%");
                 });
             })
             ->paginate(10);
