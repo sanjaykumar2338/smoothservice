@@ -5,6 +5,10 @@
     .mb-3 {
         margin-left: 15px;
     }
+    /* Make the entire row clickable */
+    tr.clickable-row {
+        cursor: pointer;
+    }
 </style>
 
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -58,7 +62,7 @@
                 <tbody class="table-border-bottom-0">
                     @if($subscriptions->count() > 0)
                         @foreach($subscriptions as $subscription)
-                        <tr>
+                        <tr class="clickable-row" data-href="{{ route('subscriptions.show', $subscription->id) }}">
                             <th scope="row">{{ $subscription->id }}</th>
                             <td>{{ $subscription->client->first_name }} {{ $subscription->client->last_name }}</td>
                             <td>{{ $subscription->service->service_name }}</td>
@@ -113,5 +117,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Make rows clickable
+        const rows = document.querySelectorAll('tr.clickable-row');
+        rows.forEach(row => {
+            row.addEventListener('click', function() {
+                window.location.href = row.dataset.href;
+            });
+        });
+    });
+</script>
 
 @endsection

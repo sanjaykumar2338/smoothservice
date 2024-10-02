@@ -148,6 +148,7 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::get('invoices/{id}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
     Route::put('invoices/{id}', [InvoiceController::class, 'update'])->name('invoices.update');
     Route::delete('invoices/{id}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
+    Route::get('invoices/{id}', [InvoiceController::class, 'show'])->name('invoices.show');
 
     // Subscription Routes
     Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.list');
@@ -156,7 +157,7 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::get('subscriptions/{id}/edit', [SubscriptionController::class, 'edit'])->name('subscriptions.edit');
     Route::put('subscriptions/{id}', [SubscriptionController::class, 'update'])->name('subscriptions.update');
     Route::delete('subscriptions/{id}', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
-
+    Route::get('subscriptions/{id}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
 });
 
 Route::get('logout', function() {

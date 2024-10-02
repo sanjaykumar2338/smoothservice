@@ -198,4 +198,10 @@ class SubscriptionController extends Controller
 
         return redirect()->route('subscriptions.index')->with('success', 'Subscription deleted successfully');
     }
+
+    public function show($id)
+    {
+        $subscription = Subscription::with('client', 'service', 'items')->findOrFail($id);
+        return view('client.pages.subscriptions.show', compact('subscription'));
+    }
 }

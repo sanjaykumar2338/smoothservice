@@ -187,4 +187,16 @@ class InvoiceController extends Controller
 
         return redirect()->route('invoices.list')->with('success', 'Invoice deleted successfully');
     }
+
+    public function show($id)
+    {
+        // Retrieve the invoice by its ID along with the associated client and items
+        $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
+
+        // Retrieve the services in case you want to display service information in the invoice
+        $services = Service::where('user_id', auth()->id())->get();
+
+        // Pass the invoice data to the view
+        return view('client.pages.invoices.show', compact('invoice', 'services'));
+    }
 }

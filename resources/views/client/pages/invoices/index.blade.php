@@ -5,6 +5,16 @@
     .mb-3 {
         margin-left: 15px;
     }
+
+    /* Add pointer cursor to the clickable rows */
+    .clickable-row {
+        cursor: pointer;
+    }
+
+    /* Optional: Highlight the row when hovering */
+    .clickable-row:hover {
+        background-color: #f5f5f5;
+    }
 </style>
 
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -58,7 +68,7 @@
                 <tbody class="table-border-bottom-0">
                     @if($invoices->count() > 0)
                         @foreach($invoices as $invoice)
-                        <tr>
+                        <tr class="clickable-row" data-href="{{ route('invoices.show', $invoice->id) }}">
                             <th scope="row">{{ $invoice->id }}</th>
                             <td>{{ $invoice->client->first_name }} {{ $invoice->client->last_name }}</td>
                             <td>{{ $invoice->service->service_name }}</td>
@@ -113,5 +123,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Add click event to each row to redirect to the show route
+    document.addEventListener('DOMContentLoaded', function() {
+        const rows = document.querySelectorAll('.clickable-row');
+        rows.forEach(row => {
+            row.addEventListener('click', function() {
+                window.location = this.dataset.href;
+            });
+        });
+    });
+</script>
 
 @endsection
