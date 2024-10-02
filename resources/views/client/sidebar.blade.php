@@ -105,19 +105,20 @@
       <span class="menu-header-text" data-i18n="Billing">Billing</span>
     </li>
 
-    <li class="menu-item {{ request()->routeIs(['invoices.list', 'invoices.create', 'invoices.edit', 'invoices.update', 'invoices.destroy']) ? 'active' : '' }}">
+        <li class="menu-item {{ request()->routeIs(['invoices.list', 'invoices.create', 'invoices.edit', 'invoices.update', 'invoices.destroy', 'invoices.show']) ? 'active' : '' }}">
         <a href="{{ route('invoices.list') }}" class="menu-link">
             <i class="menu-icon tf-icons bx bx-receipt"></i> <!-- Invoice icon -->
             <div data-i18n="Invoices">Invoices</div>
         </a>
     </li>
 
-    <li class="menu-item {{ request()->routeIs(['subscriptions.list', 'subscriptions.create', 'subscriptions.edit', 'subscriptions.update', 'subscriptions.destroy']) ? 'active' : '' }}">
+    <li class="menu-item {{ request()->routeIs(['subscriptions.list', 'subscriptions.create', 'subscriptions.edit', 'subscriptions.update', 'subscriptions.destroy', 'subscriptions.show']) ? 'active' : '' }}">
         <a href="{{ route('subscriptions.list') }}" class="menu-link">
             <i class="menu-icon tf-icons bx bx-book"></i> <!-- Subscription icon, you can replace it if needed -->
             <div data-i18n="Subscriptions">Subscriptions</div>
         </a>
     </li>
+
 
     <!-- Setup and settings -->
     <li class="menu-header small text-uppercase">
