@@ -32,12 +32,32 @@
     <div class="card mb-4">
         <div class="card-body">
             <!-- Subscription Header -->
-            <div class="subscription-header">
+            <div class="subscription-header d-flex justify-content-between align-items-center">
                 <div>
                     <h5>Subscription #{{ $subscription->id }}</h5>
                     <p><strong>Status:</strong> {{ $subscription->status }}</p>
                 </div>
-                <button class="btn btn-danger">Download</button>
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-danger me-2">Download</button>
+                    <div class="dropdown">
+                        <button
+                            type="button"
+                            class="btn dropdown-toggle hide-arrow p-0"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="bx bx-dots-vertical-rounded"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="">Share</a></li>
+                            <li><a class="dropdown-item" href="">Email invoice</a></li>
+                            <li><a class="dropdown-item" href="">Edit</a></li>
+                            <li><a class="dropdown-item" href="">Update address</a></li>
+                            <li><a class="dropdown-item" href="">Refund</a></li>
+                            <li><a class="dropdown-item" href="">Duplicate</a></li>
+                            <li><a class="dropdown-item" href="">Delete</a></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
             
             <!-- Subscription Information -->
