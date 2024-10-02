@@ -28,7 +28,7 @@
 
 <div class="container-xxl flex-grow-1 container-p-y">
     <h4 class="py-3 breadcrumb-wrapper mb-4">
-        <span class="text-muted fw-light">Invoices /</span> Add 
+        <span class="text-muted fw-light">Subscriptions /</span> Add 
     </h4>
 
     @if ($errors->any())
@@ -44,7 +44,7 @@
     <div class="row">
         <div class="col-xl">
             
-            <form id="invoice_form" method="POST" action="{{ route('invoices.store') }}">
+            <form id="subscription_form" method="POST" action="{{ route('subscriptions.store') }}">
                 {{ csrf_field() }}
 
                 <!-- Error messages will be displayed here -->
@@ -54,7 +54,7 @@
 
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Invoice Details</h5>
+                        <h5 class="mb-0">Subscription Details</h5>
                     </div>
                     <div class="card-body">
                         
@@ -69,10 +69,10 @@
                             </select>
                         </div>
 
-                        <!-- Due Date -->
+                        <!-- Subscription Start Date -->
                         <div class="col-md-4">
-                            <label class="form-label" for="due_date">Due Date</label>
-                            <input type="date" class="form-control" id="due_date" name="due_date" value="{{ old('due_date') }}">
+                            <label class="form-label" for="start_date">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" value="{{ old('start_date') }}">
                         </div>
                     </div>
 
@@ -135,7 +135,6 @@
                             <textarea class="form-control" name="note" placeholder="Add a note for the client"></textarea>
                         </div>
 
-                        <!-- Additional Options with Dynamic Fields -->
                         <!-- Send Email Notification -->
                         <div class="mt-4">
                             <div class="form-check form-switch">
@@ -155,17 +154,6 @@
                             </div>
                         </div>
 
-                        <!-- Custom Billing Date -->
-                        <div class="mt-4">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input toggle-field" type="checkbox" id="custom_billing_date" name="custom_billing_date" data-toggle="billing_date_field">
-                                <label class="form-check-label" for="custom_billing_date">Custom billing date</label>
-                            </div>
-                            <div class="hidden-field" id="billing_date_field">
-                                <input type="date" class="form-control mt-2" name="billing_date">
-                            </div>
-                        </div>
-
                         <!-- Custom Currency -->
                         <div class="mt-4">
                             <div class="form-check form-switch">
@@ -177,13 +165,11 @@
                             </div>
                         </div>
 
-
-
                     </div>
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit" class="btn btn-primary">Add Invoice</button>
+                <button type="submit" class="btn btn-primary">Add Subscription</button>
             </form>
         </div>
     </div>
@@ -281,8 +267,6 @@
             addEventListeners();
         });
     });
-
-
 </script>
 
 @endsection

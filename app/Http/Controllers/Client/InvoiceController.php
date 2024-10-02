@@ -41,6 +41,7 @@ class InvoiceController extends Controller
     // Store a new invoice in the database
     public function store(Request $request)
     {
+        // Validate the request
         $request->validate([
             'client_id' => 'required|exists:clients,id',
             'service_id' => 'required|exists:services,id',
@@ -53,48 +54,60 @@ class InvoiceController extends Controller
             'discounts' => 'nullable|array',
             'discounts.*' => 'nullable|numeric|min:0',
             'due_date' => 'nullable|date',
+            'upfront_payment_amount' => 'nullable|numeric|min:0', // Validation for upfront payment amount if present
         ]);
 
+        // Convert checkbox values
+        $sendEmail = $request->has('send_email') ? 1 : 0; // Set to 1 if the checkbox is checked, else 0
+        $partialPayment = $request->has('partial_payment') ? 1 : 0; // Set to 1 if checked
+        $upfrontPaymentAmount = $partialPayment ? $request->input('upfront_payment_amount') : null; // Save upfront payment amount only if partial payment is checked
+        $billingDate = $request->has('custom_billing_date') ? $request->input('billing_date') : null; // Set billing date if provided
+        $currency = $request->has('custom_currency') ? $request->input('currency') : 'USD'; // Set currency, fallback to USD
+
+        // Create the invoice record
         $invoice = Invoice::create([
             'client_id' => $request->client_id,
             'service_id' => $request->service_id,
+            'due_date' => $request->due_date,
             'note' => $request->note,
-            'send_email' => $request->send_email ? 1 : 0,
-            'partial_payment' => $request->partial_payment,
-            'billing_date' => $request->billing_date,
-            'currency' => $request->currency,
-            'total' => 0,
+            'send_email' => $sendEmail,
+            'partial_payment' => $partialPayment, // This is just a flag if partial payment is selected
+            'upfront_payment_amount' => $upfrontPaymentAmount, // Save the upfront payment amount
+            'billing_date' => $billingDate, // Handle custom billing date
+            'currency' => $currency, // Handle custom currency
+            'total' => 0,  // Total to be calculated later
             'due_date' => $request->due_date,
             'added_by' => auth()->id(),
         ]);
 
         $totalInvoiceAmount = 0;
 
+        // Save each item in the invoice
         foreach ($request->item_names as $index => $itemName) {
-            
             $price = $request->prices[$index];
             $quantity = $request->quantities[$index];
             $discount = $request->discounts[$index] ?? 0;
             $itemTotal = ($price * $quantity) - $discount;
             $totalInvoiceAmount += $itemTotal;
 
+            // Save each invoice item
             InvoiceItem::create([
                 'invoice_id' => $invoice->id,
-                'service_id' => $request->services[$index] ?? null,
+                'service_id' => $request->service_id, // Assuming the service is tied to the invoice, not each item
                 'item_name' => $itemName,
                 'description' => $request->descriptions[$index] ?? null,
                 'price' => $price,
                 'quantity' => $quantity,
                 'discount' => $discount
             ]);
-
-            $totalInvoiceAmount += $itemTotal;
         }
 
+        // Update the total for the invoice
         $invoice->update(['total' => $totalInvoiceAmount]);
 
         return redirect()->route('invoices.list')->with('success', 'Invoice created successfully');
     }
+
 
     // Show the form to edit an existing invoice
     public function edit($id)

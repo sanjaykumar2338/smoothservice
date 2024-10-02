@@ -14,6 +14,7 @@ use App\Http\Controllers\Client\TagController;
 use App\Http\Controllers\Client\ClientStatusController;
 use App\Http\Controllers\Client\RoleController;
 use App\Http\Controllers\Client\InvoiceController;
+use App\Http\Controllers\Client\SubscriptionController;
 use App\Http\Middleware\CheckWebOrTeam;
 
 //for team members
@@ -147,6 +148,15 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::get('invoices/{id}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
     Route::put('invoices/{id}', [InvoiceController::class, 'update'])->name('invoices.update');
     Route::delete('invoices/{id}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
+
+    // Subscription Routes
+    Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.list');
+    Route::get('subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
+    Route::post('subscriptions', [SubscriptionController::class, 'store'])->name('subscriptions.store');
+    Route::get('subscriptions/{id}/edit', [SubscriptionController::class, 'edit'])->name('subscriptions.edit');
+    Route::put('subscriptions/{id}', [SubscriptionController::class, 'update'])->name('subscriptions.update');
+    Route::delete('subscriptions/{id}', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
+
 });
 
 Route::get('logout', function() {

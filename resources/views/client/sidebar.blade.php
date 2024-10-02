@@ -111,10 +111,10 @@
             <div data-i18n="Invoices">Invoices</div>
         </a>
     </li>
-    
-    <li class="menu-item">
-        <a href="" class="menu-link">
-            <i class="menu-icon tf-icons bx bx-book"></i> <!-- You can replace the icon as needed -->
+
+    <li class="menu-item {{ request()->routeIs(['subscriptions.list', 'subscriptions.create', 'subscriptions.edit', 'subscriptions.update', 'subscriptions.destroy']) ? 'active' : '' }}">
+        <a href="{{ route('subscriptions.list') }}" class="menu-link">
+            <i class="menu-icon tf-icons bx bx-book"></i> <!-- Subscription icon, you can replace it if needed -->
             <div data-i18n="Subscriptions">Subscriptions</div>
         </a>
     </li>

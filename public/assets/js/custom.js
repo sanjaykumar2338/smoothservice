@@ -11,7 +11,7 @@ $(document).ready(function() {
 
 // Update/reset user image of account page
 let accountUserImage = document.getElementById('uploadedAvatar');
-const fileInput = document.querySelector('.account-file-input'),
+const fileInput = document.querySelector('.account-file-input');
 
 if (accountUserImage) {
   const resetImage = accountUserImage.src;
