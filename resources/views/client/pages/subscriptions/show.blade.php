@@ -45,7 +45,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="subscription-info-item">
-                            <h6>Up Digital</h6>
+                            <h6>{{env('APP_NAME')}}</h6>
                             <p>
                                 4014 Kennedy Close SW<br>
                                 Edmonton, AB T6W 3B1<br>
