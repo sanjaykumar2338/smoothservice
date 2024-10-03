@@ -76,58 +76,59 @@
                         </div>
                     </div>
 
-                    <!-- Dynamic Items Section -->
-                    <div id="items-wrapper">
-                            <div class="grid-container item-group mt-4" id="item-template">
-                                <!-- Service Dropdown -->
-                                <div>
-                                    <label class="form-label" for="service_id">Service</label>
-                                    <select class="form-control service-select" name="service_id[]" id="service-select">
-                                        <option value="">-- No Service --</option> <!-- Optional empty option -->
-                                        @foreach($services as $service)
-                                            <option value="{{ $service->id }}">{{ $service->service_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <!-- Item Name -->
-                                <div class="item-name-container" id="item-name-container">
-                                    <label class="form-label" for="item_name">Item Name</label>
-                                    <input type="text" class="form-control" name="item_names[]" placeholder="Enter item name">
-                                </div>
-
-                                <!-- Description -->
-                                <div>
-                                    <label class="form-label" for="description">Description</label>
-                                    <input type="text" class="form-control" name="descriptions[]" placeholder="Enter description">
-                                </div>
-
-                                <!-- Price -->
-                                <div>
-                                    <label class="form-label" for="price">Price</label>
-                                    <input type="number" class="form-control" name="prices[]" placeholder="Enter price">
-                                </div>
-
-                                <!-- Quantity -->
-                                <div>
-                                    <label class="form-label" for="quantity">Quantity</label>
-                                    <input type="number" class="form-control" name="quantities[]" value="1" placeholder="Enter quantity">
-                                </div>
-
-                                <!-- Remove Item Button -->
-                                <div class="actions">
-                                    <button type="button" class="btn btn-danger remove-item" style="display:none">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-
-                                </div>
+                    <!-- Template for the item (hidden by default) -->
+                    <template id="item-template">
+                        <div class="grid-container item-group mt-4">
+                            <!-- Service Dropdown -->
+                            <div>
+                                <label class="form-label" for="service_id">Service</label>
+                                <select class="form-control service-select" name="service_id[]">
+                                    <option value="">-- No Service --</option>
+                                    @foreach($services as $service)
+                                        <option value="{{ $service->id }}">{{ $service->service_name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
+                            <!-- Item Name -->
+                            <div class="item-name-container">
+                                <label class="form-label" for="item_name">Item Name</label>
+                                <input type="text" class="form-control" name="item_names[]" placeholder="Enter item name">
+                            </div>
+
+                            <!-- Description -->
+                            <div>
+                                <label class="form-label" for="description">Description</label>
+                                <input type="text" class="form-control" name="descriptions[]" placeholder="Enter description">
+                            </div>
+
+                            <!-- Price -->
+                            <div>
+                                <label class="form-label" for="price">Price</label>
+                                <input type="number" class="form-control" name="prices[]" placeholder="Enter price">
+                            </div>
+
+                            <!-- Quantity -->
+                            <div>
+                                <label class="form-label" for="quantity">Quantity</label>
+                                <input type="number" class="form-control" name="quantities[]" value="1" placeholder="Enter quantity">
+                            </div>
+
+                            <!-- Remove Item Button -->
+                            <div class="actions">
+                                <button type="button" class="btn btn-danger remove-item" style="display: none;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                             <hr style="grid-column: span 3;">
                         </div>
+                    </template>
 
-                        <!-- Add Item Button -->
-                        <button type="button" class="btn btn-success mt-2" id="add-item">+ Add Item</button>
+                    <!-- Dynamic Items Section -->
+                    <div id="items-wrapper"></div>
+
+                    <!-- Add Item Button -->
+                    <button type="button" class="btn btn-success mt-2" id="add-item">+ Add Item</button>
 
                         <!-- Note to Client -->
                         <div class="mt-4">
@@ -157,6 +158,16 @@
                         <!-- Custom Currency -->
                         <div class="mt-4">
                             <div class="form-check form-switch">
+                                <input class="form-check-input toggle-field" type="checkbox" id="custom_billing_date" name="custom_billing_date" data-toggle="billing_date_field">
+                                <label class="form-check-label" for="custom_billing_date">Custom billing date</label>
+                            </div>
+                            <div class="hidden-field" id="billing_date_field">
+                                <input type="date" class="form-control mt-2" name="billing_date">
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="form-check form-switch">
                                 <input class="form-check-input toggle-field" type="checkbox" id="custom_currency" name="custom_currency" data-toggle="currency_field">
                                 <label class="form-check-label" for="custom_currency">Custom currency</label>
                             </div>
@@ -176,26 +187,46 @@
 </div>
 
 <script>
+
     document.addEventListener('DOMContentLoaded', function () {
-        let itemIndex = 1; // To track number of items
-        const itemTemplate = document.getElementById('item-template').cloneNode(true);
-        document.getElementById('item-template').querySelector('.remove-item').style.display = 'none'; // Hide the delete button on the original
+        let itemIndex = 0; // To keep track of item IDs
+
+        // Function to add a new item
+        function addItem(defaultItem = false) {
+            const template = document.getElementById('item-template').content.cloneNode(true);
+
+            // Give the new item a unique ID
+            const newItem = document.createElement('div');
+            newItem.classList.add('item-wrapper');
+            newItem.setAttribute('id', 'item-' + itemIndex); // Set unique id for each new item
+            newItem.appendChild(template); // Append the cloned template
+
+            // If it's not the default item, show the remove button
+            if (!defaultItem) {
+                newItem.querySelector('.remove-item').style.display = 'block';
+            }
+
+            // Append the new item to the wrapper
+            document.getElementById('items-wrapper').appendChild(newItem);
+
+            // Add event listener for removing the item
+            newItem.querySelector('.remove-item').addEventListener('click', function () {
+                newItem.remove(); // Remove the item
+            });
+
+            itemIndex++; // Increment the index for unique IDs
+        }
+
+        // Add default item when the page loads (without remove button)
+        addItem(true);
 
         // Add new item on button click
         document.getElementById('add-item').addEventListener('click', function () {
-            const newItem = itemTemplate.cloneNode(true);
-            newItem.setAttribute('id', 'item-' + itemIndex); // Set unique id for each new item
-            newItem.querySelector('.remove-item').style.display = 'block'; // Show delete button for cloned items
-            document.getElementById('items-wrapper').appendChild(newItem);
-            itemIndex++;
+            addItem(); // Call function to add new item
         });
-
-        // Remove item on clicking remove button
-        document.addEventListener('click', function (e) {
-            if (e.target && e.target.classList.contains('remove-item')) {
-                e.target.closest('.item-group').remove();
-            }
-        });
+    });
+    
+    document.addEventListener('DOMContentLoaded', function () {
 
         // Toggle item name field based on service selection
         document.addEventListener('change', function (e) {

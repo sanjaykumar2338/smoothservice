@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Service;
 use App\Models\Client;
 use App\Models\User;
@@ -49,9 +50,10 @@ class InvoiceController extends Controller
         // Validate the request
         $request->validate([
             'client_id' => 'required|exists:clients,id',
-            'service_id' => 'required|exists:services,id',
+            'service_id' => 'required|array', // Expecting an array of services
+            'service_id.*' => 'nullable|exists:services,id', // Validate each service
             'item_names' => 'required|array',
-            'item_names.*' => 'required|max:255',
+            'item_names.*' => 'required_if:service_id,|max:255', // Required if service is not selected
             'prices' => 'required|array',
             'prices.*' => 'required|numeric',
             'quantities' => 'required|array',
@@ -59,36 +61,34 @@ class InvoiceController extends Controller
             'discounts' => 'nullable|array',
             'discounts.*' => 'nullable|numeric|min:0',
             'due_date' => 'nullable|date',
-            'upfront_payment_amount' => 'nullable|numeric|min:0', // Validation for upfront payment amount if present
+            'upfront_payment_amount' => 'nullable|numeric|min:0',
         ]);
 
         // Convert checkbox values
-        $sendEmail = $request->has('send_email') ? 1 : 0; // Set to 1 if the checkbox is checked, else 0
-        $partialPayment = $request->has('partial_payment') ? 1 : 0; // Set to 1 if checked
-        $upfrontPaymentAmount = $partialPayment ? $request->input('upfront_payment_amount') : null; // Save upfront payment amount only if partial payment is checked
-        $billingDate = $request->has('custom_billing_date') ? $request->input('billing_date') : null; // Set billing date if provided
-        $currency = $request->has('custom_currency') ? $request->input('currency') : 'USD'; // Set currency, fallback to USD
+        $sendEmail = $request->has('send_email') ? 1 : 0;
+        $partialPayment = $request->has('partial_payment') ? 1 : 0;
+        $upfrontPaymentAmount = $partialPayment ? $request->input('upfront_payment_amount') : null;
+        $billingDate = $request->has('custom_billing_date') ? $request->input('billing_date') : null;
+        $currency = $request->has('custom_currency') ? $request->input('currency') : 'USD';
 
         // Create the invoice record
         $invoice = Invoice::create([
             'client_id' => $request->client_id,
-            'service_id' => $request->service_id,
             'due_date' => $request->due_date,
             'note' => $request->note,
             'send_email' => $sendEmail,
-            'partial_payment' => $partialPayment, // This is just a flag if partial payment is selected
-            'upfront_payment_amount' => $upfrontPaymentAmount, // Save the upfront payment amount
-            'billing_date' => $billingDate, // Handle custom billing date
-            'currency' => $currency, // Handle custom currency
-            'total' => 0,  // Total to be calculated later
-            'due_date' => $request->due_date,
+            'partial_payment' => $partialPayment,
+            'upfront_payment_amount' => $upfrontPaymentAmount,
+            'billing_date' => $billingDate,
+            'currency' => $currency,
+            'total' => 0,
             'added_by' => auth()->id(),
             'public_key' => \Str::random(32)
         ]);
 
         $totalInvoiceAmount = 0;
 
-        // Save each item in the invoice
+        // Save each item in the invoice_items table
         foreach ($request->item_names as $index => $itemName) {
             $price = $request->prices[$index];
             $quantity = $request->quantities[$index];
@@ -96,10 +96,10 @@ class InvoiceController extends Controller
             $itemTotal = ($price * $quantity) - $discount;
             $totalInvoiceAmount += $itemTotal;
 
-            // Save each invoice item
+            // Save each invoice item (service or custom item)
             InvoiceItem::create([
                 'invoice_id' => $invoice->id,
-                'service_id' => $request->service_id, // Assuming the service is tied to the invoice, not each item
+                'service_id' => $request->service_id[$index] ?? null, // Save service if selected
                 'item_name' => $itemName,
                 'description' => $request->descriptions[$index] ?? null,
                 'price' => $price,
@@ -129,10 +129,19 @@ class InvoiceController extends Controller
     // Update an existing invoice
     public function update(Request $request, $id)
     {
+        // Custom validation logic
         $request->validate([
             'client_id' => 'required|exists:clients,id',
             'item_names' => 'required|array',
-            'item_names.*' => 'required|max:255',
+            'item_names.*' => [
+                function ($attribute, $value, $fail) use ($request) {
+                    $index = explode('.', $attribute)[1]; // Get the index (e.g., item_names.0 -> 0)
+                    if (empty($value) && empty($request->service_id[$index])) {
+                        $fail('Either the item name or service must be selected for item #' . ($index + 1) . '.');
+                    }
+                },
+                'max:255'
+            ],
             'prices' => 'required|array',
             'prices.*' => 'required|numeric',
             'quantities' => 'required|array',
@@ -144,14 +153,19 @@ class InvoiceController extends Controller
 
         $invoice = Invoice::findOrFail($id);
 
+        // Convert checkbox values
+        $partialPayment = $request->has('partial_payment') ? 1 : 0; // Set to 1 if checked, else 0
+        $sendEmail = $request->has('send_email') ? 1 : 0; // Set to 1 if checked, else 0
+
         // Update the main invoice details
         $invoice->update([
             'client_id' => $request->client_id,
             'note' => $request->note,
-            'send_email' => $request->send_email ? 1 : 0,
-            'partial_payment' => $request->partial_payment,
-            'billing_date' => $request->billing_date,
-            'currency' => $request->currency,
+            'send_email' => $sendEmail,
+            'partial_payment' => $partialPayment, // Use 1 or 0
+            'upfront_payment_amount' => $request->upfront_payment_amount ?? null, // Optional field
+            'billing_date' => $request->billing_date ?? null,
+            'currency' => $request->currency ?? 'USD', // Default to USD
             'due_date' => $request->due_date,
         ]);
 
@@ -165,17 +179,21 @@ class InvoiceController extends Controller
             $price = $request->prices[$index];
             $quantity = $request->quantities[$index];
             $discount = $request->discounts[$index] ?? 0;
+
+            // Calculate the item total
+            $itemTotal = ($price * $quantity) - $discount;
+            $totalInvoiceAmount += $itemTotal;
+
+            // Save the item
             InvoiceItem::create([
                 'invoice_id' => $invoice->id,
-                'service_id' => $request->services[$index] ?? null,
-                'item_name' => $itemName,
+                'service_id' => $request->service_id[$index] ?? null,
+                'item_name' => $itemName ?: null, // Save the item name if available
                 'description' => $request->descriptions[$index] ?? null,
                 'price' => $price,
                 'quantity' => $quantity,
                 'discount' => $discount
             ]);
-
-            $totalInvoiceAmount += $itemTotal;
         }
 
         // Update the total in the invoice after recalculating from all items
@@ -183,6 +201,7 @@ class InvoiceController extends Controller
 
         return redirect()->route('invoices.list')->with('success', 'Invoice updated successfully');
     }
+
 
     // Delete an invoice
     public function destroy($id)

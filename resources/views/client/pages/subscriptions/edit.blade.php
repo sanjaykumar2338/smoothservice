@@ -83,7 +83,7 @@
                                 <!-- Service Dropdown -->
                                 <div>
                                     <label class="form-label" for="service_id">Service</label>
-                                    <select class="form-control service-select" name="service_id[]" id="service-select">
+                                    <select class="form-control service-select" name="services[]" id="service-select">
                                         <option value="">-- No Service --</option>
                                         @foreach($services as $service)
                                             <option value="{{ $service->id }}" {{ $item->service_id == $service->id ? 'selected' : '' }}>

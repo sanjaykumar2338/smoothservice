@@ -51,7 +51,6 @@
                     <tr class="text-nowrap">
                         <th>#</th>
                         <th>Client</th>
-                        <th>Service</th>
                         <th>Total</th>
                         <th>Due Date</th>
                         @if(checkPermission('add_edit_delete_subscription'))
@@ -65,7 +64,6 @@
                         <tr class="clickable-row" data-href="{{ route('subscriptions.show', $subscription->id) }}">
                             <th scope="row">{{ $subscription->id }}</th>
                             <td>{{ $subscription->client->first_name }} {{ $subscription->client->last_name }}</td>
-                            <td>{{ $subscription->service->service_name }}</td>
                             <td>{{ $subscription->total }}</td>
                             <td>{{ $subscription->due_date }}</td>
                             @if(checkPermission('add_edit_delete_subscription'))

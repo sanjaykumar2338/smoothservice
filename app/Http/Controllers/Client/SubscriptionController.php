@@ -47,12 +47,19 @@ class SubscriptionController extends Controller
     // Store a new subscription in the database
     public function store(Request $request)
     {
-        // Validate the request
+        // Custom validation logic to ensure either 'service_id' or 'item_name' is provided
         $request->validate([
             'client_id' => 'required|exists:clients,id',
-            'service_id' => 'required|exists:services,id',
             'item_names' => 'required|array',
-            'item_names.*' => 'required|max:255',
+            'item_names.*' => [
+                function ($attribute, $value, $fail) use ($request) {
+                    $index = explode('.', $attribute)[1]; // Get the index (e.g., item_names.0 -> 0)
+                    if (empty($value) && empty($request->service_id[$index])) {
+                        $fail('Either the item name or service must be selected for item #' . ($index + 1) . '.');
+                    }
+                },
+                'max:255'
+            ],
             'prices' => 'required|array',
             'prices.*' => 'required|numeric',
             'quantities' => 'required|array',
@@ -73,7 +80,7 @@ class SubscriptionController extends Controller
         // Create the subscription record
         $subscription = Subscription::create([
             'client_id' => $request->client_id,
-            'service_id' => $request->service_id,
+            'service_id' => $request->service_id[0], // Assuming first service is selected
             'due_date' => $request->due_date,
             'note' => $request->note,
             'send_email' => $sendEmail,
@@ -81,8 +88,7 @@ class SubscriptionController extends Controller
             'upfront_payment_amount' => $upfrontPaymentAmount,
             'billing_date' => $billingDate,
             'currency' => $currency,
-            'total' => 0,
-            'due_date' => $request->due_date,
+            'total' => 0,  // Total to be calculated later
             'added_by' => auth()->id(),
         ]);
 
@@ -99,8 +105,8 @@ class SubscriptionController extends Controller
             // Save each subscription item
             SubscriptionItem::create([
                 'subscription_id' => $subscription->id,
-                'service_id' => $request->service_id,
-                'item_name' => $itemName,
+                'service_id' => $request->service_id[$index] ?? null,  // Use the correct service for each item if applicable
+                'item_name' => $itemName ?: null,  // Save the item name if available
                 'description' => $request->descriptions[$index] ?? null,
                 'price' => $price,
                 'quantity' => $quantity,
@@ -111,7 +117,7 @@ class SubscriptionController extends Controller
         // Update the total for the subscription
         $subscription->update(['total' => $totalSubscriptionAmount]);
 
-        return redirect()->route('subscriptions.index')->with('success', 'Subscription created successfully');
+        return redirect()->route('subscriptions.list')->with('success', 'Subscription created successfully');
     }
 
     // Show the form to edit an existing subscription
@@ -128,11 +134,20 @@ class SubscriptionController extends Controller
     // Update an existing subscription
     public function update(Request $request, $id)
     {
-        // Validate the request
+        //echo "<pre>"; print_r($request->all()); die;
+        // Custom validation logic to ensure either 'service_id' or 'item_name' is provided for each item
         $request->validate([
             'client_id' => 'required|exists:clients,id',
             'item_names' => 'required|array',
-            'item_names.*' => 'required|max:255',
+            'item_names.*' => [
+                function ($attribute, $value, $fail) use ($request) {
+                    $index = explode('.', $attribute)[1]; // Get the index (e.g., item_names.0 -> 0)
+                    if (empty($value) && empty($request->services[$index])) {
+                        $fail('Either the item name or service must be selected for item #' . ($index + 1) . '.');
+                    }
+                },
+                'max:255'
+            ],
             'prices' => 'required|array',
             'prices.*' => 'required|numeric',
             'quantities' => 'required|array',
@@ -140,12 +155,12 @@ class SubscriptionController extends Controller
             'discounts' => 'nullable|array',
             'discounts.*' => 'nullable|numeric|min:0',
             'due_date' => 'nullable|date',
-            'upfront_payment_amount' => 'nullable|numeric|min:0', // Add validation for upfront payment
         ]);
 
         // Handle checkbox values
         $sendEmail = $request->has('send_email') ? 1 : 0;
         $partialPayment = $request->has('partial_payment') ? 1 : 0;
+        $upfrontPaymentAmount = $partialPayment ? $request->input('upfront_payment_amount') : null;
 
         // Fetch the subscription
         $subscription = Subscription::findOrFail($id);
@@ -155,10 +170,10 @@ class SubscriptionController extends Controller
             'client_id' => $request->client_id,
             'note' => $request->note,
             'send_email' => $sendEmail,
-            'partial_payment' => $partialPayment, // Save partial_payment as a flag (1 or 0)
-            'upfront_payment_amount' => $partialPayment ? $request->input('upfront_payment_amount') : null, // Save the upfront amount only if partial_payment is checked
+            'partial_payment' => $partialPayment, // Save as flag (1 or 0)
+            'upfront_payment_amount' => $upfrontPaymentAmount,
             'billing_date' => $request->billing_date,
-            'currency' => $request->currency,
+            'currency' => $request->currency ?? 'USD', // Default to USD
             'due_date' => $request->due_date,
         ]);
 
@@ -173,20 +188,20 @@ class SubscriptionController extends Controller
             $quantity = $request->quantities[$index];
             $discount = $request->discounts[$index] ?? 0;
             $itemTotal = ($price * $quantity) - $discount;
+            $totalSubscriptionAmount += $itemTotal;
 
             // Create new subscription items
             SubscriptionItem::create([
                 'subscription_id' => $subscription->id,
-                'service_id' => $request->services[$index] ?? null,
-                'item_name' => $itemName,
+                'service_id' => $request->services[$index] ?? null,  // Use the correct service array
+                'item_name' => $itemName ?: null,  // Use the item name if provided
                 'description' => $request->descriptions[$index] ?? null,
                 'price' => $price,
                 'quantity' => $quantity,
                 'discount' => $discount
             ]);
-
-            $totalSubscriptionAmount += $itemTotal;
         }
+
 
         // Update the total amount for the subscription
         $subscription->update(['total' => $totalSubscriptionAmount]);
