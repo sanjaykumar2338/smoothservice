@@ -78,13 +78,7 @@
                             <td>
                                 <!-- Edit Button -->
                                 <a href="{{ route('invoices.edit', $invoice->id) }}" class="btn btn-sm btn-primary">Edit</a>
-
-                                <!-- Delete Button -->
-                                <form action="{{ route('invoices.destroy', $invoice->id) }}" method="POST" style="display:inline-block;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</button>
-                                </form>
+                                <a href="{{ route('invoices.deleteinvoice', $invoice->id) }}" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</a>
                             </td>
                             @endif
                         </tr>

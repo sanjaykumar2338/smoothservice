@@ -19,8 +19,20 @@ class Invoice extends Model
         'total',  // Total invoice amount
         'due_date',  // Invoice due date
         'added_by',  // ID of the user who added the invoice
-        'upfront_payment_amount'
+        'upfront_payment_amount',
+        'status',
+        'public_key',
+        'billing_first_name',  // New billing first name field
+        'billing_last_name',   // New billing last name field
+        'billing_address',     // New billing address field
+        'billing_city',        // New billing city field
+        'billing_country',     // New billing country field
+        'billing_state',       // New billing state field
+        'billing_postal_code', // New billing postal/zip code field
+        'billing_company',     // New billing company field
+        'billing_tax_id'       // New billing tax ID field
     ];
+    
 
     // Relationship with Client model
     public function client()
@@ -38,5 +50,10 @@ class Invoice extends Model
     public function items()
     {
         return $this->hasMany(InvoiceItem::class, 'invoice_id');
+    }
+
+    public function refunds()
+    {
+        return $this->hasMany(InvoiceRefund::class, 'invoice_id');
     }
 }

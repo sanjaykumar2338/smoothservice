@@ -5,8 +5,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Service;
 use App\Models\Client;
-use App\Models\InvoiceItem;
+use App\Models\User;
+use App\Models\TeamMember;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\InvoiceMail;
 
 class InvoiceController extends Controller
 {
@@ -24,7 +28,7 @@ class InvoiceController extends Controller
                     $q->where('service_name', 'like', "%{$search}%");
                 });
             })
-            ->paginate(10);
+            ->where('added_by', getUserID())->paginate(10);
 
         return view('client.pages.invoices.index', compact('invoices', 'search'));
     }
@@ -79,6 +83,7 @@ class InvoiceController extends Controller
             'total' => 0,  // Total to be calculated later
             'due_date' => $request->due_date,
             'added_by' => auth()->id(),
+            'public_key' => \Str::random(32)
         ]);
 
         $totalInvoiceAmount = 0;
@@ -196,7 +201,114 @@ class InvoiceController extends Controller
         // Retrieve the services in case you want to display service information in the invoice
         $services = Service::where('user_id', auth()->id())->get();
 
+        // Fetch all users and team members added by the current logged-in user
+        $users = User::all();
+        $teamMembers = TeamMember::where('added_by', auth()->id())->get();
+
         // Pass the invoice data to the view
-        return view('client.pages.invoices.show', compact('invoice', 'services'));
+        return view('client.pages.invoices.show', compact('invoice', 'services', 'users', 'teamMembers'));
+    }
+
+    public function downloadInvoice($id)
+    {
+        // Retrieve the invoice and related data
+        $invoice = Invoice::with('client', 'items')->findOrFail($id);
+
+        // Generate the PDF using the view
+        $pdf = PDF::loadView('client.pages.invoices.pdf', compact('invoice'));
+
+        // Download the PDF
+        return $pdf->download('invoice_' . $invoice->id . '.pdf');
+    }
+
+    public function duplicate($id)
+    {
+        // Fetch the original invoice with related items
+        $invoice = Invoice::with('items')->findOrFail($id);
+
+        // Create a new invoice by duplicating the original invoice's data
+        $newInvoice = $invoice->replicate(); // Duplicate the main invoice fields
+        $newInvoice->status = 'Draft'; // Optionally set a default status
+        $newInvoice->public_key = \Str::random(32);
+        $newInvoice->created_at = now(); // Set the creation date to now
+        $newInvoice->updated_at = now();
+        $newInvoice->save(); // Save the new invoice
+
+        // Duplicate each item in the invoice
+        foreach ($invoice->items as $item) {
+            $newItem = $item->replicate(); // Duplicate the item
+            $newItem->invoice_id = $newInvoice->id; // Link the new item to the new invoice
+            $newItem->save(); // Save the new item
+        }
+
+        return redirect()->route('invoices.edit', $newInvoice->id)->with('success', 'Invoice duplicated successfully');
+    }
+
+    public function publicShow($id, Request $request)
+    {
+        $invoice = Invoice::findOrFail($id);
+
+        // Validate the key
+        if ($request->input('key') !== $invoice->public_key) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        return view('client.pages.invoices.show', compact('invoice'));
+    }
+
+    public function updateAddress(Request $request, $id)
+    {
+        $request->validate([
+            'billing_first_name' => 'required|string|max:255',
+            'billing_last_name' => 'required|string|max:255',
+            'billing_address' => 'required|string|max:255',
+            'billing_city' => 'required|string|max:255',
+            'billing_country' => 'required|string|max:255',
+            'billing_state' => 'required|string|max:255',
+            'billing_postal_code' => 'required|string|max:50',
+            'billing_company' => 'nullable|string|max:255',
+            'billing_tax_id' => 'nullable|string|max:50',
+        ]);
+
+        $invoice = Invoice::findOrFail($id);
+        $invoice->update($request->only([
+            'billing_first_name', 'billing_last_name', 'billing_address',
+            'billing_city', 'billing_country', 'billing_state',
+            'billing_postal_code', 'billing_company', 'billing_tax_id'
+        ]));
+
+        return redirect()->back()->with('success', 'Billing details updated successfully.');
+    }
+
+    public function sendEmail(Request $request)
+    {
+        $emails = $request->input('emails');  // Array of emails
+        $invoice = Invoice::findOrFail($request->input('invoiceId'));
+
+        foreach ($emails as $email) {
+            Mail::to($email)->send(new InvoiceMail($invoice));
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function refund(Request $request, Invoice $invoice)
+    {
+        $request->validate([
+            'refund_reason' => 'required|string|max:255',
+            'refund_amount' => 'required|numeric|min:0',
+        ]);
+
+        // Store refund details in the 'invoice_refunds' table
+        $invoice->refunds()->create([
+            'refund_reason' => $request->refund_reason,
+            'refund_amount' => $request->refund_amount,
+        ]);
+
+        // Update the invoice status if needed (e.g., partial refund, full refund)
+        // $invoice->status = 'refunded'; // Update status logic if needed
+        // $invoice->save();
+
+        return redirect()->back()->with('success', 'Refund has been added successfully.');
     }
 }

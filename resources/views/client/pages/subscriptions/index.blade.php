@@ -72,13 +72,7 @@
                             <td>
                                 <!-- Edit Button -->
                                 <a href="{{ route('subscriptions.edit', $subscription->id) }}" class="btn btn-sm btn-primary">Edit</a>
-
-                                <!-- Delete Button -->
-                                <form action="{{ route('subscriptions.destroy', $subscription->id) }}" method="POST" style="display:inline-block;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</button>
-                                </form>
+                                <a href="{{ route('subscriptions.deletesubscription', $subscription->id) }}" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</a>
                             </td>
                             @endif
                         </tr>

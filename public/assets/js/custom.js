@@ -8,3 +8,15 @@ $(document).ready(function() {
     $('#timeZones').select2();
     $('#currency').select2();
 });
+
+$(document).ready(function() {
+    // Initialize Select2 on modal show
+    $('#emailInvoiceModal').on('shown.bs.modal', function () {
+        $('#emailRecipient').select2({
+            dropdownParent: $('#emailInvoiceModal'),  // Ensures the dropdown is inside the modal
+            placeholder: 'Select recipients',
+            allowClear: true,
+            width: '100%'
+        });
+    });
+});

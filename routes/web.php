@@ -147,8 +147,14 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
     Route::get('invoices/{id}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
     Route::put('invoices/{id}', [InvoiceController::class, 'update'])->name('invoices.update');
-    Route::delete('invoices/{id}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
+    Route::get('invoices/deleteinvoice/{id}', [InvoiceController::class, 'destroy'])->name('invoices.deleteinvoice');
     Route::get('invoices/{id}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::get('invoices/{id}/download', [InvoiceController::class, 'downloadInvoice'])->name('invoices.download');
+    Route::get('invoices/{id}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
+    Route::get('invoices/{id}/public', [InvoiceController::class, 'publicShow'])->name('invoices.public');
+    Route::post('/invoices/{id}/update-address', [InvoiceController::class, 'updateAddress'])->name('invoices.updateAddress');
+    Route::post('/invoices/send-email', [InvoiceController::class, 'sendEmail'])->name('invoices.sendEmail');
+    Route::post('/invoices/{invoice}/refund', [InvoiceController::class, 'refund'])->name('invoices.refund');
 
     // Subscription Routes
     Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.list');
@@ -156,8 +162,14 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::post('subscriptions', [SubscriptionController::class, 'store'])->name('subscriptions.store');
     Route::get('subscriptions/{id}/edit', [SubscriptionController::class, 'edit'])->name('subscriptions.edit');
     Route::put('subscriptions/{id}', [SubscriptionController::class, 'update'])->name('subscriptions.update');
-    Route::delete('subscriptions/{id}', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
+    Route::get('subscriptions/deletesubscription/{id}', [SubscriptionController::class, 'destroy'])->name('subscriptions.deletesubscription');
     Route::get('subscriptions/{id}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
+    Route::get('subscriptions/{id}/download', [SubscriptionController::class, 'downloadSubscription'])->name('subscriptions.download');
+    Route::get('subscriptions/{id}/duplicate', [SubscriptionController::class, 'duplicate'])->name('subscriptions.duplicate');
+    Route::get('subscriptions/{id}/public', [SubscriptionController::class, 'publicShow'])->name('subscriptions.public');
+    Route::post('/subscriptions/{id}/update-address', [SubscriptionController::class, 'updateAddress'])->name('subscriptions.updateAddress');
+    Route::post('/subscriptions/send-email', [SubscriptionController::class, 'sendEmail'])->name('subscriptions.sendEmail');
+    Route::post('/subscriptions/{subscription}/refund', [SubscriptionController::class, 'refund'])->name('subscriptions.refund');
 });
 
 Route::get('logout', function() {
