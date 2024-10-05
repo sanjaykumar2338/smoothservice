@@ -47,7 +47,7 @@
             <table class="table">
                 <thead>
                     <tr class="text-nowrap">
-                        <th><input type="checkbox" id="select-all"></th>
+                        <th style="display:none"><input type="checkbox" id="select-all"></th>
                         <th>#</th>
                         <th>Order Title</th>
                         <th>Client</th>
@@ -61,7 +61,7 @@
                     @if($orders->count() > 0)
                         @foreach($orders as $order)
                         <tr>
-                            <td><input type="checkbox" class="order-checkbox" value="{{ $order->id }}"></td>
+                            <td style="display:none"><input type="checkbox" class="order-checkbox" value="{{ $order->id }}"></td>
                             <th scope="row"><a href="{{ route('order.show', $order->id) }}">{{ $order->id }}</a></th>
                             <td>{{ $order->title }}</td>
                             <td>{{ $order->client->first_name }} {{ $order->client->last_name }}</td>

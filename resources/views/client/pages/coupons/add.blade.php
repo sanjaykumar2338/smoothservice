@@ -89,12 +89,12 @@
 
                         <!-- Applies to (Multiple Services Selection) and Discount (Cloneable) -->
                         <div class="discount-wrapper">
-                            
                             <div class="mb-3 discount-clone d-flex align-items-center">
                                 <!-- Applies to (Dropdown) -->
                                 <div class="flex-grow-1 me-3">
                                     <label class="form-label" for="applies_to">Applies to</label>
                                     <select class="form-control applies_to" name="applies_to[]">
+                                        <option value="">Select Service</option>
                                         @foreach($services as $service)
                                             <option value="{{ $service->id }}">{{ $service->service_name }}</option>
                                         @endforeach
@@ -209,6 +209,7 @@
     document.getElementById('min_cart_amount').addEventListener('change', function () {
         document.getElementById('min_cart_amount_field').style.display = this.checked ? 'block' : 'none';
     });
+    
 </script>
 
 @endsection
