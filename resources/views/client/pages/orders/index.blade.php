@@ -62,7 +62,7 @@
                         @foreach($orders as $order)
                         <tr>
                             <td style="display:none"><input type="checkbox" class="order-checkbox" value="{{ $order->id }}"></td>
-                            <th scope="row"><a href="{{ route('order.show', $order->id) }}">{{ $order->id }}</a></th>
+                            <th scope="row"><a href="{{ route('order.show', $order->order_no) }}">{{ $order->id }}</a></th>
                             <td>{{ $order->title }}</td>
                             <td>{{ $order->client->first_name }} {{ $order->client->last_name }}</td>
                             <td>{{ $order->service->service_name }}</td>
