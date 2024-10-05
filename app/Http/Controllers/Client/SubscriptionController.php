@@ -47,78 +47,49 @@ class SubscriptionController extends Controller
     // Store a new subscription in the database
     public function store(Request $request)
     {
-        // Custom validation logic to ensure either 'service_id' or 'item_name' is provided
-        $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'item_names' => 'required|array',
-            'item_names.*' => [
-                function ($attribute, $value, $fail) use ($request) {
-                    $index = explode('.', $attribute)[1]; // Get the index (e.g., item_names.0 -> 0)
-                    if (empty($value) && empty($request->service_id[$index])) {
-                        $fail('Either the item name or service must be selected for item #' . ($index + 1) . '.');
-                    }
-                },
-                'max:255'
-            ],
-            'prices' => 'required|array',
-            'prices.*' => 'required|numeric',
-            'quantities' => 'required|array',
-            'quantities.*' => 'required|integer|min:1',
-            'discounts' => 'nullable|array',
-            'discounts.*' => 'nullable|numeric|min:0',
-            'due_date' => 'nullable|date',
-            'upfront_payment_amount' => 'nullable|numeric|min:0',
+        $validatedData = $request->validate([
+            'coupon_code' => 'required|string|max:50|unique:coupons',
+            'description' => 'nullable|string',
+            'discount_type' => 'required|in:Fixed,Percentage',
+            'discount_duration' => 'required|in:Forever,First Payment',
+            'applies_to' => 'required|array',
+            'discount' => 'required|array',
+            'expiry_date' => 'nullable|date|after_or_equal:today',
+            'min_cart_amount_value' => 'nullable|numeric|min:0',
         ]);
 
-        // Convert checkbox values
-        $sendEmail = $request->has('send_email') ? 1 : 0;
-        $partialPayment = $request->has('partial_payment') ? 1 : 0;
-        $upfrontPaymentAmount = $partialPayment ? $request->input('upfront_payment_amount') : null;
-        $billingDate = $request->has('custom_billing_date') ? $request->input('billing_date') : null;
-        $currency = $request->has('custom_currency') ? $request->input('currency') : 'USD';
+        // Handle checkbox values
+        $limitToOne = $request->has('limit_to_one') ? 1 : 0;
+        $limitToNewCustomers = $request->has('limit_to_new_customers') ? 1 : 0;
+        $setExpiry = $request->has('set_expiry') ? 1 : 0;
+        $minCartAmount = $request->has('min_cart_amount') ? 1 : 0;
 
-        // Create the subscription record
-        $subscription = Subscription::create([
-            'client_id' => $request->client_id,
-            'service_id' => $request->service_id[0], // Assuming first service is selected
-            'due_date' => $request->due_date,
-            'note' => $request->note,
-            'send_email' => $sendEmail,
-            'partial_payment' => $partialPayment,
-            'upfront_payment_amount' => $upfrontPaymentAmount,
-            'billing_date' => $billingDate,
-            'currency' => $currency,
-            'total' => 0,  // Total to be calculated later
+        // Create the coupon
+        $coupon = Coupon::create([
+            'coupon_code' => $validatedData['coupon_code'],
+            'description' => $validatedData['description'],
+            'discount_type' => $validatedData['discount_type'],
+            'discount_duration' => $validatedData['discount_duration'],
+            'limit_to_one' => $limitToOne,
+            'limit_to_new_customers' => $limitToNewCustomers,
+            'set_expiry' => $setExpiry,
+            'expiry_date' => $validatedData['expiry_date'] ?? null,
+            'min_cart_amount' => $minCartAmount ? $validatedData['min_cart_amount_value'] : null,
             'added_by' => auth()->id(),
         ]);
 
-        $totalSubscriptionAmount = 0;
-
-        // Save each item in the subscription
-        foreach ($request->item_names as $index => $itemName) {
-            $price = $request->prices[$index];
-            $quantity = $request->quantities[$index];
-            $discount = $request->discounts[$index] ?? 0;
-            $itemTotal = ($price * $quantity) - $discount;
-            $totalSubscriptionAmount += $itemTotal;
-
-            // Save each subscription item
-            SubscriptionItem::create([
-                'subscription_id' => $subscription->id,
-                'service_id' => $request->service_id[$index] ?? null,  // Use the correct service for each item if applicable
-                'item_name' => $itemName ?: null,  // Save the item name if available
-                'description' => $request->descriptions[$index] ?? null,
-                'price' => $price,
-                'quantity' => $quantity,
-                'discount' => $discount,
+        // Save coupon services
+        foreach ($validatedData['applies_to'] as $index => $serviceId) {
+            CouponService::create([
+                'coupon_id' => $coupon->id,
+                'service_id' => $serviceId,
+                'discount' => $validatedData['discount'][$index] ?? 0,
             ]);
         }
 
-        // Update the total for the subscription
-        $subscription->update(['total' => $totalSubscriptionAmount]);
-
-        return redirect()->route('subscriptions.list')->with('success', 'Subscription created successfully');
+        return redirect()->route('coupon.list')->with('success', 'Coupon added successfully.');
     }
+
 
     // Show the form to edit an existing subscription
     public function edit($id)

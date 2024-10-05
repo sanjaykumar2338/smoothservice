@@ -7,6 +7,7 @@ $(document).ready(function() {
     $('#language').select2();
     $('#timeZones').select2();
     $('#currency').select2();
+    $('.applies_to').select2();
 });
 
 $(document).ready(function() {

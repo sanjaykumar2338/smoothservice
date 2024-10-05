@@ -119,6 +119,17 @@
         </a>
     </li>
 
+    <!-- Marketing -->
+    <li class="menu-header small text-uppercase">
+      <span class="menu-header-text" data-i18n="Marketing">Marketing</span>
+    </li>
+
+    <li class="menu-item {{ request()->routeIs(['coupon.list', 'coupon.create', 'coupon.edit', 'coupon.update', 'coupon.destroy', 'coupon.show']) ? 'active' : '' }}">
+        <a href="{{ route('coupon.list') }}" class="menu-link">
+            <i class="menu-icon tf-icons bx bx-purchase-tag"></i> <!-- Coupon icon -->
+            <div data-i18n="Coupons">Coupons</div>
+        </a>
+    </li>
 
     <!-- Setup and settings -->
     <li class="menu-header small text-uppercase">

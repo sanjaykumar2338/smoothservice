@@ -92,7 +92,7 @@
                 </tr>
                 @foreach($subscription->items as $item)
                 <tr>
-                    <td>{{ $item->item_name }}</td>
+                    <td>{{ $item->service->service_name ?? $item->item_name }}</td>
                     <td>${{ number_format($item->price, 2) }}</td>
                     <td>{{ $item->quantity }}</td>
                     <td>${{ number_format($item->price * $item->quantity, 2) }}</td>

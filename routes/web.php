@@ -15,6 +15,7 @@ use App\Http\Controllers\Client\ClientStatusController;
 use App\Http\Controllers\Client\RoleController;
 use App\Http\Controllers\Client\InvoiceController;
 use App\Http\Controllers\Client\SubscriptionController;
+use App\Http\Controllers\Client\CouponController;
 use App\Http\Middleware\CheckWebOrTeam;
 
 //for team members
@@ -170,6 +171,14 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::post('/subscriptions/{id}/update-address', [SubscriptionController::class, 'updateAddress'])->name('subscriptions.updateAddress');
     Route::post('/subscriptions/send-email', [SubscriptionController::class, 'sendEmail'])->name('subscriptions.sendEmail');
     Route::post('/subscriptions/{subscription}/refund', [SubscriptionController::class, 'refund'])->name('subscriptions.refund');
+
+    //for coupon
+    Route::get('/coupons', [CouponController::class, 'index'])->name('coupon.list');
+    Route::get('/coupons/add', [CouponController::class, 'create'])->name('coupon.add');
+    Route::post('/coupons/save', [CouponController::class, 'store'])->name('coupon.store');
+    Route::get('/coupons/edit/{coupon}', [CouponController::class, 'edit'])->name('coupon.edit');
+    Route::put('/coupons/update/{coupon}', [CouponController::class, 'update'])->name('coupon.update');
+    Route::delete('/coupons/remove/{coupon}', [CouponController::class, 'destroy'])->name('coupon.destroy');
 });
 
 Route::get('logout', function() {
