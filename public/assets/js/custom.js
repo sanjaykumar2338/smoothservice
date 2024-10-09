@@ -20,4 +20,13 @@ $(document).ready(function() {
             width: '100%'
         });
     });
+
+    $('#addTicketModal').on('shown.bs.modal', function () {
+        $('#cc').select2({
+            dropdownParent: $('#addTicketModal'),  // Ensures the dropdown is inside the modal
+            placeholder: 'Select recipients',
+            allowClear: true,
+            width: '100%'
+        });
+    });
 });

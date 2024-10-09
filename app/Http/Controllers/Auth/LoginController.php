@@ -25,24 +25,34 @@ class LoginController extends Controller
     // Handle the login request
     public function login(Request $request)
     {
+        // Validate the incoming request
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
+        // Get the credentials
         $credentials = $request->only('email', 'password');
-        if (Auth::guard('web')->attempt($credentials)) {
+        
+        // Check if 'remember' checkbox is checked
+        $remember = $request->filled('remember');
+
+        // Attempt login for web users with remember functionality
+        if (Auth::guard('web')->attempt($credentials, $remember)) {
             return redirect()->intended(route('dashboard'));
         }
 
-        if (Auth::guard('team')->attempt($credentials)) {
+        // Attempt login for team members with remember functionality
+        if (Auth::guard('team')->attempt($credentials, $remember)) {
             return redirect()->intended(route('order.list')); // Team member dashboard
         }
-        
+
+        // If credentials don't match, redirect back with an error
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->withInput($request->only('email'));
     }
+
 
     public function register(){
         return view('auth.register');

@@ -60,7 +60,7 @@
                 <tbody class="table-border-bottom-0">
                     @if($orders->count() > 0)
                         @foreach($orders as $order)
-                        <tr>
+                        <tr style="cursor: pointer;" onclick="window.location.href='{{ route('order.show', $order->order_no) }}'">
                             <td style="display:none"><input type="checkbox" class="order-checkbox" value="{{ $order->id }}"></td>
                             <th scope="row"><a href="{{ route('order.show', $order->order_no) }}">{{ $order->id }}</a></th>
                             <td>{{ $order->title }}</td>

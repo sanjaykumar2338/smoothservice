@@ -8,6 +8,7 @@ use App\Http\Controllers\Client\ServiceController;
 use App\Http\Controllers\Client\TeamController;
 use App\Http\Controllers\Client\OrderController;
 use App\Http\Controllers\Client\SettingController;
+use App\Http\Controllers\Client\TicketStatusController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Client\TagController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Client\RoleController;
 use App\Http\Controllers\Client\InvoiceController;
 use App\Http\Controllers\Client\SubscriptionController;
 use App\Http\Controllers\Client\CouponController;
+use App\Http\Controllers\Client\TicketController;
 use App\Http\Middleware\CheckWebOrTeam;
 
 //for team members
@@ -112,6 +114,15 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::post('/orderstatuses/update/{id}', [SettingController::class, 'update'])->name('setting.orderstatuses.update');
     Route::delete('/orderstatuses/delete/{id}', [SettingController::class, 'destroy'])->name('setting.orderstatuses.delete');
 
+     // ticket statuses routes
+     Route::get('/ticketstatuses/list', [TicketStatusController::class, 'index'])->name('setting.ticketstatuses.list');
+    Route::get('/ticketstatuses/create', [TicketStatusController::class, 'create'])->name('setting.ticketstatuses.create');
+    Route::post('/ticketstatuses/store', [TicketStatusController::class, 'store'])->name('setting.ticketstatuses.store');
+    Route::get('/ticketstatuses/edit/{id}', [TicketStatusController::class, 'edit'])->name('setting.ticketstatuses.edit');
+    Route::post('/ticketstatuses/update/{id}', [TicketStatusController::class, 'update'])->name('setting.ticketstatuses.update');
+    Route::delete('/ticketstatuses/delete/{id}', [TicketStatusController::class, 'destroy'])->name('setting.ticketstatuses.delete');
+
+
     // Tags routes
     Route::get('/tags/list', [TagController::class, 'index'])->name('tags.list');
     Route::get('/tags/create', [TagController::class, 'create'])->name('tags.create');
@@ -179,6 +190,19 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::get('/coupons/edit/{coupon}', [CouponController::class, 'edit'])->name('coupon.edit');
     Route::put('/coupons/update/{coupon}', [CouponController::class, 'update'])->name('coupon.update');
     Route::delete('/coupons/remove/{coupon}', [CouponController::class, 'destroy'])->name('coupon.destroy');
+
+    // Routes for Tickets
+    Route::get('/tickets', [TicketController::class, 'index'])->name('ticket.list');
+    Route::get('/tickets/add', [TicketController::class, 'create'])->name('ticket.add');
+    Route::post('/tickets/save', [TicketController::class, 'store'])->name('ticket.store');
+    Route::get('/tickets/edit/{ticket}', [TicketController::class, 'edit'])->name('ticket.edit');
+    Route::put('/tickets/update/{ticket}', [TicketController::class, 'update'])->name('ticket.update');
+    Route::delete('/tickets/remove/{ticket}', [TicketController::class, 'destroy'])->name('ticket.destroy');
+    Route::get('/tickets/show/{id}', [TicketController::class, 'show'])->name('ticket.show');
+    Route::post('/tickets/save-history/{ticket}', [TicketController::class, 'saveHistory'])->name('ticket.save.history');
+    Route::post('/tickets/save-team-members', [TicketController::class, 'saveTeamMembers'])->name('ticket.save.team');
+    Route::post('/tickets/save-notification', [TicketController::class, 'saveNotification'])->name('ticket.saveNotification');
+    Route::post('/tickets/save-team-members', [TicketController::class, 'saveTeamMembers'])->name('ticket.saveTeamMembers');
 });
 
 Route::get('logout', function() {
