@@ -18,6 +18,7 @@ use App\Http\Controllers\Client\InvoiceController;
 use App\Http\Controllers\Client\SubscriptionController;
 use App\Http\Controllers\Client\CouponController;
 use App\Http\Controllers\Client\TicketController;
+use App\Http\Controllers\Client\TicketTagController;
 use App\Http\Middleware\CheckWebOrTeam;
 
 //for team members
@@ -130,6 +131,14 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::get('/tags/edit/{id}', [TagController::class, 'edit'])->name('tags.edit');
     Route::put('/tags/update/{id}', [TagController::class, 'update'])->name('tags.update');
     Route::delete('/tags/delete/{id}', [TagController::class, 'destroy'])->name('tags.delete');
+
+    //Ticket tags routes
+    Route::get('/tickettags/list', [TicketTagController::class, 'index'])->name('tickettags.list');
+    Route::get('/tickettags/create', [TicketTagController::class, 'create'])->name('tickettags.create');
+    Route::post('/tickettags/store', [TicketTagController::class, 'store'])->name('tickettags.store');
+    Route::get('/tickettags/edit/{id}', [TicketTagController::class, 'edit'])->name('tickettags.edit');
+    Route::put('/tickettags/update/{id}', [TicketTagController::class, 'update'])->name('tickettags.update');
+    Route::delete('/tickettags/delete/{id}', [TicketTagController::class, 'destroy'])->name('tickettags.delete');
 
     // Client statuses routes
     Route::get('/clientstatuses/list', [ClientStatusController::class, 'index'])->name('statuses.list');

@@ -9,12 +9,12 @@
 
 <div class="container-xxl flex-grow-1 container-p-y">
     <h4 class="py-3 breadcrumb-wrapper mb-4">
-        <span class="text-muted fw-light">Order Tags /</span> Tags List
+        <span class="text-muted fw-light">Ticket Tags /</span> Tags List
     </h4>
 
     <div class="card">
         <h5 class="card-header d-flex justify-content-between align-items-center">
-        Order Tags
+            Ticket Tags
             <span class="badge bg-primary">{{ $tags->total() }} Total Tags</span>
         </h5>
 
@@ -22,7 +22,7 @@
             <div class="col-md-12">
                 <div class="dt-action-buttons text-xl-end text-lg-start text-md-end text-start d-flex align-items-center justify-content-end flex-md-row flex-column mb-3 mb-md-0">
                     <div id="DataTables_Table_0_filter" class="dataTables_filter">
-                        <form action="{{ route('tags.list') }}" method="GET" class="dataTables_filter" id="DataTables_Table_0_filter">
+                        <form action="{{ route('tickettags.list') }}" method="GET" class="dataTables_filter" id="DataTables_Table_0_filter">
                             <label>
                                 <input type="search" name="search" class="form-control" placeholder="Search by tag name" aria-controls="DataTables_Table_0" value="{{ request()->get('search') }}">
                             </label>
@@ -30,7 +30,7 @@
                     </div>
                     <div class="dt-buttons">
                         &nbsp;
-                        <button onclick="window.location.href='{{ route('tags.create') }}'" class="dt-button add-new btn btn-primary ms-n1" tabindex="0" aria-controls="DataTables_Table_0" type="button">
+                        <button onclick="window.location.href='{{ route('tickettags.create') }}'" class="dt-button add-new btn btn-primary ms-n1" tabindex="0" aria-controls="DataTables_Table_0" type="button">
                             <span><i class="bx bx-plus me-0 me-lg-2"></i><span class="d-none d-lg-inline-block">Add Tag</span></span>
                         </button>
                     </div>
@@ -56,10 +56,10 @@
                             <td>{{ $tag->name }}</td>
                             <td>
                                 <!-- Edit Button -->
-                                <a href="{{ route('tags.edit', $tag->id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                <a href="{{ route('tickettags.edit', $tag->id) }}" class="btn btn-sm btn-primary">Edit</a>
 
                                 <!-- Delete Button -->
-                                <form action="{{ route('tags.delete', $tag->id) }}" method="POST" style="display:inline-block;">
+                                <form action="{{ route('tickettags.delete', $tag->id) }}" method="POST" style="display:inline-block;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</button>

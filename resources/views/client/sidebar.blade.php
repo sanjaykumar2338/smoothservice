@@ -151,7 +151,10 @@
                'setting.ticketstatuses.create', 
                'setting.ticketstatuses.edit', 
                'setting.ticketstatuses.update', 
-               'setting.ticketstatuses.delete'
+               'setting.ticketstatuses.delete',
+               'tickettags.list',
+               'tickettags.create',
+               'tickettags.edit'
             ]) ? 'open active' : ''}}">
          <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-cog"></i>
@@ -162,6 +165,12 @@
             <li class="menu-item {{request()->routeIs(['setting.orderstatuses.list', 'setting.orderstatuses.create', 'setting.orderstatuses.edit', 'setting.orderstatuses.update', 'setting.orderstatuses.delete']) ? 'active' : ''}}">
                <a href="{{route('setting.orderstatuses.list')}}" class="menu-link">
                   <div data-i18n="Order Statuses">Order Statuses</div>
+               </a>
+            </li>
+
+            <li class="menu-item {{request()->routeIs(['tags.list', 'tags.create', 'tags.edit']) ? 'active' : ''}}">
+               <a href="{{route('tags.list')}}" class="menu-link">
+                  <div data-i18n="Order Tags">Order Tags</div>
                </a>
             </li>
 
@@ -177,11 +186,13 @@
                </a>
             </li>
 
-            <li class="menu-item {{request()->routeIs(['tags.list', 'tags.create', 'tags.edit']) ? 'active' : ''}}">
-               <a href="{{route('tags.list')}}" class="menu-link">
-                  <div data-i18n="Tags">Tags</div>
+            <li class="menu-item {{request()->routeIs(['tickettags.list', 'tickettags.create', 'tickettags.edit']) ? 'active' : ''}}">
+               <a href="{{route('tickettags.list')}}" class="menu-link">
+                  <div data-i18n="Ticket Tags">Ticket Tags</div>
                </a>
             </li>
+
+
             <li class="menu-item {{request()->routeIs(['roles.list', 'roles.create', 'roles.edit']) ? 'active' : ''}}">
                <a href="{{route('roles.list')}}" class="menu-link">
                   <div data-i18n="Roles">Roles</div>

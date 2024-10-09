@@ -9,7 +9,7 @@
 
 <div class="container-xxl flex-grow-1 container-p-y">
     <h4 class="py-3 breadcrumb-wrapper mb-4">
-        <span class="text-muted fw-light">Settings /</span> Add Tag
+        <span class="text-muted fw-light">Settings /</span> Add Order Tag
     </h4>
 
     @if ($errors->any())

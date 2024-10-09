@@ -9,7 +9,7 @@
 
 <div class="container-xxl flex-grow-1 container-p-y">
     <h4 class="py-3 breadcrumb-wrapper mb-4">
-        <span class="text-muted fw-light">Settings /</span> Edit Order Tag
+        <span class="text-muted fw-light">Settings /</span> Edit Ticket Tag
     </h4>
 
     @if ($errors->any())
@@ -25,7 +25,7 @@
     <div class="row">
         <div class="col-xl">
             
-            <form id="tag_form" method="POST" action="{{ route('tags.update', $tag->id) }}">
+            <form id="tag_form" method="POST" action="{{ route('tickettags.update', $tag->id) }}">
                 @csrf
                 @method('PUT') <!-- Use PUT for update operations -->
 
