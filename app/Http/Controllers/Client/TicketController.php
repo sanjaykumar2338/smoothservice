@@ -301,7 +301,7 @@ class TicketController extends Controller
         ]);
 
         // Redirect to the ticket detail page with success message
-        return redirect()->route('ticket.show', ['id' => $ticket->id])->with('success', 'Ticket created successfully.');
+        return redirect()->route('ticket.show', ['id' => $ticket->ticket_no])->with('success', 'Ticket created successfully.');
     }
 
     public function generateTicketNumber($length = 6) {
