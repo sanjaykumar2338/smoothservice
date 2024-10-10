@@ -17,7 +17,7 @@
                <div class="card-header align-items-center">
                   <h5 class="card-action-title mb-0">Edit project data</h5>
                   
-                  <a href="{{ route('client.order.show', $order->order_no) }}" class="btn btn-secondary mb-3">
+                  <a href="{{ route('order.show', $order->order_no) }}" class="btn btn-secondary mb-3">
                     Back to Order
                   </a>
                    &nbsp; 
@@ -27,7 +27,7 @@
                   
                </div>
                <div class="card-body">
-            <form id="project-data-save-form" action="{{ route('client.order.save_project_data', $order->id) }}" method="POST" enctype="multipart/form-data">
+            <form id="project-data-save-form" action="{{ route('order.save_project_data', $order->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf  
                 @foreach($project_data as $field)
                     @if($field && isset($field->field_type) && isset($field->field_name))
@@ -125,7 +125,7 @@
       var formData = $('#project-data-form').serialize();
    
       $.ajax({
-         url: '/client/order/save-project-data',  // Define your route for saving data
+         url: '/order/save-project-data',  // Define your route for saving data
          method: 'POST',
          data: formData,
          headers: {
@@ -145,7 +145,7 @@
     
     // Make an AJAX call to remove the field from the database
     $.ajax({
-        url: '/client/order/remove-project-field/' + fieldId,
+        url: '/order/remove-project-field/' + fieldId,
         method: 'POST',
         data: {
             _token: '{{ csrf_token() }}'

@@ -15,6 +15,8 @@ class Ticket extends Model
         'order_id',
         'message',
         'user_id',
+        'status_id',
+        'note',
         'created_by',
         'updated_by',
     ];
@@ -23,6 +25,16 @@ class Ticket extends Model
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(TicketTag::class, 'ticket_tag', 'ticket_id', 'tag_id'); // Adjust pivot table and foreign keys accordingly
+    }
+
+    public function teamMembers()
+    {
+        return $this->belongsToMany(TeamMember::class, 'ticket_team_member');
     }
 
     // Relationship with related order

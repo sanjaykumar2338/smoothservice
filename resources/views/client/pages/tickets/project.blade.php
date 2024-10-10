@@ -7,7 +7,7 @@
 </style>
 <div class="container-xxl flex-grow-1 container-p-y">
    <h4 class="py-3 breadcrumb-wrapper mb-4">
-      <span class="text-muted fw-light">Orders /</span> Order Details
+      <span class="text-muted fw-light">Tickets /</span> Ticket Details
    </h4>
    <div class="row align-items-center">
       <!--/ project data -->
@@ -15,19 +15,19 @@
          <div class="col-lg-12 col-xl-12">
             <div class="card card-action mb-4">
                <div class="card-header align-items-center">
-                  <h5 class="card-action-title mb-0">Edit project data</h5>
+                  <h5 class="card-action-title mb-0">Edit Fields data</h5>
                   
-                  <a href="{{ route('client.order.show', $order->order_no) }}" class="btn btn-secondary mb-3">
+                  <a style="color: #fff;" onclick="window.location.href='{{ route('ticket.show', $ticket->ticket_no) }}'" class="btn btn-secondary mb-3">
                     Back to Order
                   </a>
                    &nbsp; 
                   <a href="#" class="btn btn-info mb-3 open_data_project">
                     Add Field
                   </a>
-                  
                </div>
+
                <div class="card-body">
-            <form id="project-data-save-form" action="{{ route('client.order.save_project_data', $order->id) }}" method="POST" enctype="multipart/form-data">
+               <form id="project-data-save-form" action="{{ route('ticket.save_project_data', $ticket->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf  
                 @foreach($project_data as $field)
                     @if($field && isset($field->field_type) && isset($field->field_name))
@@ -87,7 +87,7 @@
    <div class="modal-dialog">
       <div class="modal-content">
          <div class="modal-header">
-            <h5 class="modal-title" id="addDataModalLabel">Add Project Data</h5>
+            <h5 class="modal-title" id="addDataModalLabel">Add Fields</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
          </div>
          <div class="modal-body">
@@ -106,7 +106,7 @@
                      <option value="hidden_field">Hidden Field</option>
                   </select>
                </div>
-               <input type="hidden" name="order_id" value="{{$order->id}}">
+               <input type="hidden" name="ticket_id" value="{{$ticket->id}}">
             </form>
          </div>
          <div class="modal-footer">
@@ -125,7 +125,7 @@
       var formData = $('#project-data-form').serialize();
    
       $.ajax({
-         url: '/client/order/save-project-data',  // Define your route for saving data
+         url: '/ticket/save-project-data',  // Define your route for saving data
          method: 'POST',
          data: formData,
          headers: {
@@ -145,7 +145,7 @@
     
     // Make an AJAX call to remove the field from the database
     $.ajax({
-        url: '/client/order/remove-project-field/' + fieldId,
+        url: '/ticket/remove-project-field/' + fieldId,
         method: 'POST',
         data: {
             _token: '{{ csrf_token() }}'

@@ -38,8 +38,9 @@
         <div class="col-md-6 d-flex justify-content-end">
             <ul class="nav nav-pills flex-sm-row mb-4">
                 <li class="nav-item dropdown">
-                    <a class="nav-link active dropdown-toggle" href="javascript:void(0);" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span id="selectedStatus">{{ ucfirst($ticket->status) }}</span>
+                    
+                    <a class="nav-link active dropdown-toggle" style="background-color: {{ $ticketStatus?->color ?? 'defaultColor' }}" href="javascript:void(0);" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span id="selectedStatus">{{ $ticketStatus?->name ?: 'Select Status' }}</span>
                     </a>
 
                     <ul class="dropdown-menu" aria-labelledby="profileDropdown">
@@ -96,6 +97,60 @@
                     </div>
                 </div>
             </div>
+
+            <!--/ project data -->
+                <div class="row">
+                    <div class="col-lg-12 col-xl-12">
+                    <div class="card card-action mb-4">
+                        <div class="card-header align-items-center">
+                            <h5 class="card-action-title mb-0">Fields</h5>
+                            @if(checkPermission('edit_data'))
+                                <div class="card-action-element btn-pinned">
+                                <div class="dropdown">
+                                    <button
+                                        type="button"
+                                        class="btn dropdown-toggle hide-arrow p-0"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item open_data_project" href="javascript:void(0);">Add data</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('ticket.project_data', $ticket->id) }}">Edit data</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('ticket.export_data', $ticket->id) }}">Export data</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('ticket.download_files', $ticket->id) }}">Download files</a></li>
+                                        <li><a class="dropdown-item" href="javascript:void(0);" onclick="deleteData({{ $ticket->id }})">Delete data</a></li>
+                                    </ul>
+                                </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                @foreach($project_data as $data)
+                                <li class="mb-3">
+                                    <div class="d-flex align-items-start">
+                                        <div class="d-flex align-items-start">
+                                            <div class="me-2">
+                                            <strong>{{ $data->field_name }}:</strong> 
+                                            
+                                            @if($data->field_type === 'file_upload' && $data->field_value)
+                                                <a href="{{ asset('storage/' . $data->field_value) }}" target="_blank">View File</a>
+                                            @else
+                                                <span>{{ $data->field_value ?? 'No value provided' }}</span>
+                                            @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                <!--/ project data -->
 
             <!-- Ticket History Section -->
             <div class="row">
@@ -166,15 +221,89 @@
                         </li>
                     </ul>
 
-                   
+                    <small class="text-uppercase">Select Team Members</small>
+                    <div>
+                        <select
+                            id="ticket_team_member"
+                            class="selectpicker w-100"
+                            data-style="btn-default"
+                            multiple
+                            data-max-options="2">
+                            
+                            @foreach($teamMembers as $team)
+                                <option value="{{ $team->id }}"
+                                {{-- Mark as selected if this team member is already assigned to the order --}}
+                                @if($ticket->teamMembers->contains($team->id)) selected @endif
+                                
+                                {{-- Disable the selection if permission logic dictates it --}}
+                                @if(
+                                        (!checkPermission('assign_to_self') && $team->id === getUserID()) || 
+                                        (!checkPermission('assign_to_others') && $team->id !== getUserID())
+                                ) disabled @endif>
+                                
+                                {{ $team->first_name }} {{ $team->last_name }} 
+
+                                {{-- If already assigned, mark it clearly (optional, for better visibility) --}}
+                                @if($ticket->teamMembers->contains($team->id))
+                                        (Already Assigned)
+                                @endif
+                                </option>
+                            @endforeach
+
+
+                        </select>
+                    </div>
 
                     <!-- Tags Input -->
-                    <small class="text-uppercase">Select Tags</small>
-                    <input id="TagifyCustomInlineSuggestion" name="TagifyCustomInlineSuggestion" class="form-control" placeholder="select tags" value="" />
+                    <small class=" text-uppercase">Select Tags</small>
+                    <div class="">
+                        <input
+                            id="TagifyCustomInlineSuggestion"
+                            name="TagifyCustomInlineSuggestion"
+                            class="form-control"
+                            placeholder="select tags"
+                            value="{{$existingTagsName}}" />
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+<div class="modal" id="addDataModal" tabindex="-1" aria-modal="true" role="dialog" style="padding-left: 0px;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addDataModalLabel">Add Project Data</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="project-data-form">
+          <div class="mb-3">
+            <label for="field_name" class="form-label">Field Name</label>
+            <input type="text" class="form-control" id="field_name" name="field_name" required>
+          </div>
+          <div class="mb-3">
+            <label for="field_type" class="form-label">Field Type</label>
+            <select class="form-select" id="field_type" name="field_type" required>
+              <option value="single_line">Single Line Text</option>
+              <option value="multiple_line">Multiple Line Text</option>
+              <option value="checkbox">Checkbox</option>
+              <option value="file_upload">File Upload</option>
+              <option value="hidden_field">Hidden Field</option>
+            </select>
+          </div>
+
+          <input type="hidden" name="ticket_id" value="{{$ticket->id}}">
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="save-project-data">Continue</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -244,10 +373,12 @@ function saveNotificationStatus(status) {
     });
 }
 
+/*
 document.getElementById('add-task-btn').addEventListener('click', function() {
     document.getElementById('task-form').style.display = 'block';
     document.getElementById('cancel-task-btn').style.display = 'block';
 });
+
 
 // Hide the form when "Cancel" is clicked
 document.getElementById('cancel-task-btn').addEventListener('click', function() {
@@ -269,6 +400,7 @@ document.getElementById('due-date-type').addEventListener('change', function() {
         document.getElementById('previous-task-section').style.display = 'none';
     }
 });
+*/
 
 // Track whether the task is being edited
 var editingTaskId = null;
@@ -635,10 +767,12 @@ $(document).ready(function() {
 });
 
 // Toggle the display of the schedule options
+/*
 document.getElementById('show-schedule').addEventListener('click', function() {
     const scheduleOptions = document.getElementById('schedule-options');
     scheduleOptions.style.display = scheduleOptions.style.display === 'none' ? 'block' : 'none';
 });
+*/
 
 let currentPage = 1; // Track the current page
 let lastPage = false; // Flag to track if we are on the last page

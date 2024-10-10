@@ -467,7 +467,7 @@ class OrderController extends Controller
         // Pass data to a view for rendering the PDF
         $pdf = Pdf::loadView('client.pages.orders.export_pdf', [
             'project_data' => $projectData,
-            'orderId' => $id
+            'orderId' => $order->order_no
         ]);
     
         // Return the generated PDF

@@ -7,12 +7,15 @@ use App\Models\Ticket;
 use App\Models\Client;
 use App\Models\Order;
 use App\Models\User;
-use App\Models\OrderStatus;
 use App\Models\TicketStatus;
 use App\Models\TeamMember;
+use App\Models\TicketTeam;
+use App\Models\TicketProjectData;
 use App\Models\History;
 use Illuminate\Http\Request;
-use App\Models\Tag;
+use App\Models\TicketTag;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class TicketController extends Controller
 {
@@ -61,10 +64,27 @@ class TicketController extends Controller
         $userId = getUserID();
         $ticket = Ticket::with(['client', 'ccUsers', 'order'])->where('ticket_no', $id)->firstOrFail();
         $team_members = TeamMember::where('added_by', $ticket->user_id)->get();
-        $ticketstatus = OrderStatus::where('added_by', $ticket->user_id)->get();
-        $tags = Tag::where('added_by', $ticket->user_id)->get();
-        $existingTagsName = '';
-        $existingTags = [];
+        $ticketstatus = TicketStatus::where('added_by', $ticket->user_id)->get();
+        $ticketStatus = TicketStatus::find($ticket->status_id);
+        $project_data = TicketProjectData::where('ticket_id', $ticket->id)->get();
+        $tags = TicketTag::where('added_by', $ticket->user_id)->get();
+        
+        $existingTagsName = \DB::table('ticket_tags')
+            ->join('ticket_tag', 'ticket_tags.id', '=', 'ticket_tag.tag_id')
+            ->select('ticket_tags.name') // Only select the name
+            ->where('ticket_tag.ticket_id', $ticket->id)
+            ->pluck('name') // Get the names as a collection
+            ->implode(','); // Convert the collection to a comma-separated string
+
+        //echo $existingTagsName; die;
+
+        $existingTags = \DB::table('ticket_tags')
+            ->join('ticket_tag', 'ticket_tags.id', '=', 'ticket_tag.tag_id')
+            ->select('ticket_tags.id', 'ticket_tags.name') // Specify the table name for the id
+            ->where('ticket_tag.ticket_id', $ticket->id) // Replace $orderId with your variable
+            ->get();
+
+        //echo "<pre>"; print_r($existingTags); die;
 
         // Fetch ticket history
         $ticketHistory = History::where('ticket_id', $ticket->id)
@@ -73,8 +93,170 @@ class TicketController extends Controller
             ->groupBy(function($date) {
                 return \Carbon\Carbon::parse($date->created_at)->format('Y-m-d'); // Group by date only
             });
+        
+        $teamMembers = TeamMember::with('role')->where('added_by', $ticket->user_id)->get();
+        
+        return view('client.pages.tickets.show', compact('ticket', 'team_members', 'ticketHistory', 'ticketstatus','tags','existingTagsName','existingTags','project_data','ticketStatus','teamMembers'));
+    }
 
-        return view('client.pages.tickets.show', compact('ticket', 'team_members', 'ticketHistory', 'ticketstatus','tags','existingTagsName','existingTags'));
+    public function saveNotification(Request $request)
+    {
+        $ticketId = $request->input('ticket_id');
+        $notificationStatus = $request->input('notification');
+
+        // Find the order by ID and update the notification status
+        $ticket = Ticket::find($ticketId);
+        if ($ticket) {
+            $ticket->notification = $notificationStatus;
+            $ticket->save();
+
+            return response()->json(['success' => 'Notification status updated successfully.']);
+        } else {
+            return response()->json(['error' => 'Ticket not found.'], 404);
+        }
+    }
+
+    public function updateTags(Request $request, $id)
+    {
+        $request->validate([
+            'tags' => 'required|string', // Assuming you are sending comma-separated IDs
+        ]);
+
+        $ticket = Ticket::findOrFail($id);
+        $tagIds = explode(',', $request->input('tags')); // Split the string into an array of IDs
+
+        // Assuming you have a relationship set up for tags in the Order model
+        $ticket->tags()->sync($tagIds); // Sync tags with the order
+
+        return response()->json(['success' => true, 'message' => 'Tags updated successfully']);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        // Validate and update the status
+        $validated = $request->validate([
+            'status_id' => 'required|exists:ticket_statuses,id',
+        ]);
+
+        //echo "<pre>"; print_r($validated); die;
+        $ticket = Ticket::find($id); // Fetch the order based on your logic
+        $ticket->status_id = $validated['status_id'];
+        $ticket->save();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function saveProjectData(Request $request)
+    {
+        $projectData = new TicketProjectData();
+        $projectData->ticket_id = $request->ticket_id;
+        $projectData->field_name = $request->field_name;
+        $projectData->field_type = $request->field_type;
+        $projectData->save();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function project_data($id)
+    {
+        $team_members = TeamMember::where('added_by', auth()->id())->get();
+        $ticket = Ticket::with(['client'])->findOrFail($id);
+
+        // Fetch the saved project data
+        $project_data = TicketProjectData::where('ticket_id', $id)->get();
+
+        return view('client.pages.tickets.project', compact('ticket', 'team_members', 'project_data'));
+    }
+
+    public function save_project_data(Request $request, $orderId)
+    {
+        foreach ($request->except('_token') as $key => $value) {
+            // Extract field id from the input name (assuming 'field_{id}')
+            $field_id = str_replace('field_', '', $key);
+
+            // Find the specific project data field
+            $projectData = TicketProjectData::find($field_id);
+
+            // Handle file upload
+            if ($projectData->field_type == 'file_upload' && $request->hasFile($key)) {
+                $filePath = $request->file($key)->store('uploads');
+                $projectData->field_value = $filePath;
+            } else {
+                // Save other types of data
+                $projectData->field_value = is_array($value) ? json_encode($value) : $value;
+            }
+
+            $projectData->save();
+        }
+
+        return redirect()->route('ticket.project_data', $orderId)->with('status', 'Data has been saved successfully!');
+    }
+
+    public function removeProjectField($fieldId)
+    {
+        // Find the project data field and delete it
+        $projectData = TicketProjectData::findOrFail($fieldId);
+        $projectData->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function downloadFiles($id) {
+        // Fetch the project data for the ticket with file uploads
+        $ticket = Ticket::findOrFail($id);
+        $projectData = TicketProjectData::where('ticket_id', $id)
+            ->where('field_type', 'file_upload')
+            ->get();
+    
+        // Create a temporary file for the ZIP
+        $zipFile = storage_path('app/public/uploads/ticket_' . $ticket->ticket_no . '.zip');
+    
+        // Ensure the directory exists
+        if (!is_dir(storage_path('app/public/uploads'))) {
+            mkdir(storage_path('app/public/uploads'), 0755, true);
+        }
+    
+        // Initialize ZIP
+        $zip = new \ZipArchive;
+        if ($zip->open($zipFile, \ZipArchive::CREATE) === TRUE) {
+            foreach ($projectData as $data) {
+                if ($data->field_value && \Storage::exists('public/' . $data->field_value)) {
+                    $zip->addFile(storage_path('app/public/' . $data->field_value), basename($data->field_value));
+                }
+            }
+            $zip->close();
+        } else {
+            return response()->json(['error' => 'Failed to create ZIP file'], 500);
+        }
+    
+        // Check if the ZIP file exists
+        if (!file_exists($zipFile)) {
+            return response()->json(['error' => 'ZIP file not found'], 404);
+        }
+    
+        // Return the ZIP file as a download
+        return response()->download($zipFile)->deleteFileAfterSend(true);
+    }    
+    
+    public function deleteData($id) {
+        // Logic to delete project data related to this order
+        TicketProjectData::where('ticket_id', $id)->delete();
+        return response()->json(['success' => true, 'message' => 'Ticket data deleted  successfully.']);
+    }
+
+    public function exportData($id) {
+        // Fetch the project data for the order
+        $ticket = Ticket::findOrFail($id);
+        $projectData = TicketProjectData::where('ticket_id', $id)->get();
+    
+        // Pass data to a view for rendering the PDF
+        $pdf = Pdf::loadView('client.pages.tickets.export_pdf', [
+            'project_data' => $projectData,
+            'ticketId' => $ticket->ticket_no
+        ]);
+    
+        // Return the generated PDF
+        return $pdf->download('ticket_' . $ticket->ticket_no . '_data.pdf');
     }
 
     // Show form to create a new ticket
@@ -202,6 +384,29 @@ class TicketController extends Controller
         ]);
 
         return response()->json(['success' => true, 'message' => 'History updated successfully.']);
+    }
+
+    public function saveNote(Request $request, $id)
+    {
+        // Validate the incoming request
+        $request->validate([
+            'note' => 'nullable|string|max:255',
+        ]);
+
+        // Find the order and update the note
+        $order = Ticket::findOrFail($id);
+        $order->note = $request->note;
+        $order->save();
+
+         // Store order update in history
+         History::create([
+            'ticket_id' => $order->id,
+            'user_id' => auth()->id(),
+            'action_type' => 'ticket_note',
+            'action_details' => 'ticket note saved with the following data: ' . json_encode($request->all()),
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Note saved successfully.']);
     }
 
     // Save assigned team members to the ticket

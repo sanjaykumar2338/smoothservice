@@ -212,6 +212,16 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::post('/tickets/save-team-members', [TicketController::class, 'saveTeamMembers'])->name('ticket.save.team');
     Route::post('/tickets/save-notification', [TicketController::class, 'saveNotification'])->name('ticket.saveNotification');
     Route::post('/tickets/save-team-members', [TicketController::class, 'saveTeamMembers'])->name('ticket.saveTeamMembers');
+    Route::post('/ticket/{id}/save-note', [TicketController::class, 'saveNote']);
+    Route::post('/ticket/save-project-data', [TicketController::class, 'saveProjectData']);
+    Route::get('/ticket/projectdata/{id}', [TicketController::class, 'project_data'])->name('ticket.project_data');
+    Route::post('/ticket/save-project-data/{id}', [TicketController::class, 'save_project_data'])->name('ticket.save_project_data');
+    Route::post('/ticket/remove-project-field/{id}', [TicketController::class, 'removeProjectField'])->name('ticket.remove_project_field');
+    Route::get('/ticket/export-data/{id}', [TicketController::class, 'exportData'])->name('ticket.export_data');
+    Route::get('/ticket/download-files/{id}', [TicketController::class, 'downloadFiles'])->name('ticket.download_files');
+    Route::delete('/ticket/delete-data/{id}', [TicketController::class, 'deleteData'])->name('ticket.delete_data');
+    Route::post('/ticket/update-status/{id}', [TicketController::class, 'updateStatus']);
+    Route::post('/ticket/{id}/update-tags', [TicketController::class, 'updateTags'])->name('ticket.updateTags');
 });
 
 Route::get('logout', function() {
