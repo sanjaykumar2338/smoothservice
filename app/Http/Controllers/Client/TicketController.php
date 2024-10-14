@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\TicketStatus;
 use App\Models\TeamMember;
 use App\Models\TicketTeam;
+use App\Models\TicketCollaborator;
 use App\Models\TicketProjectData;
 use App\Models\History;
 use Illuminate\Http\Request;
@@ -63,7 +64,12 @@ class TicketController extends Controller
     {
         $userId = getUserID();
         $ticket = Ticket::with(['client', 'ccUsers', 'order'])->where('ticket_no', $id)->firstOrFail();
-        $team_members = TeamMember::where('added_by', $ticket->user_id)->get();
+        $team_members = TeamMember::where('added_by', $ticket->user_id)
+            ->whereIn('role_id', [1, 2]) // 1 for Admin, 2 for Manager
+            ->get();
+
+        //echo "<pre>"; print_r($ticket->ccUsers); die;
+
         $ticketstatus = TicketStatus::where('added_by', $ticket->user_id)->get();
         $ticketStatus = TicketStatus::find($ticket->status_id);
         $project_data = TicketProjectData::where('ticket_id', $ticket->id)->get();
@@ -272,12 +278,14 @@ class TicketController extends Controller
     // Store a new ticket
     public function store(Request $request)
     {
+        //echo "<pre>"; print_r($request->all()); die;
         // Validate the incoming request
         $validatedData = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'subject' => 'required|string|max:255',
             'order_id' => 'nullable|exists:orders,id',
             'message' => 'required|string',
+            'cc' => 'nullable|array'
         ]);
 
         // Create the new ticket
@@ -299,6 +307,20 @@ class TicketController extends Controller
             'action_type' => 'ticket_created',
             'action_details' => 'Ticket created with the following data: ' . json_encode($request->all()),
         ]);
+
+        // Save collaborators (CC) using the TicketCollaborator model
+        if (!empty($validatedData['cc'])) {
+            foreach ($validatedData['cc'] as $ccUser) {
+                // Extract the user ID from the "team_user_id" format
+                $userId = str_replace('team_', '', $ccUser);
+
+                // Create new TicketCollaborator record
+                TicketCollaborator::create([
+                    'ticket_id' => $ticket->id,
+                    'user_id' => $userId,
+                ]);
+            }
+        }
 
         // Redirect to the ticket detail page with success message
         return redirect()->route('ticket.show', ['id' => $ticket->ticket_no])->with('success', 'Ticket created successfully.');
@@ -362,7 +384,7 @@ class TicketController extends Controller
         $ticket = Ticket::findOrFail($id);
         $ticket->delete();
 
-        return redirect()->route('ticket.index')->with('success', 'Ticket deleted successfully.');
+        return redirect()->route('ticket.list')->with('success', 'Ticket deleted successfully.');
     }
 
     // Save ticket history for updates or actions
@@ -440,5 +462,46 @@ class TicketController extends Controller
         }
 
         return response()->json(['success' => 'Team members saved successfully!']);
+    }
+
+    public function edit_info($id)
+    {
+        $ticket = Ticket::with('metadata', 'ccUsers')->findOrFail($id);
+        echo "<pre>"; print_r($ticket->ccUsers); die;
+        $clients = Client::all();
+        $orders = Order::all();
+        return view('client.pages.tickets.update', compact('ticket', 'clients', 'orders'));
+    }
+
+    public function update_info(Request $request, $id)
+    {
+        $request->validate([
+            'subject' => 'required|string|max:255',
+            'client_id' => 'required|exists:clients,id',
+            'related_order_id' => 'nullable|exists:orders,id',
+            // Add more validation rules as needed
+        ]);
+
+        $ticket = Ticket::findOrFail($id);
+        $ticket->subject = $request->subject;
+        $ticket->client_id = $request->client_id;
+        $ticket->related_order_id = $request->related_order_id;
+        $ticket->date_added = $request->date_added;
+        $ticket->date_closed = $request->date_closed;
+        $ticket->save();
+
+        // Update metadata
+        $ticket->metadata()->delete(); // Clear previous metadata
+        foreach ($request->meta_key as $index => $key) {
+            $ticket->metadata()->create([
+                'key' => $key,
+                'value' => $request->meta_value[$index],
+            ]);
+        }
+
+        // Update collaborators
+        $ticket->collaborators()->sync($request->collaborators);
+
+        return redirect()->route('tickets.edit', $ticket->id)->with('success', 'Ticket updated successfully.');
     }
 }

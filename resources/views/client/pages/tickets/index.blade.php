@@ -141,7 +141,7 @@
                         <select class="form-control" id="cc" name="cc[]" multiple>
                             <option value="">-- Select users --</option>
                             @foreach($users as $user)
-                                <option value="user_{{ $user->id }}">{{ $user->first_name }} {{ $user->last_name }}</option>
+                                <option value="team_{{ $user->id }}">{{ $user->first_name }} {{ $user->last_name }}</option>
                             @endforeach
                         </select>
                     </div>

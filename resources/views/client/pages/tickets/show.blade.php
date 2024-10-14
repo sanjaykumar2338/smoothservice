@@ -24,6 +24,28 @@
     .tagify {
         height: auto;
     }
+
+    .collaborator-badge {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 35px;
+        height: 35px;
+        background-color: #d1d5db; /* Light gray background */
+        color: #fff;
+        border-radius: 50%;
+        font-size: 16px;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-right: 10px;
+    }
+
+    .list-unstyled li {
+        display: block;
+        margin-bottom: 10px; /* Add margin between each collaborator */
+    }
+
+
 </style>
 
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -65,7 +87,7 @@
                             <i class="bx bx-dots-vertical-rounded"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="">Edit</a></li>
+                            <li><a class="dropdown-item" href="{{route('tickets.edit_info',['id'=>$ticket->id])}}">Edit</a></li>
                             <li><a class="dropdown-item" href="">Add Project Data</a></li>
                             <li><a class="dropdown-item" href="javascript:void(0);">Duplicate Ticket</a></li>
                             <li><a class="dropdown-item" href="javascript:void(0);">Delete Ticket</a></li>
@@ -205,21 +227,39 @@
                 <div class="card-body">
                     <ul class="list-unstyled mb-4">
                         <li class="d-flex align-items-center mb-3">
-                            <span class="fw-medium mx-2">Ticket #</span> <span>{{ $ticket->ticket_no }}</span>
+                            <span class="fw-medium mx-2">Ticket #</span>
+                            <span>{{ $ticket->ticket_no }}</span>
                         </li>
+
                         <li class="d-flex align-items-center mb-3">
                             <span class="fw-medium mx-2">Client</span>
                             <span>{{ $ticket->client->first_name }} {{ $ticket->client->last_name }}</span>
                         </li>
+
+                        <li class="d-flex align-items-center mb-3">
+                            <span class="fw-medium mx-2">Collaborators</span>
+                        </li>
+
+                        <ul class="list-unstyled">
+                            @foreach($ticket->ccUsers as $collaborator)
+                            <li class="d-flex align-items-center mb-2">
+                                <span class="collaborator-badge">{{ strtoupper(substr($collaborator->first_name, 0, 1)) }}</span>
+                                <span class="collaborator-name">{{ $collaborator->first_name }} {{ $collaborator->last_name }}</span>
+                            </li>
+                            @endforeach
+                        </ul>
+
                         <li class="d-flex align-items-center mb-3">
                             <span class="fw-medium mx-2">Created</span>
                             <span>{{ $ticket->created_at->format('M d, Y') }}</span>
                         </li>
+
                         <li class="d-flex align-items-center mb-3">
                             <span class="fw-medium mx-2">Status</span>
                             <span>{{ ucfirst($ticket->status) }}</span>
                         </li>
                     </ul>
+
 
                     <small class="text-uppercase">Select Team Members</small>
                     <div>
@@ -230,23 +270,23 @@
                             multiple
                             data-max-options="2">
                             
-                            @foreach($teamMembers as $team)
+                            @foreach($team_members as $team)
                                 <option value="{{ $team->id }}"
-                                {{-- Mark as selected if this team member is already assigned to the order --}}
-                                @if($ticket->teamMembers->contains($team->id)) selected @endif
-                                
-                                {{-- Disable the selection if permission logic dictates it --}}
-                                @if(
-                                        (!checkPermission('assign_to_self') && $team->id === getUserID()) || 
-                                        (!checkPermission('assign_to_others') && $team->id !== getUserID())
-                                ) disabled @endif>
-                                
-                                {{ $team->first_name }} {{ $team->last_name }} 
+                                    {{-- Mark as selected if this team member is already assigned to the order --}}
+                                    @if($ticket->teamMembers->contains($team->id)) selected @endif
+                                    
+                                    {{-- Disable the selection if permission logic dictates it --}}
+                                    @if(
+                                            (!checkPermission('assign_to_self') && $team->id === getUserID()) || 
+                                            (!checkPermission('assign_to_others') && $team->id !== getUserID())
+                                    ) disabled @endif>
+                                    
+                                    {{ $team->first_name }} {{ $team->last_name }} 
 
-                                {{-- If already assigned, mark it clearly (optional, for better visibility) --}}
-                                @if($ticket->teamMembers->contains($team->id))
-                                        (Already Assigned)
-                                @endif
+                                    {{-- If already assigned, mark it clearly (optional, for better visibility) --}}
+                                    @if($ticket->teamMembers->contains($team->id))
+                                            (Already Assigned)
+                                    @endif
                                 </option>
                             @endforeach
 

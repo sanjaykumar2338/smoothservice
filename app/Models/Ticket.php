@@ -46,11 +46,16 @@ class Ticket extends Model
     // Many-to-many relationship for CC (carbon copy) users
     public function ccUsers()
     {
-        return $this->belongsToMany(User::class, 'ticket_user');
+        return $this->belongsToMany(TeamMember::class, 'ticket_collaborators', 'ticket_id', 'user_id');
     }
 
     public function status_order()
     {
         return $this->belongsTo(OrderStatus::class, 'status_id');
+    }
+
+    public function metadata()
+    {
+        return $this->hasMany(TicketMetadata::class, 'ticket_id');
     }
 }

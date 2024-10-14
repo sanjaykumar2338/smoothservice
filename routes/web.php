@@ -222,6 +222,8 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::delete('/ticket/delete-data/{id}', [TicketController::class, 'deleteData'])->name('ticket.delete_data');
     Route::post('/ticket/update-status/{id}', [TicketController::class, 'updateStatus']);
     Route::post('/ticket/{id}/update-tags', [TicketController::class, 'updateTags'])->name('ticket.updateTags');
+    Route::get('/tickets/edit-info/{id}', [TicketController::class, 'edit_info'])->name('tickets.edit_info');
+    Route::put('/tickets/update-info/{id}', [TicketController::class, 'update_info'])->name('tickets.update_info');
 });
 
 Route::get('logout', function() {
