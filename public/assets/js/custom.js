@@ -9,6 +9,7 @@ $(document).ready(function() {
     $('#timeZones').select2();
     $('#currency').select2();
     $('.applies_to').select2();
+    $('#collaborators').select2();
 });
 
 $(document).ready(function() {

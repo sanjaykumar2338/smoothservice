@@ -115,7 +115,7 @@ class OrderController extends Controller
         }
 
         // Validate that order ID and team member IDs are provided
-        if (!$orderId || !$teamMemberIds) {
+        if (!$orderId) {
             return response()->json(['error' => 'Invalid data provided'], 400);
         }
 
@@ -123,11 +123,13 @@ class OrderController extends Controller
         OrderTeam::where('order_id', $orderId)->delete();
 
         // Now, insert the new selected team members
-        foreach ($teamMemberIds as $teamMemberId) {
-            OrderTeam::create([
-                'order_id' => $orderId,
-                'team_member_id' => $teamMemberId,
-            ]);
+        if(!is_null($teamMemberIds)){
+            foreach ($teamMemberIds as $teamMemberId) {
+                OrderTeam::create([
+                    'order_id' => $orderId,
+                    'team_member_id' => $teamMemberId,
+                ]);
+            }
         }
 
         return response()->json(['success' => 'Team members saved successfully!']);

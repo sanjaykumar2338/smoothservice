@@ -19,6 +19,8 @@ class Ticket extends Model
         'note',
         'created_by',
         'updated_by',
+        'date_added',
+        'date_closed',
     ];
 
     // Relationship with client

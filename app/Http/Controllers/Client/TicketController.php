@@ -63,12 +63,12 @@ class TicketController extends Controller
     public function show($id)
     {
         $userId = getUserID();
-        $ticket = Ticket::with(['client', 'ccUsers', 'order'])->where('ticket_no', $id)->firstOrFail();
+        $ticket = Ticket::with(['client', 'ccUsers', 'order', 'metadata'])->where('ticket_no', $id)->firstOrFail();
         $team_members = TeamMember::where('added_by', $ticket->user_id)
             ->whereIn('role_id', [1, 2]) // 1 for Admin, 2 for Manager
             ->get();
 
-        //echo "<pre>"; print_r($ticket->ccUsers); die;
+        //echo "<pre>"; print_r($ticket->metadata); die;
 
         $ticketstatus = TicketStatus::where('added_by', $ticket->user_id)->get();
         $ticketStatus = TicketStatus::find($ticket->status_id);
@@ -459,7 +459,7 @@ class TicketController extends Controller
         }
 
         // Validate that ticket ID and team member IDs are provided
-        if (!$ticketId || !$teamMemberIds) {
+        if (!$ticketId) {
             return response()->json(['error' => 'Invalid data provided'], 400);
         }
 
@@ -467,11 +467,13 @@ class TicketController extends Controller
         TicketTeam::where('ticket_id', $ticketId)->delete();
 
         // Now, insert the new selected team members
-        foreach ($teamMemberIds as $teamMemberId) {
-            TicketTeam::create([
-                'ticket_id' => $ticketId,
-                'team_member_id' => $teamMemberId,
-            ]);
+        if(!is_null($teamMemberIds)){
+            foreach ($teamMemberIds as $teamMemberId) {
+                TicketTeam::create([
+                    'ticket_id' => $ticketId,
+                    'team_member_id' => $teamMemberId,
+                ]);
+            }
         }
 
         return response()->json(['success' => 'Team members saved successfully!']);
@@ -480,10 +482,11 @@ class TicketController extends Controller
     public function edit_info($id)
     {
         $ticket = Ticket::with('metadata', 'ccUsers')->findOrFail($id);
-        //echo "<pre>"; print_r($ticket->ccUsers); die;
-        $clients = Client::all();
-        $orders = Order::all();
-        return view('client.pages.tickets.update', compact('ticket', 'clients', 'orders'));
+        $clients = Client::where('added_by', $ticket->user_id)->get();
+        $orders = Order::where('user_id', $ticket->user_id)->get();
+        $users = TeamMember::where('added_by', $ticket->user_id)->get();
+
+        return view('client.pages.tickets.update', compact('ticket', 'clients', 'orders', 'users'));
     }
 
     public function update_info(Request $request, $id)
@@ -498,7 +501,7 @@ class TicketController extends Controller
         $ticket = Ticket::findOrFail($id);
         $ticket->subject = $request->subject;
         $ticket->client_id = $request->client_id;
-        $ticket->related_order_id = $request->related_order_id;
+        $ticket->order_id = $request->related_order_id;
         $ticket->date_added = $request->date_added;
         $ticket->date_closed = $request->date_closed;
         $ticket->save();
@@ -507,14 +510,14 @@ class TicketController extends Controller
         $ticket->metadata()->delete(); // Clear previous metadata
         foreach ($request->meta_key as $index => $key) {
             $ticket->metadata()->create([
-                'key' => $key,
-                'value' => $request->meta_value[$index],
+                'meta_key' => $key,
+                'meta_value' => $request->meta_value[$index],
             ]);
         }
 
         // Update collaborators
-        $ticket->collaborators()->sync($request->collaborators);
+        $ticket->ccUsers()->sync($request->collaborators);
 
-        return redirect()->route('tickets.edit', $ticket->id)->with('success', 'Ticket updated successfully.');
+        return redirect()->route('ticket.show', $ticket->ticket_no)->with('success', 'Ticket updated successfully.');
     }
 }

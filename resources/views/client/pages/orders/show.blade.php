@@ -1238,7 +1238,7 @@
          });
 
          // Make sure valid members are selected
-         if (validSelectedMembers.length > 0) {
+         if (validSelectedMembers.length > 0 || 1) {
                // Perform AJAX request to save team members
                $.ajax({
                   url: "{{ route('order.saveTeamMembers') }}", // Your route to save team members

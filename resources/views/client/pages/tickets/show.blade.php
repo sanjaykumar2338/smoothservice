@@ -89,7 +89,7 @@
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{route('tickets.edit_info',['id'=>$ticket->id])}}">Edit</a></li>
                             <li><a class="dropdown-item" href="{{route('client.edit',['id'=>$ticket->client->id])}}">Edit client</a></li>
-                            <li><a class="dropdown-item" href="javascript:void(0);">Duplicate Ticket</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);">Merge into another ticket</a></li>
                             <li>
                                 <form action="{{ route('ticket.destroy', $ticket->id) }}" method="POST" style="display:inline;">
                                     @csrf
@@ -265,9 +265,30 @@
                         </li>
 
                         <li class="d-flex align-items-center mb-3">
-                            <span class="fw-medium mx-2">Status</span>
-                            <span>{{ ucfirst($ticket->status) }}</span>
+                            <span class="fw-medium mx-2">Updated</span>
+                            <span>{{ $ticket->updated_at->format('M d, Y') }}</span>
                         </li>
+
+                        <li class="d-flex align-items-center mb-3">
+                            <span class="fw-medium mx-2">Related order</span>
+                            @if($ticket->order)
+                                <span><a href="{{ route('order.show', ['id' => $ticket->order->order_no]) }}">{{ $ticket->order->title }}</a></span>
+                            @else
+                                <span>No related order</span>
+                            @endif
+                        </li>
+
+                        <!-- Metadata Section -->
+                        <li class="d-flex align-items-center mb-3">
+                            <span class="fw-medium mx-2">Metadata</span>
+                        </li>
+
+                        @foreach($ticket->metadata as $meta)
+                            <li class="d-flex align-items-center mb-3">
+                                <span class="fw-medium mx-2">{{ $meta->meta_key }}</span>
+                                <span>{{ $meta->meta_value }}</span>
+                            </li>
+                        @endforeach
                     </ul>
 
 
@@ -1020,7 +1041,9 @@ $(document.body).on("change", "#ticket_team_member", function() {
         });
 
         // Make sure valid members are selected
-        if (validSelectedMembers.length > 0) {
+        console.log('validSelectedMembers', validSelectedMembers);
+        
+        if (validSelectedMembers.length > 0 || 1) {
             // Perform AJAX request to save team members
             $.ajax({
                 url: "{{ route('ticket.saveTeamMembers') }}", // Your route to save team members

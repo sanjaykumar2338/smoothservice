@@ -60,10 +60,10 @@
                                 @foreach($ticket->metadata as $meta)
                                     <div class="row mb-2">
                                         <div class="col-md-5">
-                                            <input type="text" class="form-control" name="meta_key[]" value="{{ old('meta_key[]', $meta->key) }}" placeholder="Key">
+                                            <input type="text" class="form-control" name="meta_key[]" value="{{ old('meta_key[]', $meta->meta_key) }}" placeholder="Key">
                                         </div>
                                         <div class="col-md-5">
-                                            <input type="text" class="form-control" name="meta_value[]" value="{{ old('meta_value[]', $meta->value) }}" placeholder="Value">
+                                            <input type="text" class="form-control" name="meta_value[]" value="{{ old('meta_value[]', $meta->meta_value) }}" placeholder="Value">
                                         </div>
                                         <div class="col-md-2">
                                             <button type="button" class="btn btn-danger remove-meta">Remove</button>
@@ -80,7 +80,7 @@
                             <select class="form-control" id="client_id" name="client_id">
                                 <option value="">Select Client</option>
                                 @foreach($clients as $client)
-                                    <option value="{{ $client->id }}" {{ old('client_id', $ticket->client_id) == $client->id ? 'selected' : '' }}>{{ $client->first_name }} {{ $client->last_name }}</option>
+                                    <option value="{{ $client->id }}" {{ old('client_id', $ticket->client->id) == $client->id ? 'selected' : '' }}>{{ $client->first_name }} {{ $client->last_name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -88,18 +88,20 @@
                         <div class="mb-3">
                             <label class="form-label" for="collaborators">Collaborators</label>
                             <select class="form-control" id="collaborators" name="collaborators[]" multiple>
-                                @foreach($ticket->ccUsers as $collaborator)
-                                    <option value="{{ $collaborator->id }}" {{ in_array($collaborator->id, old('collaborators', $ticket->ccUsers->pluck('id')->toArray())) ? 'selected' : '' }}>{{ $collaborator->first_name }} {{ $collaborator->last_name }}</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}" {{ in_array($user->id, old('collaborators', $ticket->ccUsers->pluck('id')->toArray())) ? 'selected' : '' }}>
+                                        {{ $user->first_name }} {{ $user->last_name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
-
+                        
                         <div class="mb-3">
                             <label class="form-label" for="related_order_id">Related Order</label>
                             <select class="form-control" id="related_order_id" name="related_order_id">
                                 <option value="">Select Related Order</option>
                                 @foreach($orders as $order)
-                                    <option value="{{ $order->id }}" {{ old('related_order_id', $ticket->related_order_id) == $order->id ? 'selected' : '' }}>{{ $order->order_number }}</option>
+                                    <option value="{{ $order->id }}" {{ old('related_order_id', $ticket->order_id) == $order->id ? 'selected' : '' }}>{{ $order->title }} #{{ $order->order_no }}</option>
                                 @endforeach
                             </select>
                         </div>
