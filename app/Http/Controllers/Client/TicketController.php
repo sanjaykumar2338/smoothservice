@@ -378,13 +378,26 @@ class TicketController extends Controller
         return redirect()->route('ticket.show', $ticket->id)->with('success', 'Ticket updated successfully.');
     }
 
-    // Delete ticket
     public function destroy($id)
     {
         $ticket = Ticket::findOrFail($id);
+
+        // Delete related collaborators
+        $ticket->ccUsers()->detach();  // Detach all ccUsers relationships
+
+        // Delete related tags
+        $ticket->tags()->detach();  // Detach all tag relationships
+
+        // Delete related team members
+        $ticket->teamMembers()->detach();  // Detach all team member relationships
+
+        // Delete related metadata
+        $ticket->metadata()->delete();  // Delete all related metadata records
+
+        // Delete the ticket itself
         $ticket->delete();
 
-        return redirect()->route('ticket.list')->with('success', 'Ticket deleted successfully.');
+        return redirect()->route('ticket.list')->with('success', 'Ticket and all related data deleted successfully.');
     }
 
     // Save ticket history for updates or actions
@@ -467,7 +480,7 @@ class TicketController extends Controller
     public function edit_info($id)
     {
         $ticket = Ticket::with('metadata', 'ccUsers')->findOrFail($id);
-        echo "<pre>"; print_r($ticket->ccUsers); die;
+        //echo "<pre>"; print_r($ticket->ccUsers); die;
         $clients = Client::all();
         $orders = Order::all();
         return view('client.pages.tickets.update', compact('ticket', 'clients', 'orders'));

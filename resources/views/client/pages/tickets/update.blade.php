@@ -89,7 +89,7 @@
                             <label class="form-label" for="collaborators">Collaborators</label>
                             <select class="form-control" id="collaborators" name="collaborators[]" multiple>
                                 @foreach($ticket->ccUsers as $collaborator)
-                                    <option value="{{ $collaborator->id }}" {{ in_array($collaborator->id, old('collaborators', $ticket->collaborators->pluck('id')->toArray())) ? 'selected' : '' }}>{{ $collaborator->first_name }} {{ $collaborator->last_name }}</option>
+                                    <option value="{{ $collaborator->id }}" {{ in_array($collaborator->id, old('collaborators', $ticket->ccUsers->pluck('id')->toArray())) ? 'selected' : '' }}>{{ $collaborator->first_name }} {{ $collaborator->last_name }}</option>
                                 @endforeach
                             </select>
                         </div>

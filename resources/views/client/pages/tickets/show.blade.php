@@ -88,9 +88,19 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{route('tickets.edit_info',['id'=>$ticket->id])}}">Edit</a></li>
-                            <li><a class="dropdown-item" href="">Add Project Data</a></li>
+                            <li><a class="dropdown-item" href="{{route('client.edit',['id'=>$ticket->client->id])}}">Edit client</a></li>
                             <li><a class="dropdown-item" href="javascript:void(0);">Duplicate Ticket</a></li>
-                            <li><a class="dropdown-item" href="javascript:void(0);">Delete Ticket</a></li>
+                            <li>
+                                <form action="{{ route('ticket.destroy', $ticket->id) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" style="padding-left: 20px;
+    color: #333333;
+    padding-top: 2px;" class="dropdown-item" onclick="return confirm('Are you sure you want to delete this ticket?')">
+                                        Delete Ticket
+                                    </button>
+                                </form>
+                            </li>
                         </ul>
                     </div>
                 </li>
