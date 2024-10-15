@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use App\Models\TicketTag;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\TicketReply;
 
 class TicketController extends Controller
 {
@@ -101,8 +102,10 @@ class TicketController extends Controller
             });
         
         $teamMembers = TeamMember::with('role')->where('added_by', $ticket->user_id)->get();
-        
-        return view('client.pages.tickets.show', compact('ticket', 'team_members', 'ticketHistory', 'ticketstatus','tags','existingTagsName','existingTags','project_data','ticketStatus','teamMembers'));
+        $client_replies = TicketReply::where('ticket_id', $ticket->id)->get();
+        $tickets_all = Ticket::where('user_id', $userId)->where('id','!=',$ticket->id)->get();
+
+        return view('client.pages.tickets.show', compact('ticket', 'team_members', 'ticketHistory', 'ticketstatus','tags','existingTagsName','existingTags','project_data','ticketStatus','teamMembers','client_replies', 'tickets_all'));
     }
 
     public function saveNotification(Request $request)
@@ -444,6 +447,72 @@ class TicketController extends Controller
         return response()->json(['success' => true, 'message' => 'Note saved successfully.']);
     }
 
+    public function saveReply(Request $request)
+    {
+        $request->validate([
+            'ticket_id' => 'required|exists:tickets,id',
+            'client_id' => 'required|exists:clients,id',
+            'message' => 'required|string',
+            'schedule_at' => 'nullable|date',
+            'cancel_if_replied' => 'boolean',
+            'message_type' => 'required|string',
+        ]);
+
+        $user = auth()->user();
+        $senderType = getUserType()=='web' ? 'App\Models\User' : 'App\Models\TeamMember';
+
+        // Create a new reply
+        $reply = new TicketReply();
+        $reply->ticket_id = $request->ticket_id;
+        $reply->client_id = $request->client_id;
+        $reply->message = $request->message;
+        $reply->scheduled_at = $request->schedule_at;
+        $reply->cancel_on_reply = $request->cancel_if_replied ?? false;
+        $reply->sender_id = $user->id;
+        $reply->sender_type = $senderType;
+        $reply->message_type = $request->message_type;
+        $reply->save();
+
+        // Load sender relation
+        $reply->load('sender');
+
+        History::create([
+            'order_id' => $request->order_id,
+            'user_id' => auth()->id(),
+            'action_type' => 'order_message',
+            'action_details' => 'Order message '. json_encode($request->all()),
+        ]);
+
+        // Return response with null checks
+        return response()->json([
+            'success' => true,
+            'reply' => [
+                'message' => $reply->message,
+                'id' => $reply->id,
+                'profile_image' => $reply->sender->profile_image ?? null,
+                'sender_name' => $reply->sender->name ?? 'Unknown Sender', // Handle null sender
+                'created_at' => $reply->created_at->format('Y-m-d H:i:s'),
+            ]
+        ]);
+    }
+
+    public function replies_edit(Request $request, $id)
+    {
+        $reply = TicketReply::findOrFail($id);
+        $reply->message = $request->message;
+        $reply->save();
+
+        return response()->json(['success' => true, 'message' => 'Reply updated successfully']);
+    }
+
+    public function replies_destroy($id)
+    {
+        $reply = TicketReply::findOrFail($id);
+        $reply->delete();
+
+        return response()->json(['success' => true, 'message' => 'Reply deleted successfully']);
+    }
+
     // Save assigned team members to the ticket
     public function saveTeamMembers(Request $request)
     {
@@ -520,4 +589,51 @@ class TicketController extends Controller
 
         return redirect()->route('ticket.show', $ticket->ticket_no)->with('success', 'Ticket updated successfully.');
     }
+
+    public function mergeTickets(Request $request)
+    {
+        // Validate the input to ensure both source and target tickets are provided
+        $request->validate([
+            'source_ticket_id' => 'required|exists:tickets,id',
+            'target_ticket_id' => 'required|exists:tickets,id|different:source_ticket_id',
+        ]);
+
+        // Fetch the source and target tickets
+        $sourceTicket = Ticket::with(['replies', 'metadata', 'ccUsers'])->findOrFail($request->source_ticket_id);
+        $targetTicket = Ticket::with(['replies', 'metadata', 'ccUsers'])->findOrFail($request->target_ticket_id);
+
+        \DB::beginTransaction(); // Begin database transaction
+
+        try {
+            // Move all replies from source ticket to target ticket
+            foreach ($sourceTicket->replies as $reply) {
+                $reply->ticket_id = $targetTicket->id;
+                $reply->save();
+            }
+
+            // Move all metadata from source ticket to target ticket
+            foreach ($sourceTicket->metadata as $meta) {
+                $meta->ticket_id = $targetTicket->id;
+                $meta->save();
+            }
+
+            // Merge collaborators (CC users) without duplicating
+            $existingCollaborators = $targetTicket->ccUsers->pluck('id')->toArray();
+            foreach ($sourceTicket->ccUsers as $collaborator) {
+                if (!in_array($collaborator->id, $existingCollaborators)) {
+                    $targetTicket->ccUsers()->attach($collaborator->id);
+                }
+            }
+
+            // Optionally: Delete the source ticket after merging
+            $sourceTicket->delete();
+
+            \DB::commit(); // Commit the transaction
+            return redirect()->route('ticket.list')->with('success', 'Tickets merged successfully!');
+        } catch (\Exception $e) {
+            \DB::rollBack(); // Rollback the transaction if something goes wrong
+            return redirect()->back()->withErrors(['error' => 'Failed to merge tickets: ' . $e->getMessage()]);
+        }
+    }
+
 }

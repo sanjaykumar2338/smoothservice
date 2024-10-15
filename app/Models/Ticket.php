@@ -60,4 +60,10 @@ class Ticket extends Model
     {
         return $this->hasMany(TicketMetadata::class, 'ticket_id');
     }
+
+    // New relationship with TicketReply
+    public function replies()
+    {
+        return $this->hasMany(TicketReply::class, 'ticket_id');
+    }
 }

@@ -89,7 +89,7 @@
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{route('tickets.edit_info',['id'=>$ticket->id])}}">Edit</a></li>
                             <li><a class="dropdown-item" href="{{route('client.edit',['id'=>$ticket->client->id])}}">Edit client</a></li>
-                            <li><a class="dropdown-item" href="javascript:void(0);">Merge into another ticket</a></li>
+                            <li><a class="dropdown-item open_ticket_merge" href="javascript:void(0);">Merge into another ticket</a></li>
                             <li>
                                 <form action="{{ route('ticket.destroy', $ticket->id) }}" method="POST" style="display:inline;">
                                     @csrf
@@ -130,8 +130,139 @@
                 </div>
             </div>
 
+            <div class="row">
+                <div class="col-lg-12 col-xl-12">
+                <div class="card card-action mb-4">
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="d-flex align-items-start">
+                                    <div class="me-2">
+                                        <ul class="list-unstyled mb-0" id="message-list">
+                                        @foreach($client_replies as $reply)
+                                        @if($reply->message_type === 'client')
+                                        <!-- Client Message -->
+                                        <li class="mb-3" style="width:200%;" id="reply{{$reply->id}}">
+                                            <div class="d-flex align-items-start">
+                                                <div class="me-3">
+                                                    @if($reply->sender)
+                                                    @if($reply->sender_type === 'App\Models\TeamMember')
+                                                    @if($reply->sender->profile_image)
+                                                    <img src="{{ asset('storage/' . $reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                    @else
+                                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                    <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span>
+                                                    </div>
+                                                    @endif
+                                                    @elseif($reply->sender_type === 'App\Models\User')
+                                                    @if($reply->sender->profile_image)
+                                                    <img src="{{ asset('storage/' . $reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                    @else
+                                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                    <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span>
+                                                    </div>
+                                                    @endif
+                                                    @endif
+                                                    @else
+                                                    <div class="rounded-circle bg-danger d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                    <span class="text-white">?</span>
+                                                    </div>
+                                                    @endif
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <strong>{{ $reply->sender ? $reply->sender->name : 'Unknown Sender' }} replied:</strong> <br>
+                                                    <span>{{ $reply->message }}</span><br>
+                                                    <small class="text-muted">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y H:i') }}</small>
+                                                </div>
+                                                <!-- Options Dropdown Menu -->
+                                                <div class="dropdown ms-auto">
+                                                    <button class="btn p-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                                        <li><a class="dropdown-item edit-reply" href="#" data-id="{{ $reply->id }}">Edit</a></li>
+                                                        <li><a class="dropdown-item delete-reply" href="#" data-id="{{ $reply->id }}">Delete</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        @elseif($reply->message_type === 'team')
+                                        <!-- Team Message -->
+                                        <li class="mb-3" style="width:200%;" id="reply{{$reply->id}}">
+                                            <div class="d-flex align-items-start">
+                                                <div class="me-3">
+                                                    <div class="rounded-circle bg-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                    <span class="text-white">T</span> <!-- Team icon -->
+                                                    </div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <strong>{{ $reply->sender ? $reply->sender->name : 'Unknown Sender' }} sent a team message:</strong> <br>
+                                                    <span>{{ $reply->message }}</span><br>
+                                                    <small class="text-muted">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y H:i') }}</small>
+                                                </div>
+                                                <!-- Options Dropdown Menu -->
+                                                <div class="dropdown ms-auto">
+                                                    <button class="btn p-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                                        <li><a class="dropdown-item edit-reply" href="#" data-id="{{ $reply->id }}">Edit</a></li>
+                                                        <li><a class="dropdown-item delete-reply" href="#" data-id="{{ $reply->id }}">Delete</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        @endif
+                                        @endforeach
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            </li>
+                        </ul>
+                        <!-- Hidden elements: Text editor, schedule options, etc. -->
+                        <div id="reply-editor-section" style="display: none;">
+                            <textarea id="reply-editor" class="form-control" rows="5" placeholder="Type your reply..."></textarea>
+                            <div id="schedule-options" style="display:none;">
+                            <div class="d-flex align-items-center mt-3">
+                                <i class="bx bx-calendar"></i>
+                                <label for="schedule-datetime" class="ms-2">Schedule message at:</label>
+                                <input type="datetime-local" id="schedule-datetime" class="form-control ms-2" style="width: 250px;">
+                            </div>
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" id="cancel-on-reply">
+                                <label class="form-check-label" for="cancel-on-reply">
+                                Cancel if client replies before send time
+                                </label>
+                            </div>
+                            </div>
+                            <div class="mt-3 text-end">
+                            <button id="show-schedule" class="btn btn-primary"><i class="bx bx-calendar"></i></button>
+                            <button id="send-reply-btn" class="btn btn-primary">Send Message</button>
+                            <button id="delete-reply-btn" class="btn btn-danger">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-end">
+                        <div class="card-footer d-flex justify-content-end">
+                            @if(checkPermission('message_client'))
+                            <button id="reply-client-btn" class="btn btn-label-primary p-1 btn-sm">
+                            <i class="bx bx-reply"></i> Reply to Client
+                            </button>@endif &nbsp;
+                            @if(checkPermission('message_team'))
+                            <button id="message-team-btn" class="btn btn-label-primary p-1 btn-sm">
+                            <i class="bx bx-plus"></i> Message Team
+                            </button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+
             <!--/ project data -->
-                <div class="row">
+            <div class="row">
                     <div class="col-lg-12 col-xl-12">
                     <div class="card card-action mb-4">
                         <div class="card-header align-items-center">
@@ -291,7 +422,6 @@
                         @endforeach
                     </ul>
 
-
                     <small class="text-uppercase">Select Team Members</small>
                     <div>
                         <select
@@ -341,6 +471,7 @@
     </div>
 </div>
 
+{{-- for add data in the project --}}
 <div class="modal" id="addDataModal" tabindex="-1" aria-modal="true" role="dialog" style="padding-left: 0px;">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -372,6 +503,36 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-primary" id="save-project-data">Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{-- for ticket merge modal --}}
+<div class="modal" id="ticketMergeModal" tabindex="-1" aria-modal="true" role="dialog" style="padding-left: 0px;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ticketMergeModalLabel">Add Project Data</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="" name="mergeticket" action="{{route('tickets.merge')}}" method="post">
+          @csrf  
+          <div class="mb-3">
+            <label for="field_type" class="form-label">Select Ticket</label>
+            <select class="form-select" id="target_ticket_id" name="target_ticket_id" required>
+                @foreach($tickets_all as $rec)
+                    <option value="{{$rec->id}}">{{$rec->subject}}</option>
+                @endforeach
+            </select>
+          </div>
+          <input type="hidden" name="source_ticket_id" value="{{$ticket->id}}">
+          <button type="submit" class="btn btn-primary" id="">Merge</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
       </div>
     </div>
   </div>
@@ -707,6 +868,10 @@ $(document).on('click', '.open_data_project', function() {
     $('#addDataModal').modal('show');
 });
 
+$(document).on('click', '.open_ticket_merge', function() {
+    $('#ticketMergeModal').modal('show');
+});
+
 $('#save-project-data').on('click', function() {
     var formData = $('#project-data-form').serialize();
 
@@ -790,7 +955,7 @@ $(document).ready(function() {
 
                 // Append the new message to the message list dynamically
                 $('#message-list').append(`
-                <li class="mb-3" style="width: 200%;">
+                <li class="mb-3" style="width: 200%;" id="reply${response.reply.id}">
                     <div class="d-flex align-items-start">
                         <!-- Profile Icon or Avatar -->
                         <div class="me-2">
@@ -812,10 +977,8 @@ $(document).ready(function() {
                                 <i class="bx bx-dots-vertical-rounded"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
-                                <li><a class="dropdown-item" href="#">Link to this message</a></li>
-                                <li><a class="dropdown-item" href="#">View original</a></li>
-                                <li><a class="dropdown-item" href="#">Edit</a></li>
-                                <li><a class="dropdown-item" href="#">Delete</a></li>
+                                <li><a class="dropdown-item edit-reply" href="#" data-id="${response.reply.id}">Edit</a></li>
+                                <li><a class="dropdown-item delete-reply" href="#" data-id="${response.reply.id}">Delete</a></li>
                             </ul>
                         </div>
                     </div>
@@ -1122,6 +1285,53 @@ function deleteTicket(ticketId) {
         });
     }
 }
+</script>
+
+<script>
+    // Edit message
+    $(document).on('click', '.edit-reply', function (e) {
+        e.preventDefault();
+        var replyId = $(this).data('id');
+        var replyText = prompt("Edit your message:");
+        if (replyText) {
+            $.ajax({
+                url: '/ticket/replies/' + replyId + '/edit',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    message: replyText
+                },
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    }
+                }
+            });
+        }
+    });
+
+    // Delete message
+    $(document).on('click', '.delete-reply', function (e) {
+        e.preventDefault();
+        var replyId = $(this).data('id');
+        if (confirm("Are you sure you want to delete this message?")) {
+            $.ajax({
+                url: '/ticket/replies/' + replyId,
+                method: 'DELETE',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        // Remove the closest li element that contains the delete button
+                        $('#reply'+replyId).remove();
+                    }
+                }.bind(this) // Bind the 'this' context to the success callback
+            });
+        }
+    });
+
 </script>
 
 @endsection

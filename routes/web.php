@@ -106,6 +106,8 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::post('/order/save-notification', [OrderController::class, 'saveNotification'])->name('order.saveNotification');
     Route::delete('/orders/{order}/delete', [OrderController::class, 'deleteOrder'])->name('orders.delete');
     Route::post('/orders/{order}/duplicate', [OrderController::class, 'duplicateOrder'])->name('orders.duplicate');
+    Route::post('/order/replies/{reply}/edit', [OrderController::class, 'replies_edit'])->name('order.reply.edit');
+    Route::delete('/order/replies/{reply}', [OrderController::class, 'replies_destroy'])->name('order.reply.destroy');
 
     // Order statuses routes
     Route::get('/orderstatuses/list', [SettingController::class, 'index'])->name('setting.orderstatuses.list');
@@ -224,6 +226,10 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::post('/ticket/{id}/update-tags', [TicketController::class, 'updateTags'])->name('ticket.updateTags');
     Route::get('/tickets/edit-info/{id}', [TicketController::class, 'edit_info'])->name('tickets.edit_info');
     Route::put('/tickets/update-info/{id}', [TicketController::class, 'update_info'])->name('tickets.update_info');
+    Route::post('/ticket/send-reply', [TicketController::class, 'saveReply'])->name('ticket.send_reply');
+    Route::post('/tickets/merge', [TicketController::class, 'mergeTickets'])->name('tickets.merge');
+    Route::post('/ticket/replies/{reply}/edit', [TicketController::class, 'replies_edit'])->name('ticket.reply.edit');
+    Route::delete('/ticket/replies/{reply}', [TicketController::class, 'replies_destroy'])->name('ticket.reply.destroy');
 });
 
 Route::get('logout', function() {

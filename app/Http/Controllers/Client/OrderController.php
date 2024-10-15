@@ -506,6 +506,23 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Project data deleted successfully.');
     }
 
+    public function replies_edit(Request $request, $id)
+    {
+        $reply = ClientReply::findOrFail($id);
+        $reply->message = $request->message;
+        $reply->save();
+
+        return response()->json(['success' => true, 'message' => 'Reply updated successfully']);
+    }
+
+    public function replies_destroy($id)
+    {
+        $reply = ClientReply::findOrFail($id);
+        $reply->delete();
+
+        return response()->json(['success' => true, 'message' => 'Reply deleted successfully']);
+    }
+
     public function saveReply(Request $request)
     {
         $request->validate([
@@ -518,7 +535,7 @@ class OrderController extends Controller
         ]);
 
         $user = auth()->user();
-        $senderType = $user instanceof \App\Models\Admin ? 'App\Models\Admin' : 'App\Models\Client';
+        $senderType = getUserType()=='web' ? 'App\Models\User' : 'App\Models\TeamMember';
 
         // Create a new reply
         $reply = new ClientReply();
@@ -547,6 +564,7 @@ class OrderController extends Controller
             'success' => true,
             'reply' => [
                 'message' => $reply->message,
+                'id' => $reply->id,
                 'profile_image' => $reply->sender->profile_image ?? null,
                 'sender_name' => $reply->sender->name ?? 'Unknown Sender', // Handle null sender
                 'created_at' => $reply->created_at->format('Y-m-d H:i:s'),
