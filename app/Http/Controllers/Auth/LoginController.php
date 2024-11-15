@@ -50,7 +50,8 @@ class LoginController extends Controller
 
         // Attempt login for clients with remember functionality
         if (Auth::guard('clients')->attempt($credentials, $remember)) {
-            return redirect()->intended(route('order.list')); // Client dashboard
+            //return redirect()->intended(route('order.list')); // Client dashboard
+            echo 'Working...'; die;
         }
 
         // If credentials don't match, redirect back with an error
