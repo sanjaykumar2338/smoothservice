@@ -63,7 +63,7 @@
                             <td>{{ $client->first_name }} {{ $client->last_name }}<br>{{ $client->email }}</td>
                             <td>{{ $client->company }}</td>
                             <td>{{ $client->created_at->format('M d, Y') }}</td>
-                            <td>{{ $client->client_status->label }}</td>
+                            <td>{{ $client->client_status?->label ?? 'No Status' }}</td>
                             <td>
                                 <div class="dropdown" style="display: inline;">
                                     <button class="btn btn-sm btn-light p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
