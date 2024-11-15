@@ -154,12 +154,14 @@ class ClientController extends Controller
         $client->save();
 
         // Send password reset email if needed
+        $sent = 'no';
         if ($request->has('send_email') && $request->send_email && $request->new_password) {
+            $sent = 'yes';
             Mail::to($client->email)->send(new ClientPasswordChanged($client, $request->new_password));
         }
 
         // Send welcome email if required
-        if ($request->has('reset_password_welcome_email') && $request->reset_password_welcome_email) {
+        if ($request->has('reset_password_welcome_email') && $request->reset_password_welcome_email && $sent=='no') {
             $randomPassword = $request->new_password ?? Str::random(12);
 
             // Save the hashed password
