@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class Client extends Model
+class Client extends Authenticatable
 {
     use HasFactory;
 
@@ -22,9 +22,19 @@ class Client extends Model
         'phone',
         'password',
         'added_by',
+        'stripe_customer_id',
+        'account_balance',
+        'status',
+        'single_line_of_text',
     ];
 
     protected $hidden = [
         'password',
+        'remember_token',
     ];
+
+    public function client_status()
+    {
+        return $this->belongsTo(ClientStatus::class, 'status');
+    }
 }

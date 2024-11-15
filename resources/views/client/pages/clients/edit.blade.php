@@ -22,13 +22,13 @@
         </div>
     @endif
 
+    <form id="client_form" method="POST" action="{{ route('client.update', $client->id) }}">
+        @csrf
+        @method('PUT')
+
     <div class="row">
         <!-- Personal Information Section -->
         <div class="col-xl-6">
-            <form id="client_form" method="POST" action="{{ route('client.update', $client->id) }}">
-                @csrf
-                @method('PUT')
-
                 <!-- Error messages will be displayed here -->
                 <div id="error-messages" class="alert alert-danger" style="display:none;">
                     <ul id="error-list"></ul>
@@ -67,6 +67,26 @@
                         <div class="mb-3">
                             <label class="form-label" for="password">Password (Optional)</label>
                             <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password (Optional)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="password">Stripe customer ID</label>
+                            <input type="text" class="form-control" id="stripe_customer_id" name="stripe_customer_id" value="{{ old('stripe_customer_id', $client->stripe_customer_id) }}" placeholder="cust_" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="password">Account balance</label>
+                            <input type="number" class="form-control" id="account_balance" name="account_balance" value="{{ old('account_balance', $client->account_balance) }}" placeholder="0.00" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="order_id" class="form-label">Status</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="">-- Select Status --</option>
+                                @foreach($client_statues as $status)
+                                    <option {{$status->id==$client->status?'selected':''}} value="{{ $status->id }}">{{ $status->label }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -120,12 +140,53 @@
                             <input type="text" class="form-control" id="postal_code" name="postal_code" value="{{ old('postal_code', $client->postal_code) }}" placeholder="Enter Postal / Zip Code" required />
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label" for="state">Single line of text</label>
+                            <input type="text" class="form-control" id="single_line_of_text" name="single_line_of_text" value="{{ old('single_line_of_text', $client->single_line_of_text) }}" placeholder="" />
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input toggle-field" type="checkbox" id="reset_password_welcome_email" name="reset_password_welcome_email">
+                                <label class="form-check-label" for="reset_password_welcome_email">Reset password and send welcome email</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input toggle-field" type="checkbox" id="send_email" name="send_email">
+                                <label class="form-check-label" for="send_email">Change password</label>
+                            </div>
+
+                            <div class="hidden-field" id="password_field" style="display: none;">
+                                <input type="password" class="form-control mt-2" name="new_password" placeholder="New Password">
+                            </div>
+                        </div>
+
+
                         <button type="submit" class="btn btn-primary">Update Client</button>
                     </div>
                 </div>
-            </form>
         </div>
     </div>
+
+    </form>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const sendEmailCheckbox = document.getElementById('send_email');
+        const passwordField = document.getElementById('password_field');
+
+        // Toggle visibility based on checkbox state
+        sendEmailCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                passwordField.style.display = 'block';
+            } else {
+                passwordField.style.display = 'none';
+            }
+        });
+    });
+</script>
 
 @endsection

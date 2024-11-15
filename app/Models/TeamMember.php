@@ -23,11 +23,13 @@ class TeamMember extends Authenticatable // Extending Authenticatable for Larave
         'password',
         'added_by',
         'phone_number', // Add this
+        'remember_token',
     ];
 
     // Exclude remember_token and email_verified_at
     protected $hidden = [
         'password', // Keep the password hidden for security
+        'remember_token',
     ];
 
     // Remove casts for email_verified_at if not needed

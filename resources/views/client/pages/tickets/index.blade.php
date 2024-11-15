@@ -63,7 +63,7 @@
                             <td>{{ $ticket->last_message_date ? $ticket->last_message_date->format('Y-m-d') : 'N/A' }}</td>
                             <td>
                                 <!-- Edit Button -->
-                                <a href="{{ route('ticket.edit', $ticket->id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                <a href="{{ route('ticket.show', $ticket->ticket_no) }}" class="btn btn-sm btn-primary">Edit</a>
                                 <!-- Details Button -->
                                 <a href="{{ route('ticket.show', $ticket->ticket_no) }}" class="btn btn-sm btn-info">Details</a>
 

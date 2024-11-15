@@ -46,12 +46,10 @@
                 <thead>
                     <tr class="text-nowrap">
                         <th>#</th>
-                        <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>Email</th>
+                        <th>Name</th>
                         <th>Company</th>
-                        <th>Billing Address</th>
-                        <th>Country</th>
+                        <th>Created On</th>
+                        <th>Status</th>
                         @if(checkPermission('add_edit_login_clients') || checkPermission('delete_clients'))
                         <th>Actions</th>
                         @endif
@@ -62,27 +60,50 @@
                         @foreach($clients as $client)
                         <tr>
                             <th scope="row">{{ $client->id }}</th>
-                            <td>{{ $client->first_name }}</td>
-                            <td>{{ $client->last_name }}</td>
-                            <td>{{ $client->email }}</td>
+                            <td>{{ $client->first_name }} {{ $client->last_name }}<br>{{ $client->email }}</td>
                             <td>{{ $client->company }}</td>
-                            <td>{{ $client->billing_address }}</td>
-                            <td>{{ $client->country }}</td>
+                            <td>{{ $client->created_at->format('M d, Y') }}</td>
+                            <td>{{ $client->client_status->label }}</td>
                             <td>
-                                <!-- Edit Button -->
-                                @if(checkPermission('add_edit_login_clients'))
-                                <a href="{{ route('client.edit', $client->id) }}" class="btn btn-sm btn-primary">Edit</a>
-                                @endif
+                                <div class="dropdown" style="display: inline;">
+                                    <button class="btn btn-sm btn-light p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bx bx-dots-vertical-rounded"></i> <!-- Three vertical dots icon -->
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        @if(checkPermission('add_edit_login_clients'))
+                                            <li>
+                                                <a class="dropdown-item" href="{{ route('client.edit', $client->id) }}">Edit</a>
+                                            </li>
+                                        @endif
 
-                                @if(checkPermission('delete_clients'))
-                                <!-- Delete Button -->
-                                <form action="{{ route('client.destroy', $client->id) }}" method="POST" style="display:inline-block;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</button>
-                                </form>
-                                @endif
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('client.edit', $client->id) }}">Sign in as user</a>
+                                        </li>
 
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('client.edit', $client->id) }}">New invoice</a>
+                                        </li>
+
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('client.edit', $client->id) }}">New ticket</a>
+                                        </li>
+
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('client.edit', $client->id) }}">Merge</a>
+                                        </li>
+
+
+                                        @if(checkPermission('delete_clients'))
+                                            <li>
+                                                <form action="{{ route('client.destroy', $client->id) }}" method="POST" style="display:inline;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                                                </form>
+                                            </li>
+                                        @endif
+                                    </ul>
+                                </div>
                             </td>
                         </tr>
                         @endforeach

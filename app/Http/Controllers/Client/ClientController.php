@@ -10,6 +10,9 @@ use App\Models\Country;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ClientWelcome;
+use App\Models\ClientStatus;
+use Illuminate\Support\Str;
+use App\Mail\ClientPasswordChanged;
 
 class ClientController extends Controller
 {
@@ -93,9 +96,10 @@ class ClientController extends Controller
     // Show form to edit client
     public function edit($id)
     {
+        $client_statues = ClientStatus::where('added_by',getUserID())->get();
         $client = Client::find($id);
         $countries = Country::all();  // Fetch list of all countries
-        return view('client.pages.clients.edit', compact('client', 'countries'));
+        return view('client.pages.clients.edit', compact('client', 'countries', 'client_statues'));
     }
 
     // Update client
@@ -108,8 +112,8 @@ class ClientController extends Controller
         }
 
         $validatedData = $request->validate([
-            'first_name' => '',
-            'last_name' => '',
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
             'email' => 'required|email|unique:clients,email,' . $client->id,
             'billing_address' => 'required|string|max:255',
             'country' => 'required|string|max:255',
@@ -118,10 +122,53 @@ class ClientController extends Controller
             'company' => 'required|string|max:255',
             'tax_id' => 'required|string|max:255',
             'phone' => 'nullable|string|max:255',
+            'single_line_of_text' => 'nullable|string|max:255',
+            'stripe_customer_id' => 'nullable|string|max:255',
+            'account_balance' => 'nullable|numeric',
+            'status' => 'nullable|integer|exists:client_statuses,id',
+            'new_password' => 'nullable|string|min:6',
         ]);
 
-        // Update client details
-        $client->update($validatedData);
+        // Update all fields
+        $client->first_name = $validatedData['first_name'] ?? $client->first_name;
+        $client->last_name = $validatedData['last_name'] ?? $client->last_name;
+        $client->email = $validatedData['email'] ?? $client->email;
+        $client->billing_address = $validatedData['billing_address'] ?? $client->billing_address;
+        $client->country = $validatedData['country'] ?? $client->country;
+        $client->state = $validatedData['state'] ?? $client->state;
+        $client->postal_code = $validatedData['postal_code'] ?? $client->postal_code;
+        $client->company = $validatedData['company'] ?? $client->company;
+        $client->tax_id = $validatedData['tax_id'] ?? $client->tax_id;
+        $client->phone = $validatedData['phone'] ?? $client->phone;
+        $client->single_line_of_text = $validatedData['single_line_of_text'] ?? $client->single_line_of_text;
+        $client->stripe_customer_id = $validatedData['stripe_customer_id'] ?? $client->stripe_customer_id;
+        $client->account_balance = $validatedData['account_balance'] ?? $client->account_balance;
+        $client->status = $validatedData['status'] ?? $client->status;
+
+        // Update password if a new password is provided
+        if (!empty($validatedData['new_password'])) {
+            $client->password = Hash::make($validatedData['new_password']);
+        }
+
+        // Save the updated client data
+        $client->save();
+
+        // Send password reset email if needed
+        if ($request->has('send_email') && $request->send_email && $request->new_password) {
+            Mail::to($client->email)->send(new ClientPasswordChanged($client, $request->new_password));
+        }
+
+        // Send welcome email if required
+        if ($request->has('reset_password_welcome_email') && $request->reset_password_welcome_email) {
+            $randomPassword = $request->new_password ?? Str::random(12);
+
+            // Save the hashed password
+            $client->password = Hash::make($randomPassword);
+            $client->save();
+
+            // Send the email with the new password
+            Mail::to($client->email)->send(new ClientWelcome($client, $randomPassword));
+        }
 
         return redirect()->route('client.list')->with('success', 'Client updated successfully.');
     }

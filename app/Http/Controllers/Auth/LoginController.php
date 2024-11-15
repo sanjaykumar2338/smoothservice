@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Client;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -45,6 +46,11 @@ class LoginController extends Controller
         // Attempt login for team members with remember functionality
         if (Auth::guard('team')->attempt($credentials, $remember)) {
             return redirect()->intended(route('order.list')); // Team member dashboard
+        }
+
+        // Attempt login for clients with remember functionality
+        if (Auth::guard('clients')->attempt($credentials, $remember)) {
+            return redirect()->intended(route('order.list')); // Client dashboard
         }
 
         // If credentials don't match, redirect back with an error
