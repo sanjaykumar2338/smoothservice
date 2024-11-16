@@ -21,7 +21,7 @@ use App\Models\TicketReply;
 
 class TicketController extends Controller
 {
-    public function index()
+    public function index($client_id=null)
     {
         $userId = getUserID();
         
@@ -57,7 +57,7 @@ class TicketController extends Controller
         $orders = Order::where('user_id', $userId)->get();
         $users = TeamMember::where('added_by', $userId)->get();
 
-        return view('client.pages.tickets.index', compact('tickets', 'clients', 'orders','users'));
+        return view('client.pages.tickets.index', compact('tickets', 'clients', 'orders','users','client_id'));
     }
 
     // Show ticket details

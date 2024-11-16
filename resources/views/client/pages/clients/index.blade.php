@@ -77,19 +77,19 @@
                                         @endif
 
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('client.edit', $client->id) }}">Sign in as user</a>
+                                            <a class="dropdown-item" href="{{ route('client.sign_in_as_client', $client->id) }}">Sign in as user</a>
                                         </li>
 
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('client.edit', $client->id) }}">New invoice</a>
+                                            <a class="dropdown-item" href="{{ route('invoices.create', $client->id) }}">New invoice</a>
                                         </li>
 
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('client.edit', $client->id) }}">New ticket</a>
+                                            <a class="dropdown-item" href="{{ route('ticket.list', $client->id) }}">New ticket</a>
                                         </li>
 
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('client.edit', $client->id) }}">Merge</a>
+                                            <a class="dropdown-item open_client_merge" data-id="{{$client->id}}" href="javascript:void(0);">Merge</a>
                                         </li>
 
 
@@ -98,7 +98,13 @@
                                                 <form action="{{ route('client.destroy', $client->id) }}" method="POST" style="display:inline;">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                                                    <button type="submit" class="dropdown-item" onclick="return confirm('Are you sure?')" style="display: block;
+    padding: 3px 20px;
+    clear: both;
+    font-weight: 400;
+    line-height: 1.42857143;
+    color: #333;
+    white-space: nowrap;">Delete</button>
                                                 </form>
                                             </li>
                                         @endif
@@ -141,5 +147,60 @@
         </div>
     </div>
 </div>
+
+
+{{-- for client merge modal --}}
+<div class="modal" id="ClientModal" tabindex="-1" aria-modal="true" role="dialog" style="padding-left: 0px;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ClientModal">Merge Client</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="" name="mergeticket" action="{{route('tickets.merge')}}" method="post">
+          @csrf  
+          <div class="mb-2">
+            <label for="field_type" class="form-label">Select Client</label>
+            <select class="form-select" id="target_client_id" name="target_client_id" required>
+                @foreach($clients as $rec)
+                    <option value="{{$rec->id}}">{{$rec->first_name}} {{$rec->last_name}} ({{$rec->email}})</option>
+                @endforeach
+            </select>
+            All orders, messages, invoices, and tickets from pk 2 will be moved to the selected account.
+          </div>
+          <input type="hidden" name="source_client_id" id="source_client_id" value="">
+          <button type="submit" class="btn btn-primary" id="">Merge</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    let removedOption; // Variable to store the removed option
+
+    $(document).on('click', '.open_client_merge', function() {
+        let client_id = $(this).attr('data-id'); // Get the client ID from the data attribute
+        $('#source_client_id').val(client_id); // Set the client ID in the source input field
+
+        // Save the removed option in a variable
+        removedOption = $(`#target_client_id option[value="${client_id}"]`).detach();
+
+        $('#ClientModal').modal('show'); // Show the modal
+    });
+
+    // When the modal is closed, re-add the removed option
+    $('#ClientModal').on('hidden.bs.modal', function() {
+        if (removedOption) {
+            $('#target_client_id').append(removedOption); // Add the option back
+            removedOption = null; // Reset the variable
+        }
+    });
+</script>
+
 
 @endsection

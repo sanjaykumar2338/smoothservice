@@ -13,6 +13,7 @@ use App\Mail\ClientWelcome;
 use App\Models\ClientStatus;
 use Illuminate\Support\Str;
 use App\Mail\ClientPasswordChanged;
+use Illuminate\Support\Facades\Auth;
 
 class ClientController extends Controller
 {
@@ -299,5 +300,24 @@ class ClientController extends Controller
         }
 
         return response()->json(['success' => false], 400);
+    }
+
+    public function signInAsClient($clientId)
+    {
+        // Find the client by ID
+        $client = Client::find($clientId);
+
+        if (!$client) {
+            return redirect()->route('client.list')->with('error', 'Client not found.');
+        }
+
+        // Log out the current admin (optional)
+        Auth::guard('web')->logout();
+
+        // Log in as the client
+        Auth::guard('clients')->login($client);
+
+        // Redirect to the client's dashboard or any other route
+        return redirect()->route('client.dashboard')->with('success', "Signed in as {$client->first_name}.");
     }
 }

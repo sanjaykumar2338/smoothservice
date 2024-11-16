@@ -35,13 +35,13 @@ class InvoiceController extends Controller
     }
 
     // Show the form to create a new invoice
-    public function create()
+    public function create($client_id = null)
     {
         $teamMemberId = getUserID();
         $clients = Client::where('added_by',$teamMemberId)->get();
         $services = Service::where('user_id',$teamMemberId)->get();
 
-        return view('client.pages.invoices.add', compact('clients', 'services'));
+        return view('client.pages.invoices.add', compact('clients', 'services', 'client_id'));
     }
 
     // Store a new invoice in the database

@@ -60,11 +60,12 @@
                         
                     <div class="row">
                         <!-- Client -->
+                        
                         <div class="col-md-8">
                             <label class="form-label" for="client">Client</label>
                             <select class="form-control" id="client" name="client_id">
                                 @foreach($clients as $client)
-                                    <option value="{{ $client->id }}">{{ $client->first_name }} {{ $client->last_name }}</option>
+                                    <option value="{{ $client->id }}" {{ $client->id == $client_id ? 'selected' : '' }}>{{ $client->first_name }} {{ $client->last_name }}</option>
                                 @endforeach
                             </select>
                         </div>

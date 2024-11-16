@@ -75,6 +75,8 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::get('/client/edit/{id}', [ClientController::class, 'edit'])->name('client.edit');
     Route::put('/client/update/{id}', [ClientController::class, 'update'])->name('client.update');
     Route::delete('/client/destroy/{id}', [ClientController::class, 'destroy'])->name('client.destroy');
+    Route::get('/client/sign-in-as-client/{client}', [ClientController::class, 'signInAsClient'])
+    ->name('client.sign_in_as_client');
 
     // Order routes
     Route::get('/order/detail/{id}', [OrderController::class, 'show'])->name('order.show');
@@ -166,7 +168,7 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
 
     //invoice
     Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.list');
-    Route::get('invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
+    Route::get('invoices/create/{client?}', [InvoiceController::class, 'create'])->name('invoices.create');
     Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
     Route::get('invoices/{id}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
     Route::put('invoices/{id}', [InvoiceController::class, 'update'])->name('invoices.update');
@@ -203,7 +205,7 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::delete('/coupons/remove/{coupon}', [CouponController::class, 'destroy'])->name('coupon.destroy');
 
     // Routes for Tickets
-    Route::get('/tickets', [TicketController::class, 'index'])->name('ticket.list');
+    Route::get('/tickets/{client?}', [TicketController::class, 'index'])->name('ticket.list');
     Route::get('/tickets/add', [TicketController::class, 'create'])->name('ticket.add');
     Route::post('/tickets/save', [TicketController::class, 'store'])->name('ticket.store');
     Route::get('/tickets/edit/{ticket}', [TicketController::class, 'edit'])->name('ticket.edit');

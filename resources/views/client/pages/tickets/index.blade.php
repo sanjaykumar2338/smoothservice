@@ -31,7 +31,7 @@
                     <div class="dt-buttons">
                         &nbsp;
                         <!-- Button to trigger modal for adding a ticket -->
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTicketModal">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTicketModal" id="addTicketButton">
                             <i class="bx bx-plus me-0 me-lg-2"></i><span class="d-none d-lg-inline-block">Add Ticket</span>
                         </button>
                     </div>
@@ -130,7 +130,7 @@
                         <select class="form-control" id="client_id" name="client_id" required>
                             <option value="">-- Select Client --</option>
                             @foreach($clients as $client)
-                                <option value="{{ $client->id }}">{{ $client->first_name }} {{ $client->last_name }}</option>
+                                <option value="{{ $client->id }}" {{ $client->id == $client_id ? 'selected' : '' }}>{{ $client->first_name }} {{ $client->last_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -177,5 +177,18 @@
         </div>
     </div>
 </div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Replace `{{ $client_id }}` with your server-side variable
+        var clientId = "{{ $client_id ?? '' }}";
+
+        // If client ID exists, trigger a click on the button
+        if (clientId) {
+            document.getElementById("addTicketButton").click();
+        }
+    });
+</script>
 
 @endsection
