@@ -60,13 +60,6 @@
               class="img-fluid authentication-cover-img"
               data-app-light-img="pages/login-light.png"
               data-app-dark-img="pages/login-dark.png" />
-            <div class="mx-auto">
-              <h3>Discover the powerful admin template 🥳</h3>
-              <p>
-                Perfectly suited for all level of developers which helps you to <br />
-                kick start your next big projects & Applications.
-              </p>
-            </div>
           </div>
         </div>
         <!-- /Left Text -->
