@@ -14,6 +14,10 @@ use App\Models\ClientStatus;
 use Illuminate\Support\Str;
 use App\Mail\ClientPasswordChanged;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Ticket;
+use App\Models\TicketReply;
+use App\Models\ClientReply;
+use DB;
 
 class ClientController extends Controller
 {
@@ -319,5 +323,43 @@ class ClientController extends Controller
 
         // Redirect to the client's dashboard or any other route
         return redirect()->route('client.dashboard')->with('success', "Signed in as {$client->first_name}.");
+    }
+
+    public function mergeClients(Request $request)
+    {
+        $validatedData = $request->validate([
+            'source_client_id' => 'required|exists:clients,id',
+            'target_client_id' => 'required|exists:clients,id|different:source_client_id',
+        ]);
+
+        $sourceClientId = $validatedData['source_client_id'];
+        $targetClientId = $validatedData['target_client_id'];
+
+        DB::beginTransaction();
+
+        try {
+            // Update orders
+            Order::where('client_id', $sourceClientId)
+                ->update(['client_id' => $targetClientId]);
+
+            // Update tickets
+            Ticket::where('client_id', $sourceClientId)
+                ->update(['client_id' => $targetClientId]);
+
+            // Update ticket replies
+            TicketReply::where('client_id', $sourceClientId)
+                ->update(['client_id' => $targetClientId]);
+
+            // Update client replies
+            ClientReply::where('client_id', $sourceClientId)
+                ->update(['client_id' => $targetClientId]);
+
+            DB::commit();
+
+            return redirect()->route('client.list')->with('success', 'Clients merged successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'An error occurred while merging clients: ' . $e->getMessage());
+        }
     }
 }

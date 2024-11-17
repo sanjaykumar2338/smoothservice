@@ -77,6 +77,8 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::delete('/client/destroy/{id}', [ClientController::class, 'destroy'])->name('client.destroy');
     Route::get('/client/sign-in-as-client/{client}', [ClientController::class, 'signInAsClient'])
     ->name('client.sign_in_as_client');
+    Route::post('/client/merge', [ClientController::class, 'mergeClients'])->name('client.merge');
+
 
     // Order routes
     Route::get('/order/detail/{id}', [OrderController::class, 'show'])->name('order.show');

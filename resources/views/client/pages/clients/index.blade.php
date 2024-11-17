@@ -158,7 +158,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form id="" name="mergeticket" action="{{route('tickets.merge')}}" method="post">
+        <form id="" name="mergeticket" action="{{route('client.merge')}}" method="post">
           @csrf  
           <div class="mb-2">
             <label for="field_type" class="form-label">Select Client</label>
