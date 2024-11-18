@@ -12,6 +12,8 @@ if (!function_exists('getUserType')) {
             return 'web';
         } elseif (auth('team')->check()) {
             return 'team';
+        } elseif (auth('client')->check()) {
+            return 'client';
         }
 
         return 'web';
@@ -50,6 +52,10 @@ if (!function_exists('getUserID')) {
             return auth()->guard('team')->user()->id;
         }
 
+        if (auth()->guard('client')->check()) {
+            return auth()->guard('client')->user()->id;
+        }
+
         // If no user is authenticated or no permission is available, return false
         return false;
     }
@@ -66,6 +72,10 @@ if (!function_exists('getAuthenticatedUser')) {
         // Check if the user is authenticated via the 'team' guard
         if (auth()->guard('team')->check()) {
             return auth()->guard('team')->user();
+        }
+
+        if (auth()->guard('client')->check()) {
+            return auth()->guard('client')->user();
         }
 
         // Return null if no user is authenticated

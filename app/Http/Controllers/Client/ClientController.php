@@ -319,10 +319,10 @@ class ClientController extends Controller
         Auth::guard('web')->logout();
 
         // Log in as the client
-        Auth::guard('clients')->login($client);
+        Auth::guard('client')->login($client);
 
         // Redirect to the client's dashboard or any other route
-        return redirect()->route('client.dashboard')->with('success', "Signed in as {$client->first_name}.");
+        return redirect()->route('portal.dashboard')->with('success', "Signed in as {$client->first_name}.");
     }
 
     public function mergeClients(Request $request)

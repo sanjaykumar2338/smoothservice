@@ -44,9 +44,9 @@ return [
             'driver' => 'session',
             'provider' => 'team_members',
         ],
-        'clients' => [
+        'client' => [
             'driver' => 'session',
-            'provider' => 'clients',
+            'provider' => 'client',
         ],
     ],
 
@@ -78,7 +78,7 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\TeamMember::class,
         ],
-        'clients' => [
+        'client' => [
             'driver' => 'eloquent',
             'model' => App\Models\Client::class,
         ],

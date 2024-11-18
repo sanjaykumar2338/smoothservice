@@ -20,9 +20,10 @@ use App\Http\Controllers\Client\CouponController;
 use App\Http\Controllers\Client\TicketController;
 use App\Http\Controllers\Client\TicketTagController;
 use App\Http\Middleware\CheckWebOrTeam;
+use App\Http\Middleware\ClientMiddleware;
 
-//for team members
-//require __DIR__.'/team.php';
+//for cleint
+use App\Http\Controllers\MainClient\MainClientController;
 
 //Route for login , register
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
@@ -37,6 +38,13 @@ Route::post('password/email', [ForgotPasswordController::class,'sendResetLinkEma
 Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+// For client login
+Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () {
+    Route::get('dashboard', [MainClientController::class, 'dashboard'])->name('portal.dashboard');
+    Route::get('orders', [MainClientController::class, 'orders'])->name('portal.orders');
+    Route::get('/orders/{id}', [MainClientController::class, 'show'])->name('portal.orders.show');
+});
 
 // For user login
 Route::middleware(CheckWebOrTeam::class)->group(function () {
