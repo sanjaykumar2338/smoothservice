@@ -312,7 +312,7 @@
                                                 @endif
                                              </div>
                                              
-                                             @if($reply->sender->first_name && $reply->sender->last_name)
+                                             @if(isset($reply->sender->first_name) && isset($reply->sender->last_name))
                                                 <div class="flex-grow-1">
                                                    <strong>{{ $reply->sender ? $reply->sender->first_name.' '.$reply->sender->last_name : 'Unknown Sender' }} replied:</strong> <br>
                                                    <span>{{ $reply->message }}</span><br>
