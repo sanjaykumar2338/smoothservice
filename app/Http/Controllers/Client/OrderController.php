@@ -534,8 +534,13 @@ class OrderController extends Controller
             'message_type' => 'required|string',
         ]);
 
-        $user = auth()->user();
-        $senderType = getUserType()=='web' ? 'App\Models\User' : 'App\Models\TeamMember';
+        if(getUserType()=='client'){
+            $senderType = 'App\Models\Client';
+        }else if(getUserType()=='team'){
+            $senderType = 'App\Models\TeamMember';
+        }else{
+            $senderType = 'App\Models\User';
+        }
 
         // Create a new reply
         $reply = new ClientReply();
@@ -544,7 +549,7 @@ class OrderController extends Controller
         $reply->message = $request->message;
         $reply->scheduled_at = $request->schedule_at;
         $reply->cancel_on_reply = $request->cancel_if_replied ?? false;
-        $reply->sender_id = $user->id;
+        $reply->sender_id = getUserID();
         $reply->sender_type = $senderType;
         $reply->message_type = $request->message_type;
         $reply->save();
@@ -552,12 +557,14 @@ class OrderController extends Controller
         // Load sender relation
         $reply->load('sender');
 
-        History::create([
-            'order_id' => $request->order_id,
-            'user_id' => auth()->id(),
-            'action_type' => 'order_message',
-            'action_details' => 'Order message '. json_encode($request->all()),
-        ]);
+        if(getUserType()!='client'){
+            History::create([
+                'order_id' => $request->order_id,
+                'user_id' => getUserID(),
+                'action_type' => 'order_message',
+                'action_details' => 'Order message '. json_encode($request->all()),
+            ]);
+        }
 
         // Return response with null checks
         return response()->json([

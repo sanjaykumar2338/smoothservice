@@ -48,7 +48,7 @@
                 <thead>
                     <tr class="text-nowrap">
                         <th style="display:none"><input type="checkbox" id="select-all"></th>
-                        <th>#</th>
+                        <th>ID</th>
                         <th>Order Title</th>
                         <th>Client</th>
                         <th>Service</th>
@@ -62,7 +62,7 @@
                         @foreach($orders as $order)
                         <tr style="cursor: pointer;" onclick="window.location.href='{{ route('order.show', $order->order_no) }}'">
                             <td style="display:none"><input type="checkbox" class="order-checkbox" value="{{ $order->id }}"></td>
-                            <th scope="row"><a href="{{ route('order.show', $order->order_no) }}">{{ $order->id }}</a></th>
+                            <th scope="row"><a href="{{ route('order.show', $order->order_no) }}">{{ $order->order_no }}</a></th>
                             <td>{{ $order->title }}</td>
                             <td>{{ $order->client->first_name }} {{ $order->client->last_name }}</td>
                             <td>{{ $order->service->service_name }}</td>

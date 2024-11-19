@@ -20,6 +20,8 @@ class CheckWebOrTeam
             return $next($request);
         } elseif (Auth::guard('team')->check()) {
             return $next($request);
+        } elseif (Auth::guard('client')->check()) {
+            return $next($request);
         }
 
         // If not authenticated, redirect to a generic login route or based on the guard

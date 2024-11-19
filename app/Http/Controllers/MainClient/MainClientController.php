@@ -56,7 +56,6 @@ class MainClientController extends Controller
         }])->where('order_no', $id)->firstOrFail();
 
         $team_members = TeamMember::where('added_by', $order->user_id)->get();
-
         $orderStatus = OrderStatus::find($order->status_id);
         $project_data = OrderProjectData::where('order_id', $order->id)->get();
         $client_replies = ClientReply::where('order_id', $order->id)->get();
@@ -85,7 +84,7 @@ class MainClientController extends Controller
 
         $teamMembers = TeamMember::with('role')->where('added_by', $order->user_id)->get();
         //echo "<pre>"; print_r($order->added_by); die;
-        
+       
         return view('c_main.c_pages.c_order.c_detail', compact('order','team_members','project_data','client_replies','orderHistory','orderstatus','orderStatus','tags','existingTags','existingTagsName','teamMembers'));
     }
 }

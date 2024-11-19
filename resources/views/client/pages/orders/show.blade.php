@@ -3,26 +3,26 @@
 <style>
    /* Create the cross overlay */
    .cross-overlay::before {
-   content: "\00d7";
-   position: absolute;
-   color: #000511;
-   font-size: 1.2em;
-   top: 47%;
-   left: 47%;
-   transform: translate(-50%, -50%);
+      content: "\00d7";
+      position: absolute;
+      color: #000511;
+      font-size: 1.2em;
+      top: 47%;
+      left: 47%;
+      transform: translate(-50%, -50%);
    }
    .nav-link {
-   position: relative;
+      position: relative;
    }
    table th:last-child, 
-   table td:last-child {
-   text-align: right; /* Align text to the right */
+      table td:last-child {
+      text-align: right; /* Align text to the right */
    }
    .completed-task {
-   opacity: 0.5;
+      opacity: 0.5;
    }
    .tagify{
-   height: auto;
+      height: auto;
    }
 </style>
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -278,39 +278,54 @@
                                     <ul class="list-unstyled mb-0" id="message-list">
                                        @foreach($client_replies as $reply)
                                        @if($reply->message_type === 'client')
-                                       <!-- Client Message -->
+                                       <!-- Client Message -->  
                                        <li class="mb-3" style="width:700px;" id="reply{{$reply->id}}">
                                           <div class="d-flex align-items-start">
                                              <div class="me-3">
-                                                @if($reply->sender)
+                                                @if($reply->sender)  
                                                 @if($reply->sender_type === 'App\Models\Client')
-                                                @if($reply->sender->profile_image)
-                                                <img src="{{ asset('storage/' . $reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                @if($reply->sender->profile_image) 
+                                                   <img src="{{ asset($reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
                                                 @else
-                                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                   <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span>
-                                                </div>
+                                                   <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                      <span class="text-white">{{ strtoupper(substr($reply->sender->first_name, 0, 1)) }}</span>
+                                                   </div>
                                                 @endif
-                                                @elseif($reply->sender_type === 'App\Models\Admin')
-                                                @if($reply->sender->profile_image)
-                                                <img src="{{ asset('storage/' . $reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                
+                                                @elseif($reply->sender_type === 'App\Models\Admin' || $reply->sender_type === 'App\Models\User')
+                                                   @if($reply->sender->profile_image)
+                                                      <img src="{{ asset($reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                   @elseif($reply->sender->first_name && $reply->sender->last_name)
+                                                      <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                         <span class="text-white">{{ strtoupper(substr($reply->sender->first_name, 0, 1)) }}</span>
+                                                      </div>
+                                                   @else
+                                                      <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                         <span class="text-white">{{ strtoupper(substr($reply->sender->first_name, 0, 1)) }}</span>
+                                                      </div>
+                                                   @endif
+                                                @endif
                                                 @else
-                                                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                   <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span>
-                                                </div>
-                                                @endif
-                                                @endif
-                                                @else
-                                                <div class="rounded-circle bg-danger d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                   <span class="text-white">?</span>
-                                                </div>
+                                                   <div class="rounded-circle bg-danger d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                      <span class="text-white">?</span>
+                                                   </div>
                                                 @endif
                                              </div>
-                                             <div class="flex-grow-1">
-                                                <strong>{{ $reply->sender ? $reply->sender->name : 'Unknown Sender' }} replied:</strong> <br>
-                                                <span>{{ $reply->message }}</span><br>
-                                                <small class="text-muted">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y H:i') }}</small>
-                                             </div>
+                                             
+                                             @if($reply->sender->first_name && $reply->sender->last_name)
+                                                <div class="flex-grow-1">
+                                                   <strong>{{ $reply->sender ? $reply->sender->first_name.' '.$reply->sender->last_name : 'Unknown Sender' }} replied:</strong> <br>
+                                                   <span>{{ $reply->message }}</span><br>
+                                                   <small class="text-muted">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y H:i') }}</small>
+                                                </div>
+                                             @else
+                                                <div class="flex-grow-1">
+                                                   <strong>{{ $reply->sender ? $reply->sender->name : 'Unknown Sender' }} replied:</strong> <br>
+                                                   <span>{{ $reply->message }}</span><br>
+                                                   <small class="text-muted">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y H:i') }}</small>
+                                                </div>
+                                             @endif
+
                                              <!-- Options Dropdown Menu -->
                                              <div class="dropdown ms-auto">
                                                 <button class="btn p-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
@@ -328,9 +343,13 @@
                                        <li class="mb-3" style="width:200%;" id="reply{{$reply->id}}">
                                           <div class="d-flex align-items-start">
                                              <div class="me-3">
+                                                @if($reply->sender->profile_image) 
+                                                   <img src="{{ asset($reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                @else
                                                 <div class="rounded-circle bg-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                   <span class="text-white">T</span> <!-- Team icon -->
+                                                   <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span> <!-- Team icon -->
                                                 </div>
+                                                @endif
                                              </div>
                                              <div class="flex-grow-1">
                                                 <strong>{{ $reply->sender ? $reply->sender->name : 'Unknown Sender' }} sent a team message:</strong> <br>
@@ -397,6 +416,7 @@
             </div>
          </div>
          <!-- Projects table -->
+
          <div class="card mb-4">
             <h5 class="card-header">History</h5>
             <ul id="history-list" class="list-group">

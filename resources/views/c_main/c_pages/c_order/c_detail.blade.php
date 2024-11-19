@@ -81,37 +81,139 @@
    <div class="row">
       <div class="col-xl-8 col-lg-7 col-md-7">
          <!-- serice heading -->
-         <div class="card card-action mb-4">
-            <div class="card-body">
-               <!-- Display the note -->
-               <div id="display-note" style="{{ $order->note ? '' : 'display:none;' }}">
-                  <div id="note-content">{!! $order->note !!}</div>
-                  <button class="btn btn-label-primary p-1 btn-sm" id="edit-note-btn"><i class="bx bx-edit"></i> Edit Note</button>
-               </div>
-               <!-- Editor for editing the note, hidden by default -->
-               <div id="note-editor" style="{{ $order->note ? 'display:none;' : '' }}">
-                  <label class="form-label" for="full_editor">Add a note for your team...</label>
-                  <div id="full-editor" style="">{!! $order->note !!}</div>
-                  <textarea id="editor_content" style="display:none;" name="editor_content" class="form-control">{!! $order->note !!}</textarea>
-                  <div class="card-footer d-flex justify-content-end">
-                     <button class="btn btn-label-primary p-1 btn-sm" id="save-note-btn"><i class="bx bx-save"></i> Save Note</button>
+         <div class="row">
+            <div class="col-lg-12 col-xl-12">
+               <div class="card card-action mb-4">
+                  <div class="card-body">
+                     <ul class="list-unstyled mb-0">
+                        <li class="mb-3">
+                           <div class="d-flex align-items-start">
+                              <div class="d-flex align-items-start">
+                                 <div class="me-2">
+                                    <ul class="list-unstyled mb-0" id="message-list">
+                                       @foreach($client_replies as $reply)
+                                       @if($reply->message_type === 'client')
+                                       <!-- Client Message -->
+                                       <li class="mb-3" style="width:700px;" id="reply{{$reply->id}}">
+                                          <div class="d-flex align-items-start">
+                                             <div class="me-3">
+                                                @if($reply->sender)
+                                                @if($reply->sender_type === 'App\Models\Client')
+                                                   @if($reply->sender->profile_image)
+                                                      <img src="{{ asset('storage/' . $reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                   @else
+                                                      <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                         <span class="text-white">{{ strtoupper(substr($reply->sender->first_name, 0, 1)) }}</span>
+                                                      </div>
+                                                   @endif
+                                                @elseif($reply->sender_type === 'App\Models\Admin')
+                                                   @if($reply->sender->profile_image)
+                                                      <img src="{{ asset('storage/' . $reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                   @else
+                                                      <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                         <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span>
+                                                      </div>
+                                                   @endif
+                                                @endif
+                                                @else
+                                                   <div class="rounded-circle bg-danger d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                      <span class="text-white">?</span>
+                                                   </div>
+                                                @endif
+                                             </div>
+                                             
+                                             <div class="flex-grow-1">
+                                                <strong>{{ $reply->sender ? $reply->sender->first_name.' '.$reply->sender->last_name : 'Unknown Sender' }} replied:</strong> <br>
+                                                <span>{{ $reply->message }}</span><br>
+                                                <small class="text-muted">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y H:i') }}</small>
+                                             </div>
+
+                                             <!-- Options Dropdown Menu -->
+                                             <div class="dropdown ms-auto">
+                                                <button class="btn p-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                                <li><a class="dropdown-item edit-reply" href="#" data-id="{{ $reply->id }}">Edit</a></li>
+                                                <li><a class="dropdown-item delete-reply" href="#" data-id="{{ $reply->id }}">Delete</a></li>
+                                                </ul>
+                                             </div>
+                                          </div>
+                                       </li>
+                                       @elseif($reply->message_type === 'team')
+                                       <!-- Team Message -->
+                                       <li class="mb-3" style="width:200%;" id="reply{{$reply->id}}">
+                                          <div class="d-flex align-items-start">
+                                             <div class="me-3">
+                                                <div class="rounded-circle bg-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                   <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span> <!-- Team icon -->
+                                                </div>
+                                             </div>
+                                             <div class="flex-grow-1">
+                                                <strong>{{ $reply->sender ? $reply->sender->name : 'Unknown Sender' }} sent a team message:</strong> <br>
+                                                <span>{{ $reply->message }}</span><br>
+                                                <small class="text-muted">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y H:i') }}</small>
+                                             </div>
+                                             <!-- Options Dropdown Menu -->
+                                             <div class="dropdown ms-auto">
+                                                <button class="btn p-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                                   <li><a class="dropdown-item edit-reply" href="#" data-id="{{ $reply->id }}">Edit</a></li>
+                                                   <li><a class="dropdown-item delete-reply" href="#" data-id="{{ $reply->id }}">Delete</a></li>
+                                                </ul>
+                                             </div>
+                                          </div>
+                                       </li>
+                                       @endif
+                                       @endforeach
+                                    </ul>
+                                 </div>
+                              </div>
+                           </div>
+                        </li>
+                     </ul>
+                     
+                     <!-- Hidden elements: Text editor, schedule options, etc. -->
+                     <div id="reply-editor-section" style="display: none;">
+                        <textarea id="reply-editor" class="form-control" rows="5" placeholder="Type your reply..."></textarea>
+                        <div id="schedule-options" style="display:none;">
+                           <div class="d-flex align-items-center mt-3">
+                              <i class="bx bx-calendar"></i>
+                              <label for="schedule-datetime" class="ms-2">Schedule message at:</label>
+                              <input type="datetime-local" id="schedule-datetime" class="form-control ms-2" style="width: 250px;">
+                           </div>
+                           <div class="form-check mt-3">
+                              <input class="form-check-input" type="checkbox" id="cancel-on-reply">
+                              <label class="form-check-label" for="cancel-on-reply">
+                              Cancel if client replies before send time
+                              </label>
+                           </div>
+                        </div>
+                        <div class="mt-3 text-end">
+                           <button style="display:none;" id="show-schedule" class="btn btn-primary"><i class="bx bx-calendar"></i></button>
+                           <button id="send-reply-btn" class="btn btn-primary">Send Message</button>
+                           <button style="display:none;" id="delete-reply-btn" class="btn btn-danger">Delete</button>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="card-footer d-flex justify-content-end" style="display:none;">
+                     <div class="card-footer d-flex justify-content-end">
+                        
+                        <button id="reply-client-btn" class="btn btn-label-primary p-1 btn-sm">
+                        <i class="bx bx-reply"></i> Reply to Client
+                        </button>&nbsp;
+                        
+                        <button id="message-team-btn" class="btn btn-label-primary p-1 btn-sm">
+                        <i class="bx bx-plus"></i> Message Team
+                        </button>
+
+                     </div>
                   </div>
                </div>
             </div>
          </div>
-         <!-- Projects table -->
-         <div class="card mb-4">
-            <h5 class="card-header">History</h5>
-            <ul id="history-list" class="list-group">
-               <!-- The first 5 history messages will be loaded here via JavaScript -->
-            </ul>
-            <!-- Load More Button -->
-            <div id="load-more-container" class="text-center mt-3">
-               <button id="load-more-btn" class="btn btn-primary">Load More</button>
-            </div>
-            <br>
-         </div>
-         <!--/ Projects table -->
       </div>
       <div class="col-xl-4 col-lg-5 col-md-5">
          <!-- About User -->
@@ -196,39 +298,6 @@
 </div>
 
 <script>
-   document.getElementById('edit-note-btn').addEventListener('click', function() {
-       // Hide the display area and show the editor
-       document.getElementById('display-note').style.display = 'none';
-       document.getElementById('note-editor').style.display = 'block';
-   });
-   
-   document.getElementById('save-note-btn').addEventListener('click', function() {
-     var orderId = {{ $order->id }}; // Assuming you're passing the order ID into the view
-   
-     // Get the value from the hidden textarea (already updated by Quill's 'text-change' event)
-     var noteContent = document.getElementById('editor_content').value;
-   
-     // Make an AJAX request to save the note
-     $.ajax({
-        url: '/order/' + orderId + '/save-note',
-        method: 'POST',
-        data: {
-              note: noteContent, // Send the content from the textarea
-              _token: '{{ csrf_token() }}' // Include CSRF token
-        },
-        success: function(response) {
-              // Update the displayed note content on the page
-              document.getElementById('note-content').innerHTML = noteContent;
-   
-              // Hide the editor and show the display area
-              document.getElementById('note-editor').style.display = 'none';
-              document.getElementById('display-note').style.display = 'block';
-        },
-        error: function(error) {
-              console.error('Error saving the note:', error);
-        }
-     });
-   });
    
    function toggleIcon() {
      var icon = document.getElementById("icon");
@@ -261,32 +330,6 @@
         }
      });
    }
-   
-   document.getElementById('add-task-btn').addEventListener('click', function() {
-     document.getElementById('task-form').style.display = 'block';
-     document.getElementById('cancel-task-btn').style.display = 'block';
-   });
-   
-   // Hide the form when "Cancel" is clicked
-   document.getElementById('cancel-task-btn').addEventListener('click', function() {
-     document.getElementById('task-form').style.display = 'none';
-     document.getElementById('cancel-task-btn').style.display = 'none';
-   });
-   
-   // Show appropriate fields based on the "Due" selection
-   document.getElementById('due-date-type').addEventListener('change', function() {
-       var dueType = this.value;
-       if (dueType === 'fixed') {
-           document.getElementById('fixed-date-section').style.display = 'block';
-           document.getElementById('previous-task-section').style.display = 'none';
-       } else if (dueType === 'previous') {
-           document.getElementById('fixed-date-section').style.display = 'none';
-           document.getElementById('previous-task-section').style.display = 'block';
-       } else {
-           document.getElementById('fixed-date-section').style.display = 'none';
-           document.getElementById('previous-task-section').style.display = 'none';
-       }
-   });
    
    // Track whether the task is being edited
    var editingTaskId = null;
@@ -569,6 +612,8 @@
         $('#reply-editor').attr('placeholder', 'Type your message to the team...');
      });
    
+     $('#message-team-btn').click();
+
      // Toggle the schedule options
      $('#show-schedule').on('click', function() {
         $('#schedule-options').toggle();
@@ -579,7 +624,7 @@
         const message = $('#reply-editor').val();
         const scheduleAt = $('#schedule-datetime').val();
         const cancelOnReply = $('#cancel-on-reply').is(':checked') ? 1 : 0; // Ensure it's a boolean
-        const messageType = isTeamMessage ? 'team' : 'client'; // Set message type
+        const messageType = 'client'; // Set message type
    
         if (!message) {
            alert('Please enter a reply.');
@@ -599,8 +644,9 @@
                  _token: '{{ csrf_token() }}'
            },
            success: function(response) {
+                 console.log(response,'response')
                  alert('Message sent successfully.');
-                 $('#reply-editor-section').hide();  // Hide editor
+                 //$('#reply-editor-section').hide();  // Hide editor
                  $('#reply-editor').val('');  // Reset editor
    
                  // Append the new message to the message list dynamically
