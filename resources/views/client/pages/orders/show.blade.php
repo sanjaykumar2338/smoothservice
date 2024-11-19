@@ -471,6 +471,41 @@
                      </span>
                   </li>
                </ul>
+               <small class="text-uppercase">Select Team Members</small>
+               <div>
+                  <select
+                     id="order_team_member"
+                     class="selectpicker w-100"
+                     data-style="btn-default"
+                     multiple
+                     data-max-options="2">
+                  @foreach($teamMembers as $team)
+                  <option value="{{ $team->id }}"
+                  {{-- Mark as selected if this team member is already assigned to the order --}}
+                  @if($order->teamMembers->contains($team->id)) selected @endif
+                  {{-- Disable the selection if permission logic dictates it --}}
+                  @if(
+                  (!checkPermission('assign_to_self') && $team->id === getUserID()) || 
+                  (!checkPermission('assign_to_others') && $team->id !== getUserID())
+                  ) disabled @endif>
+                  {{ $team->first_name }} {{ $team->last_name }} 
+                  {{-- If already assigned, mark it clearly (optional, for better visibility) --}}
+                  @if($order->teamMembers->contains($team->id))
+                  (Already Assigned)
+                  @endif
+                  </option>
+                  @endforeach
+                  </select>
+               </div>
+               <small class=" text-uppercase">Select Tags</small>
+               <div class="">
+                  <input
+                     id="TagifyCustomInlineSuggestion"
+                     name="TagifyCustomInlineSuggestion"
+                     class="form-control"
+                     placeholder="select tags"
+                     value="{{$existingTagsName}}" />
+               </div>
             </div>
          </div>
       </div>

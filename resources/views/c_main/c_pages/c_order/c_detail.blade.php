@@ -90,28 +90,33 @@
                            <div class="d-flex align-items-start">
                               <div class="d-flex align-items-start">
                                  <div class="me-2">
-                                    <ul class="list-unstyled mb-0" id="message-list">
+                                 <ul class="list-unstyled mb-0" id="message-list">
                                        @foreach($client_replies as $reply)
                                        @if($reply->message_type === 'client')
-                                       <!-- Client Message -->
+                                       <!-- Client Message -->  
                                        <li class="mb-3" style="width:700px;" id="reply{{$reply->id}}">
                                           <div class="d-flex align-items-start">
                                              <div class="me-3">
-                                                @if($reply->sender)
+                                                @if($reply->sender)  
                                                 @if($reply->sender_type === 'App\Models\Client')
+                                                @if($reply->sender->profile_image) 
+                                                   <img src="{{ asset($reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                @else
+                                                   <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                      <span class="text-white">{{ strtoupper(substr($reply->sender->first_name, 0, 1)) }}</span>
+                                                   </div>
+                                                @endif
+                                                
+                                                @elseif($reply->sender_type === 'App\Models\Admin' || $reply->sender_type === 'App\Models\User')
                                                    @if($reply->sender->profile_image)
-                                                      <img src="{{ asset('storage/' . $reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
-                                                   @else
-                                                      <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                      <img src="{{ asset($reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                   @elseif($reply->sender->first_name && $reply->sender->last_name)
+                                                      <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                                                          <span class="text-white">{{ strtoupper(substr($reply->sender->first_name, 0, 1)) }}</span>
                                                       </div>
-                                                   @endif
-                                                @elseif($reply->sender_type === 'App\Models\Admin')
-                                                   @if($reply->sender->profile_image)
-                                                      <img src="{{ asset('storage/' . $reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
                                                    @else
                                                       <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                         <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span>
+                                                         <span class="text-white">{{ strtoupper(substr($reply->sender->first_name, 0, 1)) }}</span>
                                                       </div>
                                                    @endif
                                                 @endif
@@ -122,11 +127,19 @@
                                                 @endif
                                              </div>
                                              
-                                             <div class="flex-grow-1">
-                                                <strong>{{ $reply->sender ? $reply->sender->first_name.' '.$reply->sender->last_name : 'Unknown Sender' }} replied:</strong> <br>
-                                                <span>{{ $reply->message }}</span><br>
-                                                <small class="text-muted">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y H:i') }}</small>
-                                             </div>
+                                             @if($reply->sender->first_name && $reply->sender->last_name)
+                                                <div class="flex-grow-1">
+                                                   <strong>{{ $reply->sender ? $reply->sender->first_name.' '.$reply->sender->last_name : 'Unknown Sender' }} replied:</strong> <br>
+                                                   <span>{{ $reply->message }}</span><br>
+                                                   <small class="text-muted">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y H:i') }}</small>
+                                                </div>
+                                             @else
+                                                <div class="flex-grow-1">
+                                                   <strong>{{ $reply->sender ? $reply->sender->name : 'Unknown Sender' }} replied:</strong> <br>
+                                                   <span>{{ $reply->message }}</span><br>
+                                                   <small class="text-muted">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y H:i') }}</small>
+                                                </div>
+                                             @endif
 
                                              <!-- Options Dropdown Menu -->
                                              <div class="dropdown ms-auto">
@@ -145,9 +158,13 @@
                                        <li class="mb-3" style="width:200%;" id="reply{{$reply->id}}">
                                           <div class="d-flex align-items-start">
                                              <div class="me-3">
+                                                @if($reply->sender->profile_image) 
+                                                   <img src="{{ asset($reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                @else
                                                 <div class="rounded-circle bg-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                                                    <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span> <!-- Team icon -->
                                                 </div>
+                                                @endif
                                              </div>
                                              <div class="flex-grow-1">
                                                 <strong>{{ $reply->sender ? $reply->sender->name : 'Unknown Sender' }} sent a team message:</strong> <br>
@@ -198,7 +215,7 @@
                         </div>
                      </div>
                   </div>
-                  <div class="card-footer d-flex justify-content-end" style="display:none;">
+                  <div class="card-footer d-flex justify-content-end multi_messages" style="display:none;">
                      <div class="card-footer d-flex justify-content-end">
                         
                         <button id="reply-client-btn" class="btn btn-label-primary p-1 btn-sm">
@@ -218,7 +235,7 @@
       <div class="col-xl-4 col-lg-5 col-md-5">
          <!-- About User -->
          <div class="card mb-4">
-            <div class="card-body" style="height: 600px;">
+            <div class="card-body" style="height: 300px;">
                <ul class="list-unstyled mb-4">
                   <li class="d-flex align-items-center mb-3">
                      <span class="fw-medium mx-2">{{$order->order_no}}</span>
@@ -256,41 +273,6 @@
                      </span>
                   </li>
                </ul>
-               <small class="text-uppercase">Select Team Members</small>
-               <div>
-                  <select
-                     id="order_team_member"
-                     class="selectpicker w-100"
-                     data-style="btn-default"
-                     multiple
-                     data-max-options="2">
-                  @foreach($teamMembers as $team)
-                  <option value="{{ $team->id }}"
-                  {{-- Mark as selected if this team member is already assigned to the order --}}
-                  @if($order->teamMembers->contains($team->id)) selected @endif
-                  {{-- Disable the selection if permission logic dictates it --}}
-                  @if(
-                  (!checkPermission('assign_to_self') && $team->id === getUserID()) || 
-                  (!checkPermission('assign_to_others') && $team->id !== getUserID())
-                  ) disabled @endif>
-                  {{ $team->first_name }} {{ $team->last_name }} 
-                  {{-- If already assigned, mark it clearly (optional, for better visibility) --}}
-                  @if($order->teamMembers->contains($team->id))
-                  (Already Assigned)
-                  @endif
-                  </option>
-                  @endforeach
-                  </select>
-               </div>
-               <small class=" text-uppercase">Select Tags</small>
-               <div class="">
-                  <input
-                     id="TagifyCustomInlineSuggestion"
-                     name="TagifyCustomInlineSuggestion"
-                     class="form-control"
-                     placeholder="select tags"
-                     value="{{$existingTagsName}}" />
-               </div>
             </div>
          </div>
       </div>
@@ -613,6 +595,7 @@
      });
    
      $('#message-team-btn').click();
+     $('.multi_messages').remove();
 
      // Toggle the schedule options
      $('#show-schedule').on('click', function() {
