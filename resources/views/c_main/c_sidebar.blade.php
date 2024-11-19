@@ -50,7 +50,7 @@
          </a>
       </li>
       <!-- Orders -->
-      <li class="menu-item @php echo in_array(request()->route()->getName(), ['portal.orders']) ? 'open active' : ''@endphp">
+      <li class="menu-item @php echo in_array(request()->route()->getName(), ['portal.orders','portal.orders.show']) ? 'open active' : ''@endphp">
          <a href="{{ route('portal.orders') }}" class="menu-link">
             <i class="menu-icon tf-icons bx bx-cart"></i>
             <div data-i18n="Orders">Orders</div>
