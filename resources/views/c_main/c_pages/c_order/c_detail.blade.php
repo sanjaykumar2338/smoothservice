@@ -142,7 +142,7 @@
                                              @endif
 
                                              <!-- Options Dropdown Menu -->
-                                             <div class="dropdown ms-auto">
+                                             <div class="dropdown ms-auto" style="display:none;">
                                                 <button class="btn p-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                                 </button>
@@ -172,7 +172,7 @@
                                                 <small class="text-muted">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y H:i') }}</small>
                                              </div>
                                              <!-- Options Dropdown Menu -->
-                                             <div class="dropdown ms-auto">
+                                             <div class="dropdown ms-auto" style="display:none;">
                                                 <button class="btn p-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                                                 <i class="bx bx-dots-vertical-rounded"></i>
                                                 </button>
