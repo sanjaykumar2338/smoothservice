@@ -346,9 +346,9 @@
                                                 @if(isset($reply->sender->profile_image))
                                                    <img src="{{ asset($reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
                                                 @else
-                                                <div class="rounded-circle bg-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                   <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span> <!-- Team icon -->
-                                                </div>
+                                                   <div class="rounded-circle bg-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                      <span class="text-white">{{ $reply->sender ? strtoupper(substr($reply->sender->name, 0, 1)) : '' }}</span> <!-- Team icon -->
+                                                   </div>
                                                 @endif
                                              </div>
                                              <div class="flex-grow-1">
