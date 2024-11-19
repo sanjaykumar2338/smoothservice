@@ -343,7 +343,7 @@
                                        <li class="mb-3" style="width:200%;" id="reply{{$reply->id}}">
                                           <div class="d-flex align-items-start">
                                              <div class="me-3">
-                                                @if($reply->sender->profile_image) 
+                                                @if(isset($reply->sender->profile_image))
                                                    <img src="{{ asset($reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
                                                 @else
                                                 <div class="rounded-circle bg-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
