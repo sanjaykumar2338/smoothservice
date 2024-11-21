@@ -57,7 +57,7 @@
          </a>
       </li>
       <!-- Tickets -->
-      <li class="menu-item @php echo in_array(request()->route()->getName(), ['portal.tickets','portal.tickets.show']) ? 'open active' : ''@endphp">
+      <li class="menu-item @php echo in_array(request()->route()->getName(), ['portal.tickets','portal.tickets.show''portal.tickets.create']) ? 'open active' : ''@endphp">
           <a href="{{ route('portal.tickets') }}" class="menu-link">
               <i class='menu-icon tf-icons bx bx-clipboard'></i>
               <div data-i18n="Tickets">Tickets</div>
