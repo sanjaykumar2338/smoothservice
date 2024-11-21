@@ -49,7 +49,10 @@ class TicketStatusController extends Controller
             'lock_completed_orders' => 'nullable|boolean',
             'change_status_on_revision' => 'nullable|boolean',
             'enable_ratings' => 'nullable|boolean',
+            'is_default' => ''
         ]);
+
+        $status = $request->is_default == 'yes' ? 1 : 0;
 
         // Create new TicketStatus
         TicketStatus::create([
@@ -60,6 +63,7 @@ class TicketStatusController extends Controller
             'change_status_on_revision' => $request->has('change_status_on_message') ? 1 : 0, // Handle checkbox
             'enable_ratings' => $request->has('enable_ratings') ? 1 : 0, // Handle checkbox
             'added_by' => $teamMemberId,
+            'is_default' => $status
         ]);
 
         return redirect()->route('setting.ticketstatuses.list')->with('success', 'Ticket Status created successfully');
@@ -88,19 +92,29 @@ class TicketStatusController extends Controller
         
         // Ensure the ticket status exists and was created by the authenticated user
         $status = TicketStatus::where('id', $id)->where('added_by', $teamMemberId)->firstOrFail();
+        
+        // Determine if the status should be default
+        $is_default = $request->has('is_default') && $request->is_default === 'yes' ? 1 : 0;
+
+        // If this status is set as default, update other statuses to not be default
+        if ($is_default) {
+            TicketStatus::where('id', '<>', $status->id)->update(['is_default' => 0]);
+        }
 
         // Update the ticket status
         $status->update([
             'name' => $request->name,
             'color' => $request->color,
             'description' => $request->description,
-            'lock_completed_orders' => $request->has('lock_completed') ? 1 : 0, // Handle checkbox
-            'change_status_on_revision' => $request->has('change_status_on_message') ? 1 : 0, // Handle checkbox
+            'lock_completed_orders' => $request->has('lock_completed_orders') ? 1 : 0, // Handle checkbox
+            'change_status_on_revision' => $request->has('change_status_on_revision') ? 1 : 0, // Handle checkbox
             'enable_ratings' => $request->has('enable_ratings') ? 1 : 0, // Handle checkbox
+            'is_default' => $is_default
         ]);
 
         return redirect()->route('setting.ticketstatuses.list')->with('success', 'Ticket Status updated successfully');
     }
+
 
     // Delete a status from the database
     public function destroy($id)

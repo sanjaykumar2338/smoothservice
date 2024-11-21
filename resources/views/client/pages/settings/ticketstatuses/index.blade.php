@@ -47,6 +47,7 @@
                         <th>Status Name</th>
                         <th>Description</th>
                         <th>Color</th>
+                        <th>Default</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -61,6 +62,7 @@
                                 <span style="background-color: {{ $status->color }}; padding: 5px; border-radius: 50%;">&nbsp;</span>
                                 {{ ucfirst($status->color) }}
                             </td>
+                            <td>{{ $status->is_default == 1 ? 'Yes':'No' }}</td>
                             <td>
                                 <!-- Edit Button -->
                                 <a href="{{ route('setting.ticketstatuses.edit', $status->id) }}" class="btn btn-sm btn-primary">Edit</a>

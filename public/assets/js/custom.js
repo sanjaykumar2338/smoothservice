@@ -31,4 +31,12 @@ $(document).ready(function() {
             width: '100%'
         });
     });
+
+    $(document).ready(function() {
+        $('.select-order-ticket').select2({
+            placeholder: "Select an order", 
+            allowClear: true,
+            width: '100%'
+        });
+    });
 });

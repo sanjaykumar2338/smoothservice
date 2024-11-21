@@ -341,7 +341,6 @@ class TicketController extends Controller
     
         return $ticketNumber;
     }
-    
 
     // Show form to edit ticket
     public function edit($id)

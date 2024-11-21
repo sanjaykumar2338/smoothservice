@@ -73,8 +73,10 @@
 
                         <!-- Checkboxes for additional settings -->
                         <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="lock_completed" name="lock_completed" value="1">
-                            <label class="form-check-label" for="lock_completed">Lock completed tickets</label>
+                            <div>
+                                <input type="checkbox" class="form-check-input" id="lock_completed" name="lock_completed" value="1">
+                                <label class="form-check-label" for="lock_completed">Lock completed tickets</label>
+                            </div>
                             <small class="form-text text-muted">Clients will need to click a "Request revision" button to post a message.</small>
                         </div>
 
@@ -84,10 +86,28 @@
                         </div>
 
                         <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="enable_ratings" name="enable_ratings" value="1">
-                            <label class="form-check-label" for="enable_ratings">Enable ratings</label>
+                            <div>
+                                <input type="checkbox" class="form-check-input" id="enable_ratings" name="enable_ratings" value="1">
+                                <label class="form-check-label" for="enable_ratings">Enable ratings</label>
+                            </div>
                             <small class="form-text text-muted">Clients will be able to leave a rating for completed tickets.</small>
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Default</label>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input type="radio" class="form-check-input" id="is_default" name="is_default" value="yes">
+                                    <label class="form-check-label" for="is_default">Yes</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="radio" class="form-check-input" id="is_default" name="is_default" value="no">
+                                    <label class="form-check-label" for="is_default">No</label>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Initial status for a new ticket</small>
+                        </div>
+
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary">Add Ticket Status</button>

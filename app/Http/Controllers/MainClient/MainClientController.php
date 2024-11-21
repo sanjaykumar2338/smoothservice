@@ -22,6 +22,7 @@ use App\Models\OrderStatus;
 use App\Models\OrderProjectData;
 use App\Models\Tag;
 use App\Models\History;
+use App\Models\TicketStatus;
 use DB;
 
 class MainClientController extends Controller
@@ -86,5 +87,67 @@ class MainClientController extends Controller
         //echo "<pre>"; print_r($order->added_by); die;
        
         return view('c_main.c_pages.c_order.c_detail', compact('order','team_members','project_data','client_replies','orderHistory','orderstatus','orderStatus','tags','existingTags','existingTagsName','teamMembers'));
+    }
+
+    public function tickets(Request $request)
+    {
+        $tickets = Ticket::with('ticket_status')->where('client_id', $this->client_id)->paginate(5);
+        return view('c_main.c_pages.c_ticket.c_index', compact('tickets'));
+    }
+
+    public function ticket_add(Request $request)
+    {
+        $orders = Order::where('client_id', $this->client_id)->get();
+        return view('c_main.c_pages.c_ticket.c_add', compact('orders'));
+    }
+
+    public function ticket_show($id)
+    {
+        $ticket = Ticket::with('ticket_status')->where('ticket_no', $id)->first();
+        return view('c_main.c_pages.c_ticket.c_show', compact('ticket'));
+    }
+
+    public function ticket_store(Request $request){
+        
+        try{
+            $validatedData = $request->validate([
+                'subject' => 'required',
+                'order' => 'nullable',
+                'editor_content' => 'required'
+            ], [
+                'editor_content.required' => 'The message field is required.',
+            ]);            
+
+            $statues = TicketStatus::where('is_default', 1)->first();
+            $status_id = $statues ? $statues->id : null;
+            $client = Client::where('id', $this->client_id)->first();
+
+            $ticket = new Ticket;
+            $ticket->subject = $request->subject;
+            $ticket->order_id = $request->order;
+            $ticket->client_id = $this->client_id;
+            $ticket->user_id = $client->added_by;
+            $ticket->message = $request->editor_content;
+            $ticket->status_id = $status_id;
+            $ticket->ticket_no = $this->generateTicketNumber();
+            $ticket->save();
+
+            return redirect()->route('portal.tickets')->with('success', 'Ticket created successfully');
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function generateTicketNumber($length = 6) {
+        // Characters allowed: numbers and uppercase letters
+        $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $ticketNumber = '';
+    
+        // Generate a random string of the given length
+        for ($i = 0; $i < $length; $i++) {
+            $ticketNumber .= $characters[rand(0, strlen($characters) - 1)];
+        }
+    
+        return $ticketNumber;
     }
 }

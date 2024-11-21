@@ -56,6 +56,11 @@ class Ticket extends Model
         return $this->belongsTo(OrderStatus::class, 'status_id');
     }
 
+    public function ticket_status()
+    {
+        return $this->belongsTo(TicketStatus::class, 'status_id');
+    }
+
     public function metadata()
     {
         return $this->hasMany(TicketMetadata::class, 'ticket_id');

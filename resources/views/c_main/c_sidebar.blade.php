@@ -1,6 +1,6 @@
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
    <div class="app-brand demo">
-      <a href="{{route('dashboard')}}" class="app-brand-link">
+      <a href="{{route('portal.dashboard')}}" class="app-brand-link">
          <span class="app-brand-logo demo">
             <svg width="26px" height="26px" viewBox="0 0 26 26" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                <title>icon</title>
@@ -57,8 +57,8 @@
          </a>
       </li>
       <!-- Tickets -->
-      <li class="menu-item @php echo in_array(request()->route()->getName(), ['ticket.list', 'ticket.add', 'ticket.edit', 'ticket.show']) ? 'open active' : ''@endphp">
-          <a href="{{ route('ticket.list') }}" class="menu-link">
+      <li class="menu-item @php echo in_array(request()->route()->getName(), ['portal.tickets','portal.tickets.show']) ? 'open active' : ''@endphp">
+          <a href="{{ route('portal.tickets') }}" class="menu-link">
               <i class='menu-icon tf-icons bx bx-clipboard'></i>
               <div data-i18n="Tickets">Tickets</div>
           </a>
