@@ -49,7 +49,7 @@
                 <p><strong>Ticket Number:</strong> {{ $ticket->ticket_no }}</p>
             </div>
             <div>
-                <p><strong>Status:</strong> <span class="badge bg-success">{{ $ticket->ticket_status->?name }}</span></p>
+                <p><strong>Status:</strong> <span class="badge bg-success">{{ optional($ticket->ticket_status)->name }}</span></p>
             </div>
         </div>
 
