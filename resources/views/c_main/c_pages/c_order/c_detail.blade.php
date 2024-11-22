@@ -191,7 +191,7 @@
       <div class="col-xl-4 col-lg-5 col-md-5">
          <!-- About User -->
          <div class="card mb-4">
-            <div class="card-body" style="height: 300px;">
+            <div class="card-body" style="height: 500px;">
                <ul class="list-unstyled mb-4">
                   <li class="d-flex align-items-center mb-3">
                      <span class="fw-medium mx-2">{{$order->order_no}}</span>
@@ -229,6 +229,31 @@
                      </span>
                   </li>
                </ul>
+
+               <small class="text-uppercase">Select Team Members</small>
+               <div>
+                  <select
+                     id="order_team_member"
+                     class="selectpicker w-100"
+                     data-style="btn-default"
+                     multiple
+                     data-max-options="2">
+                     
+                     @foreach($team_members as $team)
+                           <option value="{{ $team->id }}"
+                              {{-- Mark as selected if this team member is already assigned to the order --}}
+                              @if($order->teamMembers->contains($team->id)) selected @endif>
+                              
+                              {{ $team->first_name }} {{ $team->last_name }} 
+
+                              {{-- If already assigned, mark it clearly (optional, for better visibility) --}}
+                              @if($order->teamMembers->contains($team->id))
+                                       (Already Assigned)
+                              @endif
+                           </option>
+                     @endforeach
+                  </select>
+               </div>
             </div>
          </div>
       </div>
@@ -834,14 +859,14 @@
               }
    
               // If no permission, reject the member
-              return false;
+              return true;
         });
    
         // Make sure valid members are selected
         if (validSelectedMembers.length > 0 || 1) {
               // Perform AJAX request to save team members
               $.ajax({
-                 url: "{{ route('order.saveTeamMembers') }}", // Your route to save team members
+                 url: "{{ route('portal.order.saveTeamMembers') }}", // Your route to save team members
                  method: "POST",
                  data: {
                     _token: "{{ csrf_token() }}", // CSRF token for Laravel

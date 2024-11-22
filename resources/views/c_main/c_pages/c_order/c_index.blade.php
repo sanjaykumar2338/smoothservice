@@ -22,7 +22,7 @@
             <div class="col-md-12">
                 <div class="dt-action-buttons text-xl-end text-lg-start text-md-end text-start d-flex align-items-center justify-content-end flex-md-row flex-column mb-3 mb-md-0">
                     <div id="DataTables_Table_0_filter" class="dataTables_filter">
-                        <form action="{{ route('order.list') }}" method="GET" class="dataTables_filter" id="DataTables_Table_0_filter">
+                        <form action="{{ route('portal.orders') }}" method="GET" class="dataTables_filter" id="DataTables_Table_0_filter">
                             <label>
                                 <input type="search" name="search" class="form-control" placeholder="Search by client name or service" aria-controls="DataTables_Table_0" value="{{ request()->get('search') }}">
                             </label>

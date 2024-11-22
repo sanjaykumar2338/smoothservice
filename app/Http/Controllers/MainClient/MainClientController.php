@@ -23,6 +23,8 @@ use App\Models\OrderProjectData;
 use App\Models\Tag;
 use App\Models\History;
 use App\Models\TicketStatus;
+use App\Models\TicketTeam;
+use App\Models\OrderTeam;
 use DB;
 
 class MainClientController extends Controller
@@ -44,12 +46,23 @@ class MainClientController extends Controller
         return view('c_main.c_pages.c_dashboard_page', compact('services', 'orders'));
     }
 
-    public function orders()
-    {   
-        $orders = Order::where('client_id', $this->client_id)->paginate(5);
-        return view('c_main.c_pages.c_order.c_index', compact('orders'));
-    }   
-
+    public function orders(Request $request)
+    {
+        $search = $request->input('search'); // Get the search query from the request
+        
+        // Query with optional search on 'title' and 'note'
+        $orders = Order::where('client_id', $this->client_id)
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('title', 'LIKE', '%' . $search . '%')
+                            ->orWhere('note', 'LIKE', '%' . $search . '%');
+                });
+            })
+            ->paginate(5);
+        
+        return view('c_main.c_pages.c_order.c_index', compact('orders', 'search'));
+    }
+   
     public function show($id)
     {
         $order = Order::with(['client', 'teamMembers', 'service', 'tasks' => function($query) {
@@ -91,8 +104,21 @@ class MainClientController extends Controller
 
     public function tickets(Request $request)
     {
-        $tickets = Ticket::with('ticket_status')->where('client_id', $this->client_id)->paginate(5);
-        return view('c_main.c_pages.c_ticket.c_index', compact('tickets'));
+        $search = $request->input('search'); // Get the search query from the request
+
+        // Query tickets with optional search on 'subject', 'message', and 'note'
+        $tickets = Ticket::with('ticket_status')
+            ->where('client_id', $this->client_id)
+            ->when($search, function ($query, $search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('subject', 'LIKE', '%' . $search . '%')
+                            ->orWhere('message', 'LIKE', '%' . $search . '%')
+                            ->orWhere('note', 'LIKE', '%' . $search . '%');
+                });
+            })
+            ->paginate(5);
+
+        return view('c_main.c_pages.c_ticket.c_index', compact('tickets', 'search'));
     }
 
     public function ticket_add(Request $request)
@@ -104,7 +130,11 @@ class MainClientController extends Controller
     public function ticket_show($id)
     {
         $ticket = Ticket::with('ticket_status')->where('ticket_no', $id)->first();
-        return view('c_main.c_pages.c_ticket.c_show', compact('ticket'));
+        $team_members = TeamMember::where('added_by', $ticket->user_id)
+            ->whereIn('role_id', [1, 2])
+            ->get();
+
+        return view('c_main.c_pages.c_ticket.c_show', compact('ticket','team_members'));
     }
 
     public function ticket_store(Request $request){
@@ -149,5 +179,48 @@ class MainClientController extends Controller
         }
     
         return $ticketNumber;
+    }
+
+    // Save assigned team members to the ticket
+    public function saveTeamMembers(Request $request)
+    {
+        $ticketId = $request->input('ticket_id');
+        $teamMemberIds = $request->input('team_member_ids');
+
+        // First, remove any existing team members for this ticket
+        TicketTeam::where('ticket_id', $ticketId)->delete();
+
+        // Now, insert the new selected team members
+        if(!is_null($teamMemberIds)){
+            foreach ($teamMemberIds as $teamMemberId) {
+                TicketTeam::create([
+                    'ticket_id' => $ticketId,
+                    'team_member_id' => $teamMemberId,
+                ]);
+            }
+        }
+
+        return response()->json(['success' => 'Team members saved successfully!']);
+    }
+
+    public function saveTeamMembersOrder(Request $request)
+    {
+        // First, remove any existing team members for this order
+        $orderId = $request->input('order_id');
+        $teamMemberIds = $request->input('team_member_ids');
+
+        OrderTeam::where('order_id', $orderId)->delete();
+
+        // Now, insert the new selected team members
+        if(!is_null($teamMemberIds)){
+            foreach ($teamMemberIds as $teamMemberId) {
+                OrderTeam::create([
+                    'order_id' => $orderId,
+                    'team_member_id' => $teamMemberId,
+                ]);
+            }
+        }
+
+        return response()->json(['success' => 'Team members saved successfully!']);
     }
 }

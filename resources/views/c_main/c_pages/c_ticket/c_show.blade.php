@@ -97,6 +97,31 @@
                     </div>
                 </div>
             </div>
+
+            <small class="text-uppercase">Select Team Members</small>
+            <div>
+                <select
+                    id="ticket_team_member"
+                    class="selectpicker w-100"
+                    data-style="btn-default"
+                    multiple
+                    data-max-options="2">
+                    
+                    @foreach($team_members as $team)
+                        <option value="{{ $team->id }}"
+                            {{-- Mark as selected if this team member is already assigned to the order --}}
+                            @if($ticket->teamMembers->contains($team->id)) selected @endif>
+                            
+                            {{ $team->first_name }} {{ $team->last_name }} 
+
+                            {{-- If already assigned, mark it clearly (optional, for better visibility) --}}
+                            @if($ticket->teamMembers->contains($team->id))
+                                    (Already Assigned)
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
+            </div>
         </div>
     </div>
     </div>
@@ -151,6 +176,64 @@
                 alert('Failed to send message: ' + xhr.responseText);
             }
         });
+    });
+
+    // Listen for changes in the selectpicker
+    timer = 500;
+    $(document.body).on("change", "#ticket_team_member", function() {
+        clearTimeout(timer); // Clear any previous timer
+
+        // Set a timeout of 0.5 seconds (500 milliseconds)
+        timer = setTimeout(function() {
+            // Get the selected team member IDs
+            var selectedTeamMembers = $('#ticket_team_member').val();
+
+            // Check if permissions allow assigning to self or others
+            var canAssignToSelf = "{{ checkPermission('assign_to_self') }}"; // Check permission for assign_to_self
+            var canAssignToOthers = "{{ checkPermission('assign_to_others') }}"; // Check permission for assign_to_others
+            var loggedInUserId = "{{ getUserID() }}"; // Get the logged-in user's ID
+
+            // Filter the selected team members based on permissions
+            var validSelectedMembers = selectedTeamMembers.filter(function(memberId) {
+                // If they have 'assign_to_self' permission, they can select themselves
+                if (canAssignToSelf && memberId == loggedInUserId) {
+                    return true;
+                }
+
+                // If they have 'assign_to_others' permission, they can select other members
+                if (canAssignToOthers && memberId != loggedInUserId) {
+                    return true;
+                }
+
+                // If no permission, reject the member
+                return true;
+            });
+
+            // Make sure valid members are selected
+            console.log('validSelectedMembers', validSelectedMembers);
+            
+            if (validSelectedMembers.length > 0 || 1) {
+                // Perform AJAX request to save team members
+                $.ajax({
+                    url: "{{ route('portal.tickets.team') }}", // Your route to save team members
+                    method: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}", // CSRF token for Laravel
+                        ticket_id: {{ $ticket->id }},   // Pass the ticket ID
+                        team_member_ids: validSelectedMembers // Pass the valid selected team member IDs
+                    },
+                    success: function(response) {
+                        console.log('Team members saved successfully!');
+                    },
+                    error: function(error) {
+                        alert('Error saving team members.');
+                    }
+                });
+            } else {
+                alert('You do not have permission to assign these team members.');
+                location.reload(true);
+            }
+        }, 500); // 0.5 second delay before saving
     });
 </script>
 

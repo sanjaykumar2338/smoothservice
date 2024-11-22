@@ -44,10 +44,13 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
     Route::get('dashboard', [MainClientController::class, 'dashboard'])->name('portal.dashboard');
     Route::get('orders', [MainClientController::class, 'orders'])->name('portal.orders');
     Route::get('/orders/{id}', [MainClientController::class, 'show'])->name('portal.orders.show');
+    Route::post('/order/save-team-members', [MainClientController::class, 'saveTeamMembersOrder'])->name('portal.order.saveTeamMembers');
+
     Route::get('/tickets', [MainClientController::class, 'tickets'])->name('portal.tickets');
     Route::get('/tickets/create', [MainClientController::class, 'ticket_add'])->name('portal.tickets.create');
     Route::post('/tickets/store', [MainClientController::class, 'ticket_store'])->name('portal.tickets.store');
     Route::get('/tickets/show/{id}', [MainClientController::class, 'ticket_show'])->name('portal.tickets.show');
+    Route::post('/tickets/save-team-members', [MainClientController::class, 'saveTeamMembers'])->name('portal.tickets.team');
 });
 
 // For user login
