@@ -149,7 +149,7 @@
                                                     @if($reply->sender)
                                                     @if($reply->sender_type === 'App\Models\TeamMember')
                                                     @if($reply->sender->profile_image)
-                                                    <img src="{{ asset('storage/' . $reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                    <img src="{{ asset($reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
                                                     @else
                                                     <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                                                     <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span>
@@ -157,7 +157,7 @@
                                                     @endif
                                                     @elseif($reply->sender_type === 'App\Models\User')
                                                     @if($reply->sender->profile_image)
-                                                    <img src="{{ asset('storage/' . $reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                    <img src="{{ asset($reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
                                                     @else
                                                     <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                                                     <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span>
@@ -192,9 +192,13 @@
                                         <li class="mb-3" style="width:200%;" id="reply{{$reply->id}}">
                                             <div class="d-flex align-items-start">
                                                 <div class="me-3">
-                                                    <div class="rounded-circle bg-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                    <span class="text-white">T</span> <!-- Team icon -->
+                                                    @if($reply->sender->profile_image)
+                                                    <img src="{{ asset($reply->sender->profile_image) }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px;">
+                                                    @else
+                                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                    <span class="text-white">{{ strtoupper(substr($reply->sender->name, 0, 1)) }}</span>
                                                     </div>
+                                                    @endif
                                                 </div>
                                                 <div class="flex-grow-1">
                                                     <strong>{{ $reply->sender ? $reply->sender->name : 'Unknown Sender' }} sent a team message:</strong> <br>
@@ -243,6 +247,7 @@
                             <button id="delete-reply-btn" class="btn btn-danger">Delete</button>
                             </div>
                         </div>
+                        
                     </div>
                     <div class="card-footer d-flex justify-content-end">
                         <div class="card-footer d-flex justify-content-end">

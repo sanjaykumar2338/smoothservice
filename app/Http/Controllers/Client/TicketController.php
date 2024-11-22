@@ -458,7 +458,13 @@ class TicketController extends Controller
         ]);
 
         $user = auth()->user();
-        $senderType = getUserType()=='web' ? 'App\Models\User' : 'App\Models\TeamMember';
+        if(getUserType()=='client'){
+            $senderType = 'App\Models\Client';
+        }else if(getUserType()=='team'){
+            $senderType = 'App\Models\TeamMember';
+        }else{
+            $senderType = 'App\Models\User';
+        }
 
         // Create a new reply
         $reply = new TicketReply();
@@ -467,7 +473,7 @@ class TicketController extends Controller
         $reply->message = $request->message;
         $reply->scheduled_at = $request->schedule_at;
         $reply->cancel_on_reply = $request->cancel_if_replied ?? false;
-        $reply->sender_id = $user->id;
+        $reply->sender_id = getUserID();
         $reply->sender_type = $senderType;
         $reply->message_type = $request->message_type;
         $reply->save();
@@ -475,12 +481,14 @@ class TicketController extends Controller
         // Load sender relation
         $reply->load('sender');
 
-        History::create([
-            'order_id' => $request->order_id,
-            'user_id' => auth()->id(),
-            'action_type' => 'order_message',
-            'action_details' => 'Order message '. json_encode($request->all()),
-        ]);
+        if(getUserType()!='client'){
+            History::create([
+                'ticket_id' => $request->ticket_id,
+                'user_id' => getUserID(),
+                'action_type' => 'ticket_message',
+                'action_details' => 'Ticket message '. json_encode($request->all()),
+            ]);
+        }
 
         // Return response with null checks
         return response()->json([
@@ -489,7 +497,7 @@ class TicketController extends Controller
                 'message' => $reply->message,
                 'id' => $reply->id,
                 'profile_image' => $reply->sender->profile_image ?? null,
-                'sender_name' => $reply->sender->name ?? 'Unknown Sender', // Handle null sender
+                'sender_name' => $reply->sender->first_name.' '.$reply->sender->last_name ?? 'Unknown Sender', // Handle null sender
                 'created_at' => $reply->created_at->format('Y-m-d H:i:s'),
             ]
         ]);

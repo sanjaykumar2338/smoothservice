@@ -73,37 +73,85 @@
             <!-- Comments/Replies -->
             <div class="comments-section mb-4">
                 <h5>Replies</h5>
-                @foreach ($ticket->replies as $reply)
-                    <div class="comment-box">
-                        <div class="comment-header">
-                            {{ $reply->sender->name ?? 'Unknown Sender' }} <span class="text-muted">| {{ $reply->created_at->format('M d, Y h:i A') }}</span>
+                <div id="message-list">
+                    @foreach ($ticket->replies as $reply)
+                        <div class="comment-box">
+                            <div class="comment-header">
+                                {{ $reply->sender->first_name.' '.$reply->sender->last_name ?? 'Unknown Sender' }} <span class="text-muted">| {{ $reply->created_at->format('M d, Y h:i A') }}</span>
+                            </div>
+                            <div class="comment-body">
+                                {!! nl2br(e($reply->message)) !!}
+                            </div>
                         </div>
-                        <div class="comment-body">
-                            {!! nl2br(e($reply->message)) !!}
-                        </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
             </div>
 
             <!-- Reply Form -->
             <div class="reply-form">
-                <form action="" method="POST">
-                    @csrf
-                    <div class="mb-3">
-                        <label for="message" class="form-label">Your Reply</label>
-                        <textarea class="form-control" id="message" name="message" rows="5" placeholder="Type your reply here..."></textarea>
+                <div id="reply-editor-section" style="display: block;">
+                    <textarea id="reply-editor" class="form-control" rows="5" placeholder="Type your reply..."></textarea>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <p class="mb-0">
-                            <strong>CC:</strong>
-                        </p>
-                        <button type="submit" class="btn btn-danger">Send Message</button>
+                    <div class="mt-3 text-end">
+                        <button id="send-reply-btn" class="btn btn-danger">Send Message</button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
     </div>
 </div>
+
+<script>
+    // Send message to client or team
+    $('#send-reply-btn').on('click', function() {
+        const message = $('#reply-editor').val();
+        const scheduleAt = $('#schedule-datetime').val();
+        const cancelOnReply = $('#cancel-on-reply').is(':checked') ? 1 : 0; // Ensure it's a boolean
+        const messageType = 'client'; // Set message type
+
+        if (!message) {
+            alert('Please enter a reply.');
+            return;
+        }
+
+        $.ajax({
+            url: '/ticket/send-reply', // Using the same route
+            method: 'POST',
+            data: {
+                message: message,
+                schedule_at: scheduleAt,
+                cancel_if_replied: cancelOnReply,
+                ticket_id: '{{ $ticket->id }}',
+                client_id: '{{ $ticket->client->id }}',
+                message_type: messageType, // Differentiating between client and team messages
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                // Reset the editor after successfully sending the message
+                $('#reply-editor').val('');
+
+                // Append the new message dynamically to the message list
+                $('#message-list').append(`
+                    <div class="comment-box" id="reply${response.reply.id}">
+                        <div class="comment-header">
+                            ${response.reply.sender_name || 'Unknown Sender'} 
+                            <span class="text-muted">| ${new Date(response.reply.created_at).toLocaleString()}</span>
+                        </div>
+                        <div class="comment-body">
+                            ${response.reply.message.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                `);
+
+                // Optional: Scroll to the bottom of the message list to show the new message
+                $('#message-list').animate({ scrollTop: $('#message-list')[0].scrollHeight }, 500);
+            },
+            error: function(xhr, status, error) {
+                alert('Failed to send message: ' + xhr.responseText);
+            }
+        });
+    });
+</script>
 
 @endsection
