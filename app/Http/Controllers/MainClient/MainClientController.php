@@ -25,6 +25,8 @@ use App\Models\History;
 use App\Models\TicketStatus;
 use App\Models\TicketTeam;
 use App\Models\OrderTeam;
+use App\Models\Invoice;
+use App\Models\User;
 use DB;
 
 class MainClientController extends Controller
@@ -222,5 +224,41 @@ class MainClientController extends Controller
         }
 
         return response()->json(['success' => 'Team members saved successfully!']);
+    }
+
+    public function invoices(Request $request)
+    {
+        $search = $request->input('search'); // Get the search query from the request
+        
+        // Query with optional search on 'title' and 'note'
+        $invoices = Invoice::with(['client', 'service', 'items'])->where('client_id', $this->client_id)
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('billing_first_name', 'LIKE', '%' . $search . '%')
+                            ->orWhere('billing_last_name', 'LIKE', '%' . $search . '%')
+                            ->orWhere('note', 'LIKE', '%' . $search . '%');
+                });
+            })
+            ->paginate(5);
+        
+        
+        //echo "<pre>"; print_r($invoices); die;
+        return view('c_main.c_pages.c_invoice.c_index', compact('invoices', 'search'));
+    }
+
+    public function invoice_show($id)
+    {
+        // Retrieve the invoice by its ID along with the associated client and items
+        $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
+
+        // Retrieve the services in case you want to display service information in the invoice
+        $services = Service::where('user_id', auth()->id())->get();
+
+        // Fetch all users and team members added by the current logged-in user
+        $users = User::all();
+        $teamMembers = TeamMember::where('added_by', auth()->id())->get();
+
+        // Pass the invoice data to the view
+        return view('c_main.c_pages.c_invoice.c_show', compact('invoice', 'services', 'users', 'teamMembers'));
     }
 }

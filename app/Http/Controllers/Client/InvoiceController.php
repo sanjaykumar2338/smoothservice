@@ -71,6 +71,8 @@ class InvoiceController extends Controller
         $billingDate = $request->has('custom_billing_date') ? $request->input('billing_date') : null;
         $currency = $request->has('custom_currency') ? $request->input('currency') : 'USD';
 
+        $invoice_no = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+
         // Create the invoice record
         $invoice = Invoice::create([
             'client_id' => $request->client_id,
@@ -83,7 +85,8 @@ class InvoiceController extends Controller
             'currency' => $currency,
             'total' => 0,
             'added_by' => auth()->id(),
-            'public_key' => \Str::random(32)
+            'public_key' => \Str::random(32),
+            'invoice_no' => $invoice_no
         ]);
 
         $totalInvoiceAmount = 0;

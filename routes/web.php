@@ -51,6 +51,9 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
     Route::post('/tickets/store', [MainClientController::class, 'ticket_store'])->name('portal.tickets.store');
     Route::get('/tickets/show/{id}', [MainClientController::class, 'ticket_show'])->name('portal.tickets.show');
     Route::post('/tickets/save-team-members', [MainClientController::class, 'saveTeamMembers'])->name('portal.tickets.team');
+
+    Route::get('/invoices', [MainClientController::class, 'invoices'])->name('portal.invoices');
+    Route::get('/invoices/show/{id}', [MainClientController::class, 'invoice_show'])->name('portal.invoices.show');
 });
 
 // For user login
