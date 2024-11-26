@@ -15,7 +15,7 @@
                 @foreach ($orders as $order)
                     <div class="user-analytics text-center me-2">
                         <i class="menu-icon tf-icons bx bx-cart"></i>
-                        <span>{{ $order->name }}</span>
+                        <span>{{ $order->status_name ?? 'Order' }}</span>
                         <div class="d-flex align-items-center mt-2">
                         <div class="chart-report" data-color="success" data-series=""></div>
                         <h3 class="mb-0">{{ $order->total_orders }}</h3>
