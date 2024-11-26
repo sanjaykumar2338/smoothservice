@@ -42,7 +42,7 @@
             <div class="invoice-header d-flex justify-content-between align-items-center">
                 <div>
                     <h5>Invoice #{{ $invoice->invoice_no }}</h5>
-                    <p><strong>Status:</strong> {{ $invoice->status }}</p>
+                    <p><strong>Status:</strong> {{ $invoice->status ? ucfirst($invoice->status) : 'Unpaid' }}</p>
                 </div>
                 <div class="d-flex align-items-center">
                     <button class="btn btn-danger me-2" onclick="window.location.href='{{ route('invoices.download', $invoice->id) }}'">Download</button>
