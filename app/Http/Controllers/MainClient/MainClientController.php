@@ -40,7 +40,7 @@ class MainClientController extends Controller
     {
         $services = Service::where('user_id', $this->client_id)->count();
         $orders = Order::select('orders.status_id', 'order_statuses.name', DB::raw('COUNT(orders.id) as total_orders'))
-            ->join('order_statuses', 'orders.status_id', '=', 'order_statuses.id')
+            ->leftjoin('order_statuses', 'orders.status_id', '=', 'order_statuses.id')
             ->where('orders.client_id', $this->client_id)
             ->groupBy('orders.status_id', 'order_statuses.name')
             ->get();
