@@ -708,7 +708,7 @@
                     });
             },
             fetchSavedOptions() {
-                axios.get(`/client/get-options/${this.serviceId}`)
+                axios.get(`/service/get-options/${this.serviceId}`)
                     .then(response => {
                         if (response.data.price_options) {
                             this.optionMenus = response.data.price_options;
