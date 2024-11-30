@@ -67,7 +67,7 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::get('/service/{service}/edit', [ServiceController::class, 'edit'])->name('service.edit');
     Route::put('/service/{service}', [ServiceController::class, 'update'])->name('service.update');
     Route::delete('/service/{service}', [ServiceController::class, 'destroy'])->name('service.destroy');
-    Route::post('/save-options', [ServiceController::class, 'saveOptions'])->name('service.saveOptions');
+    Route::post('/service/save-options', [ServiceController::class, 'saveOptions'])->name('service.saveOptions');
     Route::get('/get-options/{id}', [ServiceController::class, 'getOptions'])->name('service.getOptions');
 
     // Intake form routes

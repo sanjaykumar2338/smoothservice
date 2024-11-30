@@ -688,7 +688,7 @@
                     _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 };
 
-                axios.post('/client/save-options', dataToSave)
+                axios.post('/service/save-options', dataToSave)
                     .then(response => {
                         this.statusMessage = 'Options saved successfully!';
                         this.statusClass = 'text-success';
