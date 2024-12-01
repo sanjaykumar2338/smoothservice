@@ -33,7 +33,10 @@ class Service extends Model
         'with_trial_or_setup_fee',
         'when_recurring_payment_received',
         'when_recurring_payment_received_two_order_currency',
-        'when_recurring_payment_received_two_order_currency_value'
+        'when_recurring_payment_received_two_order_currency_value',
+        'total_requests',
+        'active_requests',
+        'show_in_the_service_page'
     ];
 
     protected $casts = [

@@ -254,8 +254,9 @@
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" id="defaultRadio33" name="when_recurring_payment_received" value="Create 2 new orders"
                                                 {{ $service->when_recurring_payment_received === 'Create 2 new orders' ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="defaultRadio3"> Create 2 new orders</label><br>
-                                            <small class="text-light fw-medium">If you want clients to fill out 2 new intake forms every day.</small>
+                                            <label class="form-check-label" for="defaultRadio3"> Create a new order / task</label><br>
+
+                                            <small class="text-light fw-medium">If you want clients to fill out a new intake form every day. <a href="#" class="create_a_new_order">Create multiple orders?</a> </small>
 
                                             @if($service->when_recurring_payment_received === 'Create 2 new orders')
                                                 <div class="input-group custom_ordering" style="width: 53ch;">
@@ -273,7 +274,18 @@
                                             <input class="form-check-input" type="radio" id="defaultRadio4" name="when_recurring_payment_received" value="Let clients request new orders / tasks as they need them"
                                                 {{ $service->when_recurring_payment_received === 'Let clients request new orders / tasks as they need them' ? 'checked' : '' }}>
                                             <label class="form-check-label" for="defaultRadio4"> Let clients request new orders / tasks as they need them</label><br>
-                                            <small class="text-light fw-medium">If you offer task-based services. Limit total requests? Limit active requests?</small>
+                                            <small class="text-light fw-medium">If you offer task-based services. <a class="limit_total_requests" href="javascript:void(0);">Limit total requests?</a> 
+                                            <a class="limit_active_requests" href="javascript:void(0);">Limit active requests?</a></small>
+                                        </div>
+
+                                        <div class="input-group custom_ordering total_requests_field hidden" style="margin-bottom: 7px;">
+                                            <input type="number" class="form-control" placeholder="Enter total requests" aria-label="Total Requests" name="total_requests" aria-describedby="basic-addon11" value="{{$service->total_requests}}">
+                                            <span class="input-group-text">requests</span>
+                                        </div>
+
+                                        <div class="input-group custom_ordering active_requests_field hidden">
+                                            <input type="number" class="form-control" placeholder="Enter active requests" aria-label="Active Requests" name="active_requests" aria-describedby="basic-addon11" value="{{$service->active_requests}}">
+                                            <span class="input-group-text">active requests</span>
                                         </div>
 
 
@@ -385,6 +397,22 @@
                             </div>
                         </div>
 
+                        <div>
+                            <h5>Visibility</h5>
+                        </div>
+
+                        <div class="mb-3">
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="show_in_the_service_page" name="show_in_the_service_page" @php echo $service->show_in_the_service_page==1 ? 'checked': ''; @endphp>
+                                <label class="form-check-label" for="set_deadline_check">
+                                    Show in services page <a href="" target="_blank">(?)</a>
+                                </label>
+                            </div>
+                            <div class="mb-2">
+                                Choose whether to list this service in your Client Portal's services page. Service can still be used in order forms.
+                            </div>
+                        </div>
                         
 
                         <button type="submit" class="btn btn-primary">Submit</button>
@@ -520,10 +548,12 @@
 
         // Function to toggle visibility
         function toggleCheckedInputs() {
-            if (checkbox.checked) {
-                checkedInputs.classList.remove('hidden');
-            } else {
-                checkedInputs.classList.add('hidden');
+            if(checkedInputs){
+                if (checkbox.checked) {
+                    checkedInputs.classList.remove('hidden');
+                } else {
+                    checkedInputs.classList.add('hidden');
+                }   
             }
         }
 
@@ -536,7 +566,7 @@
         const someCheckbox = document.getElementById('defaultRadio33');
         someCheckbox.addEventListener('change', e => {
             // Get all elements with the class 'custom_ordering'
-            const customOrderingElements = document.getElementsByClassName('custom_ordering');
+            const customOrderingElementis = document.getElementsByClassName('custom_ordering');
 
             // Loop through all elements and add/remove the 'hidden' class
             for (let i = 0; i < customOrderingElements.length; i++) {
@@ -544,6 +574,22 @@
                     customOrderingElements[i].classList.remove('hidden');
                 } else {
                     customOrderingElements[i].classList.add('hidden');
+                }
+            }
+        });
+
+        $('.create_a_new_order').on('click', function (e) {
+            e.preventDefault(); // Prevent default anchor link behavior
+
+            const customOrderingElement = document.querySelector('.custom_ordering'); // Assuming only one element with this class
+
+            if (customOrderingElement) {
+                if (customOrderingElement.classList.contains('hidden')) {
+                    customOrderingElement.classList.remove('hidden');
+                    customOrderingElement.style.display = 'flex';
+                } else {
+                    customOrderingElement.classList.add('hidden');
+                    customOrderingElement.style.display = 'none';
                 }
             }
         });
@@ -771,5 +817,39 @@
         }
     }, 3000);
 
+    document.addEventListener('DOMContentLoaded', function () {
+        const totalRequestsLink = document.querySelector('.limit_total_requests');
+        const activeRequestsLink = document.querySelector('.limit_active_requests');
+        const totalRequestsField = document.querySelector('.total_requests_field');
+        const activeRequestsField = document.querySelector('.active_requests_field');
+
+        // Toggle visibility for "Limit total requests"
+        totalRequestsLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (totalRequestsField.classList.contains('hidden')) {
+                totalRequestsField.classList.remove('hidden');
+                totalRequestsField.style.display = 'flex';
+                totalRequestsLink.textContent = 'Unlimited requests?';
+            } else {
+                totalRequestsField.classList.add('hidden');
+                totalRequestsField.style.display = 'none';
+                totalRequestsLink.textContent = 'Limit total requests?';
+            }
+        });
+
+        // Toggle visibility for "Limit active requests"
+        activeRequestsLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (activeRequestsField.classList.contains('hidden')) {
+                activeRequestsField.classList.remove('hidden');
+                activeRequestsField.style.display = 'flex';
+                activeRequestsLink.textContent = 'Unlimited active requests?';
+            } else {
+                activeRequestsField.classList.add('hidden');
+                activeRequestsField.style.display = 'none';
+                activeRequestsLink.textContent = 'Limit active requests?';
+            }
+        });
+    });
 </script>
 @endsection

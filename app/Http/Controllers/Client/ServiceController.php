@@ -64,7 +64,10 @@ class ServiceController extends Controller
             'with_trial_or_setup_fee' => 'boolean',
             'when_recurring_payment_received' => '',
             'when_recurring_payment_received_two_order_currency' => '',
-            'when_recurring_payment_received_two_order_currency_value' => ''
+            'when_recurring_payment_received_two_order_currency_value' => '',
+            'total_requests' => '',
+            'active_requests' => '',
+            'show_in_the_service_page' => ''
         ]);
 
         // Update the service
@@ -91,6 +94,9 @@ class ServiceController extends Controller
             'when_recurring_payment_received_two_order_currency' => $request->when_recurring_payment_received_two_order_currency,
             'when_recurring_payment_received_two_order_currency_value' => $request->when_recurring_payment_received_two_order_currency_value,
             'user_id' => getUserID(),
+            'total_requests' => $validatedData['total_requests'],
+            'active_requests' => $validatedData['active_requests'],
+            'show_in_the_service_page' => $validatedData['show_in_the_service_page'] ?? false,
         ]);
 
         // Sync parent services
@@ -138,6 +144,9 @@ class ServiceController extends Controller
             'when_recurring_payment_received_two_order_currency_value' => '',
             'price_options' => 'nullable|json', // Add validation for JSON input
             'combinations' => 'nullable|json',  // Add validation for JSON input
+            'total_requests' => '',
+            'active_requests' => '',
+            'show_in_the_service_page' => ''
         ]);
 
         // Create the service
@@ -166,6 +175,9 @@ class ServiceController extends Controller
             'price_options' => $request->price_options, // Save price_options
             'combinations' => $request->combinations,   // Save combinations
             'user_id' => getUserID(),
+            'total_requests' => $validatedData['total_requests'],
+            'active_requests' => $validatedData['active_requests'],
+            'show_in_the_service_page' => $validatedData['show_in_the_service_page'] ?? false,
         ]);
 
         // Attach parent services

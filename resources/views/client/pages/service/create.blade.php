@@ -214,11 +214,11 @@
                                 <div class="tab-pane" id="navs-top-profile" role="tabpanel">
                                     <label class="form-label" for="full_editor">Price</label>
                                     <div class="input-group" style="">
-                                        <input type="text" value="" class="custom-input-short" placeholder="" aria-label="Username" name="recurring_service_currency" aria-describedby="basic-addon11">
+                                        <input type="text" value="CAD" class="custom-input-short" placeholder="" aria-label="Username" name="recurring_service_currency" aria-describedby="basic-addon11">
 
                                         <input type="number" value="" class="form-control" placeholder="" aria-label="Username" name="recurring_service_currency_value" aria-describedby="basic-addon11">
                                         
-                                        <input type="text" value="" readonly class="custom-input-short" placeholder="" name="recurring_service_currency_every" aria-label="Username" aria-describedby="basic-addon11">
+                                        <input type="text" value="Every" readonly class="custom-input-short" placeholder="" name="recurring_service_currency_every" aria-label="Username" aria-describedby="basic-addon11">
                                         
                                         <input type="number" value="" class="form-control" placeholder="" aria-label="Username" name="recurring_service_currency_value_two" aria-describedby="basic-addon11">
                                         
@@ -249,17 +249,17 @@
                                             <input class="form-check-input" type="radio" id="defaultRadio2" name="when_recurring_payment_received" value="Reopen order"
                                             >
                                             <label class="form-check-label" for="defaultRadio2"> Reopen order</label><br>
-                                            <small class="text-light fw-medium">Order will go back into Working status with a new due date.</small>
+                                            <small class="text-light fw-medium">Order will go back into <a href="{{route('setting.orderstatuses.list')}}" target="_blank">Working</a> status with a new due date.</small>
                                         </div>
 
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" id="defaultRadio33" name="when_recurring_payment_received" value="Create 2 new orders"
                                             >
-                                            <label class="form-check-label" for="defaultRadio3"> Create 2 new orders</label><br>
-                                            <small class="text-light fw-medium">If you want clients to fill out 2 new intake forms every day.</small>
+                                            <label class="form-check-label" for="defaultRadio3"> Create a new order / task</label><br>
+                                            <small class="text-light fw-medium">If you want clients to fill out a new intake form every day. <a href="#" class="create_a_new_order">Create multiple orders?</a> </small>
 
                                            
-                                                <div class="input-group custom_ordering" style="width: 53ch;">
+                                            <div class="input-group custom_ordering hidden" style="width: 53ch;">
                                                 <input type="text" name="when_recurring_payment_received_two_order_currency" class="custom-input-short" placeholder="CAD" aria-label="Username" aria-describedby="basic-addon11">
 
                                                 <input type="number" name="when_recurring_payment_received_two_order_currency_value" class="form-control" placeholder="0.00" aria-label="Username" aria-describedby="basic-addon11">
@@ -269,16 +269,30 @@
 
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" id="defaultRadio4" name="when_recurring_payment_received" value="Let clients request new orders / tasks as they need them">
-                                            <label class="form-check-label" for="defaultRadio4"> Let clients request new orders / tasks as they need them</label><br>
-                                            <small class="text-light fw-medium">If you offer task-based services. Limit total requests? Limit active requests?</small>
+                                            <label class="form-check-label" for="defaultRadio4"> Let clients request up to <span class="requests_limit">2</span> new orders / tasks as they need them</label><br>
+                                            <small class="text-light fw-medium">
+                                                If you offer task-based services. 
+                                                <a class="limit_total_requests" href="javascript:void(0);">Limit total requests?</a> 
+                                                <a class="limit_active_requests" href="javascript:void(0);">Limit active requests?</a>
+                                            </small>
                                         </div>
 
+                                        <div class="input-group custom_ordering total_requests_field hidden" style="margin-bottom: 7px;">
+                                            <input type="number" value="2" class="form-control" placeholder="Enter total requests" aria-label="Total Requests" name="total_requests" aria-describedby="basic-addon11">
+                                            <span class="input-group-text">requests</span>
+                                        </div>
+
+                                        <div class="input-group custom_ordering active_requests_field hidden">
+                                            <input type="number" value="1" class="form-control" placeholder="Enter active requests" aria-label="Active Requests" name="active_requests" aria-describedby="basic-addon11">
+                                            <span class="input-group-text">active requests</span>
+                                        </div>
 
                                     </div>
                                 </div>
                                 </div>
                                 </div>
                             </div>
+                            
                         <div>
                             <h5>Orders of this service</h5>
                         </div>
@@ -366,6 +380,23 @@
                                         <option value="hours">Hours</option>
                                     </select>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h5>Visibility</h5>
+                        </div>
+
+                        <div class="mb-3">
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="show_in_the_service_page" name="show_in_the_service_page">
+                                <label class="form-check-label" for="set_deadline_check">
+                                    Show in services page <a href="" target="_blank">(?)</a>
+                                </label>
+                            </div>
+                            <div class="mb-2">
+                                Choose whether to list this service in your Client Portal's services page. Service can still be used in order forms.
                             </div>
                         </div>
 
@@ -502,13 +533,25 @@
     document.addEventListener('DOMContentLoaded', function() {
         var checkbox = document.getElementById('defaultCheck3');
         var checkedInputs = document.getElementById('checked_inputs');
+       
+        const elements = document.querySelectorAll('.custom_ordering');
+        if (elements.length > 0) {
+            elements.forEach((element) => {
+                element.style.display = 'none';
+            });
+        } else {
+            console.error('No elements found with class "custom_ordering".');
+        }
+
 
         // Function to toggle visibility
         function toggleCheckedInputs() {
-            if (checkbox.checked) {
-                checkedInputs.classList.remove('hidden');
-            } else {
-                checkedInputs.classList.add('hidden');
+            if(checkedInputs){
+                if (checkbox.checked) {
+                    checkedInputs.classList.remove('hidden');
+                } else {
+                    checkedInputs.classList.add('hidden');
+                }
             }
         }
 
@@ -526,9 +569,27 @@
             // Loop through all elements and add/remove the 'hidden' class
             for (let i = 0; i < customOrderingElements.length; i++) {
                 if (e.target.checked === true) {
-                    customOrderingElements[i].classList.remove('hidden');
+                    //customOrderingElements[i].classList.remove('hidden');
+                    //customOrderingElements[i].style.display = 'flex';
                 } else {
-                    customOrderingElements[i].classList.add('hidden');
+                    //customOrderingElements[i].classList.add('hidden');
+                    //customOrderingElements[i].style.display = 'none';
+                }
+            }
+        });
+
+        $('.create_a_new_order').on('click', function (e) {
+            e.preventDefault(); // Prevent default anchor link behavior
+
+            const customOrderingElement = document.querySelector('.custom_ordering'); // Assuming only one element with this class
+
+            if (customOrderingElement) {
+                if (customOrderingElement.classList.contains('hidden')) {
+                    customOrderingElement.classList.remove('hidden');
+                    customOrderingElement.style.display = 'flex';
+                } else {
+                    customOrderingElement.classList.add('hidden');
+                    customOrderingElement.style.display = 'none';
                 }
             }
         });
@@ -728,5 +789,39 @@
         }
     }, 2000);
 
+    document.addEventListener('DOMContentLoaded', function () {
+        const totalRequestsLink = document.querySelector('.limit_total_requests');
+        const activeRequestsLink = document.querySelector('.limit_active_requests');
+        const totalRequestsField = document.querySelector('.total_requests_field');
+        const activeRequestsField = document.querySelector('.active_requests_field');
+
+        // Toggle visibility for "Limit total requests"
+        totalRequestsLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (totalRequestsField.classList.contains('hidden')) {
+                totalRequestsField.classList.remove('hidden');
+                totalRequestsField.style.display = 'flex';
+                totalRequestsLink.textContent = 'Unlimited requests?';
+            } else {
+                totalRequestsField.classList.add('hidden');
+                totalRequestsField.style.display = 'none';
+                totalRequestsLink.textContent = 'Limit total requests?';
+            }
+        });
+
+        // Toggle visibility for "Limit active requests"
+        activeRequestsLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (activeRequestsField.classList.contains('hidden')) {
+                activeRequestsField.classList.remove('hidden');
+                activeRequestsField.style.display = 'flex';
+                activeRequestsLink.textContent = 'Unlimited active requests?';
+            } else {
+                activeRequestsField.classList.add('hidden');
+                activeRequestsField.style.display = 'none';
+                activeRequestsLink.textContent = 'Limit active requests?';
+            }
+        });
+    });
 </script>
 @endsection
