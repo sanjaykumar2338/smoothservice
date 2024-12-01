@@ -19,6 +19,7 @@ use App\Http\Controllers\Client\SubscriptionController;
 use App\Http\Controllers\Client\CouponController;
 use App\Http\Controllers\Client\TicketController;
 use App\Http\Controllers\Client\TicketTagController;
+use App\Http\Controllers\Client\BillingController;
 use App\Http\Middleware\CheckWebOrTeam;
 use App\Http\Middleware\ClientMiddleware;
 
@@ -252,6 +253,9 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::post('/tickets/merge', [TicketController::class, 'mergeTickets'])->name('tickets.merge');
     Route::post('/ticket/replies/{reply}/edit', [TicketController::class, 'replies_edit'])->name('ticket.reply.edit');
     Route::delete('/ticket/replies/{reply}', [TicketController::class, 'replies_destroy'])->name('ticket.reply.destroy');
+
+    //manage billing
+    Route::get('/billing', [BillingController::class, 'index'])->name('billing');
 });
 
 Route::get('logout', function() {
