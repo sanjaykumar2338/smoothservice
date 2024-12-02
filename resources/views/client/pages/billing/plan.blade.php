@@ -3,7 +3,6 @@
 @section('content')
 
 <style>
-   
     .billing-header {
         margin-bottom: 30px;
     }
@@ -66,6 +65,12 @@
         margin-right: 10px;
     }
 
+    .plan-features {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 10px;
+    }
+
     .add-team-members {
         margin-top: 20px;
         font-size: 0.9rem;
@@ -98,91 +103,111 @@
         <!-- Billing Details -->
         <div class="billing-card">
             <div>
-                <p><strong>Payment Method:</strong> VISA •••• •••• •••• 0332</p>
-                <p><strong>Billing Address:</strong></p>
-                <p>
-                    17626 10th ave SW<br>
-                    Edmonton, Alberta<br>
-                    T6W 1Z9, Canada
+                <!-- Display Payment Method -->
+                <p><strong>Payment Method:</strong> 
+                    <span class="badge bg-primary">
+                        {{ auth()->user()->card_brand ?? 'N/A' }}
+                    </span>
+                    •••• {{ auth()->user()->card_last_four ?? 'XXXX' }}
                 </p>
-            </div>
-            <div>
-                <p><strong>Basic</strong> <span class="text-danger">Expires on Jun 14, 2025</span></p>
-                <p>$1188/year</p>
+
+                <!-- Active Subscription Details -->
+                @if($activeSubscription)
+                    <p><strong>{{ $activeSubscription->name }}</strong>
+                        <span class="text-danger" style="background-color: antiquewhite; margin-left: 7px;">
+                            Expires on {{ $activeSubscription->ends_at ? $activeSubscription->ends_at->format('M d, Y') : 'N/A' }}
+                        </span>
+                    </p>
+                    <p>${{ number_format($activeSubscription->stripe_price, 2) }}/{{ $activeSubscription->duration }}</p>
+
+                    <!-- Cancel Subscription Button -->
+                    <form action="{{ route('subscription.cancel', $activeSubscription->id) }}" method="POST" style="margin-top: 15px;">
+                        @csrf
+                        @method('POST') <!-- Use POST to safely handle the cancellation -->
+                        <button type="submit" class="btn btn-danger">Cancel Subscription</button>
+                    </form>
+                @else
+                    <p>No active subscription found.</p>
+                @endif
             </div>
         </div>
 
         <!-- Plan Selection -->
         <div class="plan-select-container">
             <div class="plan-header">
-                <button id="monthly-button" class="inactive">Monthly</button>
-                <button id="yearly-button" class="active">Yearly</button>
+                <button id="monthly-button" class="active">Monthly</button>
+                <button id="yearly-button" class="inactive">Yearly</button>
             </div>
 
-            <div class="plan-item">
-                <div>
-                    <input type="radio" name="plan" id="basic-plan" checked>
-                    <label for="basic-plan">Basic</label>
-                </div>
-                <div>
-                    <p>$99/mo</p>
-                    <small class="text-muted">Billed yearly</small>
-                </div>
-            </div>
-
-            <div class="plan-item">
-                <div>
-                    <input type="radio" name="plan" id="pro-plan">
-                    <label for="pro-plan">Pro</label>
-                </div>
-                <div>
-                    <p>$249/mo</p>
-                    <small class="text-muted">Billed yearly</small>
-                </div>
-            </div>
-
-            <div class="plan-item">
-                <div>
-                    <input type="radio" name="plan" id="plus-plan">
-                    <label for="plus-plan">Plus</label>
-                </div>
-                <div>
-                    <p>Contact us</p>
-                </div>
+            <!-- Plans Container -->
+            <div id="plans-container">
+                @foreach($plans->where('billing_interval', 'yearly') as $plan)
+                    <div class="plan-item">
+                        <div>
+                            <input type="radio" name="plan" class="plan-radio" id="{{ $plan['id'] }}" value="{{ $plan['id'] }}" {{ $loop->first ? 'checked' : '' }}>
+                            <label for="{{ $plan['id'] }}">{{ $plan['name'] }}</label>
+                            <div class="plan-features">
+                                {{ $plan['description'] }}
+                            </div>
+                        </div>
+                        <div>
+                            <p>${{ number_format($plan['price'], 2) }}/{{ $plan['billing_interval'] }}</p>
+                            <small class="text-muted">Billed {{ $plan['billing_interval'] }}</small>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
 
         <!-- Add Team Members -->
-        <div class="add-team-members">
+        <div class="add-team-members" style="display:none;">
             <p>Your selected plan includes 5 seats. You can add more seats for $200/user/year.</p>
             <div class="input-group">
-                <input type="number" min="0" max="100" class="form-control" placeholder="0">
+                <input type="number" min="0" max="100" class="form-control" placeholder="0" style="height: 38px;">
                 <span class="input-group-text">team members</span>
             </div>
         </div>
 
         <!-- Continue Button -->
-        <button class="btn btn-primary mt-4">Continue to Payment</button>
+        <button id="continue-button" class="btn btn-primary mt-4">Continue to Payment</button>
     </div>
 </div>
 
 <script>
-    // JavaScript for toggling between Monthly and Yearly buttons
     document.addEventListener('DOMContentLoaded', function () {
         const monthlyButton = document.getElementById('monthly-button');
         const yearlyButton = document.getElementById('yearly-button');
+        const plansContainer = document.getElementById('plans-container');
+
+        const plansData = @json($plans->groupBy('billing_interval'));
+
+        function renderPlans(interval) {
+            const selectedPlans = plansData[interval] || [];
+            plansContainer.innerHTML = '';
+
+            selectedPlans.forEach(plan => {
+                const planHtml = `
+                <div class="plan-item">
+                    <div>
+                        <input type="radio" name="plan" id="${plan.id}">
+                        <label for="plan-${plan.id}">${plan.name}</label>
+                        <div class="plan-features">${plan.description}</div>
+                    </div>
+                    <div>
+                        <p>$${parseFloat(plan.price).toFixed(2)}/${interval}</p>
+                        <small class="text-muted">Billed ${interval}</small>
+                    </div>
+                </div>`;
+                plansContainer.insertAdjacentHTML('beforeend', planHtml);
+            });
+        }
 
         monthlyButton.addEventListener('click', function () {
             this.classList.add('active');
             this.classList.remove('inactive');
             yearlyButton.classList.remove('active');
             yearlyButton.classList.add('inactive');
-
-            // Update Plan Prices for Monthly (Dynamic Example)
-            document.querySelectorAll('.plan-item p').forEach((item, index) => {
-                if (index === 0) item.textContent = '$10/mo';
-                if (index === 1) item.textContent = '$20/mo';
-            });
+            renderPlans('monthly');
         });
 
         yearlyButton.addEventListener('click', function () {
@@ -190,12 +215,26 @@
             this.classList.remove('inactive');
             monthlyButton.classList.remove('active');
             monthlyButton.classList.add('inactive');
+            renderPlans('yearly');
+        });
 
-            // Update Plan Prices for Yearly (Dynamic Example)
-            document.querySelectorAll('.plan-item p').forEach((item, index) => {
-                if (index === 0) item.textContent = '$99/mo';
-                if (index === 1) item.textContent = '$249/mo';
-            });
+        // Initial Render for 'yearly'
+        renderPlans('monthly');
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const continueButton = document.getElementById('continue-button');
+
+        continueButton.addEventListener('click', function () {
+            const selectedPlan = document.querySelector('input[name="plan"]:checked');
+            if (!selectedPlan) {
+                alert('Please select a plan before continuing.');
+                return;
+            }
+
+            const planId = selectedPlan.id;
+            const paymentUrl = "{{ route('billing.subscription.payment') }}" + "?plan_id=" + encodeURIComponent(planId);
+            window.location.href = paymentUrl;
         });
     });
 </script>

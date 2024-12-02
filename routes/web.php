@@ -22,6 +22,7 @@ use App\Http\Controllers\Client\TicketTagController;
 use App\Http\Controllers\Client\BillingController;
 use App\Http\Middleware\CheckWebOrTeam;
 use App\Http\Middleware\ClientMiddleware;
+use Illuminate\Support\Facades\Artisan;
 
 //for cleint
 use App\Http\Controllers\MainClient\MainClientController;
@@ -256,6 +257,9 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
 
     //manage billing
     Route::get('/billing', [BillingController::class, 'index'])->name('billing');
+    Route::get('/billing/subscription/payment', [BillingController::class, 'payment'])->name('billing.subscription.payment');
+    Route::post('/billing/subscription/process', [BillingController::class, 'process'])->name('billing.process');
+    Route::post('/subscription/cancel/{id}', [BillingController::class, 'cancelSubscription'])->name('subscription.cancel');
 });
 
 Route::get('logout', function() {
@@ -267,3 +271,16 @@ Route::get('logout', function() {
     }
     return redirect('/');
 })->name('logout');
+
+Route::get('/clear-cache', function () {
+    try {
+        Artisan::call('cache:clear');
+        Artisan::call('route:clear');
+        Artisan::call('config:clear');
+        Artisan::call('view:clear');
+
+        return response()->json(['message' => 'All caches cleared successfully!']);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to clear caches. Error: ' . $e->getMessage()], 500);
+    }
+})->name('clear.cache');
