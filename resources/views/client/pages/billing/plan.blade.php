@@ -140,23 +140,23 @@
             </div>
 
             <!-- Plans Container -->
-            <div id="plans-container">
+            <div id="plans-container" class="plans-container">
                 @foreach($plans->where('billing_interval', 'yearly') as $plan)
-                    <div class="plan-item">
-                        <div>
-                            <input type="radio" name="plan" class="plan-radio" id="{{ $plan['id'] }}" value="{{ $plan['id'] }}" {{ $loop->first ? 'checked' : '' }}>
-                            <label for="{{ $plan['id'] }}">{{ $plan['name'] }}</label>
-                            <div class="plan-features">
+                    <div class="plan-card">
+                        <input type="radio" name="plan" class="plan-radio" id="plan-{{ $plan['id'] }}" value="{{ $plan['id'] }}" {{ $loop->first ? 'checked' : '' }}>
+                        <label for="plan-{{ $plan['id'] }}" class="plan-label">
+                            <div class="plan-header">
+                                <h5>{{ $plan['name'] }}</h5>
+                                <p class="plan-price">${{ number_format($plan['price'], 2) }}/{{ $plan['billing_interval'] }}</p>
+                            </div>
+                            <div class="plan-description">
                                 {{ $plan['description'] }}
                             </div>
-                        </div>
-                        <div>
-                            <p>${{ number_format($plan['price'], 2) }}/{{ $plan['billing_interval'] }}</p>
-                            <small class="text-muted">Billed {{ $plan['billing_interval'] }}</small>
-                        </div>
+                        </label>
                     </div>
                 @endforeach
             </div>
+
         </div>
 
         <!-- Add Team Members -->

@@ -22,6 +22,7 @@ use App\Http\Controllers\Client\TicketTagController;
 use App\Http\Controllers\Client\BillingController;
 use App\Http\Middleware\CheckWebOrTeam;
 use App\Http\Middleware\ClientMiddleware;
+use App\Http\Middleware\CheckTeamMembers;
 use Illuminate\Support\Facades\Artisan;
 
 //for cleint

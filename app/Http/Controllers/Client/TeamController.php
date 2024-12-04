@@ -11,9 +11,13 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\TeamMemberWelcome;
 use App\Mail\TeamMemberUpdated;
 use App\Mail\TeamMemberRemoved;
+use App\Models\StripePlan;
 
 class TeamController extends Controller
 {
+    public function __construct(){
+    }
+
     // List all team members
     public function index(Request $request)
     {
@@ -46,9 +50,42 @@ class TeamController extends Controller
         return view('client.pages.team.index', compact('teamMembers'));
     }
 
+    public function totalteammembers()
+    {
+        $query = TeamMember::query();
+
+        // If the user is a 'team' member, filter by 'added_by' with the user who added the logged-in team member
+        if (getUserType() == 'team') {
+            // Get the user who added the logged-in team member
+            $addedBy = TeamMember::where('id', getUserID())->value('added_by');
+            // Only show team members added by the same user who added the logged-in team member
+            $query->where('added_by', $addedBy);
+        } else {
+            // If the user is a web user, show team members they have added
+            $query->where('added_by', auth()->id());
+        }
+
+        // Fetch and paginate team members
+        $teamMembers = $query->count();
+
+        return $teamMembers;
+    }
+
     // Show form to create a new team member
     public function create()
     {
+        $user = auth()->user();
+        $activeSubscription = $user->subscriptions()
+            ->where('stripe_status', 'active')
+            ->first();
+
+        if ($activeSubscription) {
+            $plan = StripePlan::where('id', $activeSubscription->plan_id)->first();
+            if ($plan && $this->totalteammembers() >= $plan->team_members) {
+                return redirect()->back()->with('error', 'You already have the maximum number of team members under your current plan. Please upgrade your plan.');
+            }
+        }
+        
         $roles = Role::all();  // Fetch roles like Admin, Manager, Contractor
         return view('client.pages.team.add', compact('roles'));
     }
@@ -56,13 +93,25 @@ class TeamController extends Controller
     // Store new team member
     public function store(Request $request)
     {
+        $user = auth()->user();
+        $activeSubscription = $user->subscriptions()
+            ->where('stripe_status', 'active')
+            ->first();
+
+        if ($activeSubscription) {
+            $plan = StripePlan::where('id', $activeSubscription->plan_id)->first();
+            if ($plan && $this->totalteammembers() >= $plan->team_members) {
+                return redirect()->back()->with('error', 'You already have the maximum number of team members under your current plan. Please upgrade your plan.');
+            }
+        }
+
         $validatedData = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:team_members',
             'role_id' => 'required|exists:roles,id',
         ]);
-    
+        
         // Generate a random password
         $password = \Str::random(8);
     
