@@ -29,7 +29,8 @@ class User extends Authenticatable
         'card_brand',
         'card_last_four',
         'card_exp_month',
-        'card_exp_year'
+        'card_exp_year',
+        'stripe_connect_account_id'
     ];
 
     /**

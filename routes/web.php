@@ -20,6 +20,7 @@ use App\Http\Controllers\Client\CouponController;
 use App\Http\Controllers\Client\TicketController;
 use App\Http\Controllers\Client\TicketTagController;
 use App\Http\Controllers\Client\BillingController;
+use App\Http\Controllers\Client\IntegrationsController;
 use App\Http\Middleware\CheckWebOrTeam;
 use App\Http\Middleware\ClientMiddleware;
 use App\Http\Middleware\CheckTeamMembers;
@@ -261,6 +262,12 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::get('/billing/subscription/payment', [BillingController::class, 'payment'])->name('billing.subscription.payment');
     Route::post('/billing/subscription/process', [BillingController::class, 'process'])->name('billing.process');
     Route::post('/subscription/cancel/{id}', [BillingController::class, 'cancelSubscription'])->name('subscription.cancel');
+
+    //for the integrations
+    Route::get('/integrations', [IntegrationsController::class, 'index'])->name('integrations');
+    Route::get('/integrations/stripe/connect', [IntegrationsController::class, 'stripe'])->name('integrations.stripe.connect');
+    Route::get('/stripe/connect', [IntegrationsController::class, 'redirectToStripe'])->name('stripe.connect');
+    Route::get('/stripe/callback', [IntegrationsController::class, 'handleCallback'])->name('stripe.callback');
 });
 
 Route::get('logout', function() {

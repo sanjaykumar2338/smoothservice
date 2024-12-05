@@ -101,6 +101,7 @@
       <li class="menu-header small text-uppercase">
          <span class="menu-header-text" data-i18n="Setup">Setup</span>
       </li>
+
       <!-- Services -->
       <li class="menu-item @php echo in_array(request()->route()->getName(), ['service.list', 'service.add', 'service.edit', 'service.intakeform.list', 'service.intakeform.add', 'service.intakeform.edit', 'team.list', 'team.add', 'team.edit']) ? 'open' : ''@endphp">
          <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -129,6 +130,14 @@
                </a>
             </li>
          </ul>
+      </li>
+
+      <!-- integrations -->
+      <li class="menu-item {{ request()->routeIs(['integrations','integrations.stripe.connect']) ? 'active' : '' }}">
+         <a href="{{ route('integrations') }}" class="menu-link">
+            <i class="menu-icon tf-icons bx bx-plug"></i>
+            <div data-i18n="Integrations">Integrations</div>
+         </a>
       </li>
 
       <!-- Settings -->
