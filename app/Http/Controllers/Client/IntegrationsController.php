@@ -143,7 +143,7 @@ class IntegrationsController extends Controller
     public function connect()
     {
         $clientId = env('PAYPAL_CLIENT_ID');
-        $redirectUrl = urlencode(env('PAYPAL_REDIRECT_URL'));
+        $redirectUri = urlencode(env('PAYPAL_REDIRECT_URL'));
         $scope = urlencode('openid profile email https://uri.paypal.com/services/paypalattributes https://uri.paypal.com/services/permissions');
         $url = "https://www.paypal.com/connect?flowEntry=static&client_id={$clientId}&scope={$scope}&redirect_uri={$redirectUri}";
         return redirect($url);
