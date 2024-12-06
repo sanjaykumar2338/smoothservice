@@ -144,8 +144,8 @@ class IntegrationsController extends Controller
     {
         $clientId = env('PAYPAL_CLIENT_ID');
         $redirectUrl = urlencode(env('PAYPAL_REDIRECT_URL'));
-        $scope = urlencode('email');
-        $url = "https://www.sandbox.paypal.com/signin/authorize?client_id={$clientId}&response_type=code&scope={$scope}&redirect_uri={$redirectUrl}";
+        $scope = urlencode('openid profile email https://uri.paypal.com/services/paypalattributes https://uri.paypal.com/services/permissions');
+        $url = "https://www.paypal.com/connect?flowEntry=static&client_id={$clientId}&scope={$scope}&redirect_uri={$redirectUri}";
         return redirect($url);
     }
 
