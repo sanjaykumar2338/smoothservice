@@ -268,6 +268,12 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::get('/integrations/stripe/connect', [IntegrationsController::class, 'stripe'])->name('integrations.stripe.connect');
     Route::get('/stripe/connect', [IntegrationsController::class, 'redirectToStripe'])->name('stripe.connect');
     Route::get('/stripe/callback', [IntegrationsController::class, 'handleCallback'])->name('stripe.callback');
+    Route::post('/stripe/disconnect', [IntegrationsController::class, 'disconnect'])->name('stripe.disconnect');
+
+    Route::get('/integrations/paypal/connect', [IntegrationsController::class, 'paypal'])->name('integrations.paypal');
+    Route::get('/paypal/connect', [IntegrationsController::class, 'connect'])->name('paypal.connect');
+    Route::get('/paypal/callback', [IntegrationsController::class, 'callback'])->name('paypal.callback');
+    Route::post('/paypal/disconnect', [IntegrationsController::class, 'disconnectstripe'])->name('paypal.disconnect');
 });
 
 Route::get('logout', function() {

@@ -146,7 +146,7 @@
                             <p class="integration-description">Get paid via PayPal Payments Standard.</p>
                         </div>
                     </div>
-                    <button class="integration-settings">Settings</button>
+                    <button onclick="window.location.href='{{ route('integrations.paypal') }}'" class="integration-settings">Settings</button>
                 </li>
             </ul>
         </div>
@@ -171,7 +171,7 @@
                             <p class="integration-description">Get paid via PayPal Payments Standard.</p>
                         </div>
                     </div>
-                    <button class="integration-settings">Settings</button>
+                    <button onclick="window.location.href='{{ route('integrations.paypal') }}'" class="integration-settings">Settings</button>
                 </li>
             </ul>
         </div>
