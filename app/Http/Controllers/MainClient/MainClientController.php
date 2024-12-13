@@ -27,6 +27,9 @@ use App\Models\TicketTeam;
 use App\Models\OrderTeam;
 use App\Models\Invoice;
 use App\Models\User;
+use Stripe\Stripe;
+use Stripe\PaymentIntent;
+use Carbon\Carbon;
 use DB;
 
 class MainClientController extends Controller
@@ -260,5 +263,86 @@ class MainClientController extends Controller
 
         // Pass the invoice data to the view
         return view('c_main.c_pages.c_invoice.c_show', compact('invoice', 'services', 'users', 'teamMembers'));
+    }
+
+    public function invoice_payment($id)
+    {
+        // Retrieve the invoice by its ID along with the associated client and items
+        $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
+
+        // Retrieve the services in case you want to display service information in the invoice
+        $services = Service::where('user_id', auth()->id())->get();
+
+        // Fetch all users and team members added by the current logged-in user
+        $users = User::all();
+        $teamMembers = TeamMember::where('added_by', auth()->id())->get();
+
+        // Pass the invoice data to the view
+        return view('c_main.c_pages.c_invoice.c_payment', compact('invoice', 'services', 'users', 'teamMembers'));
+    }
+
+    public function createPaymentIntent(Request $request, Invoice $invoice)
+    {
+        // Ensure the authenticated user can access the invoice
+        if ($invoice->user_id !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized access'], 403);
+        }
+
+        // Set your Stripe secret key
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        // Create a PaymentIntent
+        $paymentIntent = PaymentIntent::create([
+            'amount' => $invoice->total * 100, // Amount in cents
+            'currency' => 'usd',
+            'metadata' => ['invoice_id' => $invoice->id],
+        ]);
+
+        return response()->json(['clientSecret' => $paymentIntent->client_secret]);
+    }
+
+    public function processPayment(Request $request, $id)
+    {
+        // Validate the payment data
+        $request->validate([
+            'payment_intent_id' => 'required|string',
+            'payment_method' => 'required|string', // e.g., 'stripe'
+        ]);
+
+        // Retrieve the invoice
+        $invoice = Invoice::findOrFail($id);
+
+        // Check if the invoice is already paid
+        if ($invoice->paid_at) {
+            return redirect()->route('portal.invoices.show', $id)
+                ->with('status', 'Invoice already paid.');
+        }
+
+        // Perform additional Stripe API checks if necessary
+        $paymentIntentId = $request->input('payment_intent_id');
+        $paymentMethod = $request->input('payment_method');
+
+        // Simulating payment verification (e.g., via Stripe API)
+        // Assume the payment is verified at this point
+        $paymentVerified = true;
+
+        if ($paymentVerified) {
+            // Mark the invoice as paid
+            $invoice->update([
+                'paid_at' => Carbon::now(),
+                'payment_method' => $paymentMethod,
+            ]);
+
+            // Perform any additional post-payment logic
+            return redirect()->route('portal.invoices.show', $id)
+                ->with('status', 'Invoice successfully paid!');
+        } else {
+            return redirect()->route('portal.invoices.show', $id)
+                ->withErrors(['payment' => 'Payment verification failed.']);
+        }
+    }
+
+    public function profile(){
+        return view('c_main.c_profile');
     }
 }

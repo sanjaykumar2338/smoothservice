@@ -231,8 +231,25 @@
                                     </div>
 
                                     <div class="form-check mt-3">
-                                        <input class="form-check-input" name="with_trial_or_setup_fee" type="checkbox" value="1" id="defaultCheck3">
+                                        <input class="form-check-input withtrialboxbtn" name="with_trial_or_setup_fee" type="checkbox" value="1" id="defaultCheck3">
                                         <label class="form-check-label" for="defaultCheck3">With trial or setup fee</label>
+                                    </div>
+
+                                    <div class="input-group withtrialbox" style="display:none;">
+                                        <input type="text" value="CAD" class="custom-input-short" placeholder="" aria-label="trial_currency" name="trial_currency" aria-describedby="basic-addon11">
+
+                                        <input type="number" value="" class="form-control" placeholder="" aria-label="trial_price" name="trial_price" aria-describedby="basic-addon11">
+                                        
+                                        <input type="text" value="for" readonly class="custom-input-short" placeholder="" name="recurring_service_currency_every" aria-label="Username" aria-describedby="basic-addon11">
+                                        
+                                        <input type="number" value="" class="form-control" placeholder="" aria-label="trial_for" name="trial_for" aria-describedby="basic-addon11">
+                                        
+                                        <select name="trial_period" id="trial_period" class="custom-input-short">
+                                            <option value="Month"> Month</option>
+                                            <option value="Year"> Year</option>
+                                            <option value="Week"> Week</option>
+                                            <option value="Day"> Day</option>
+                                        </select>
                                     </div>
 
                                     <div class="col-md mt-3">
@@ -382,13 +399,12 @@
                                 </div>
                             </div>
                         </div>
-
+                    
                         <div>
                             <h5>Visibility</h5>
                         </div>
 
                         <div class="mb-3">
-                            
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="1" id="show_in_the_service_page" name="show_in_the_service_page">
                                 <label class="form-check-label" for="set_deadline_check">
@@ -823,5 +839,15 @@
             }
         });
     });
+
+    $('.withtrialboxbtn').on('click', function() {
+        let _that = $(this);
+        if (_that.prop('checked')) {
+            $('.withtrialbox').show();
+        } else {
+            $('.withtrialbox').hide();
+        }
+    });
+
 </script>
 @endsection

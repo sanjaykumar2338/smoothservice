@@ -67,7 +67,11 @@ class ServiceController extends Controller
             'when_recurring_payment_received_two_order_currency_value' => '',
             'total_requests' => '',
             'active_requests' => '',
-            'show_in_the_service_page' => ''
+            'show_in_the_service_page' => '',
+            'trial_currency' => '',
+            'trial_price' => '',
+            'trial_for' => '',
+            'trial_period' => ''
         ]);
 
         // Update the service
@@ -97,6 +101,10 @@ class ServiceController extends Controller
             'total_requests' => $validatedData['total_requests'],
             'active_requests' => $validatedData['active_requests'],
             'show_in_the_service_page' => $validatedData['show_in_the_service_page'] ?? false,
+            'trial_currency' => $validatedData['trial_currency'],
+            'trial_price' => $validatedData['trial_price'],
+            'trial_for' => $validatedData['trial_for'],
+            'trial_period' => $validatedData['trial_period']
         ]);
 
         // Sync parent services
@@ -146,7 +154,11 @@ class ServiceController extends Controller
             'combinations' => 'nullable|json',  // Add validation for JSON input
             'total_requests' => '',
             'active_requests' => '',
-            'show_in_the_service_page' => ''
+            'show_in_the_service_page' => '',
+            'trial_currency' => '',
+            'trial_price' => '',
+            'trial_for' => '',
+            'trial_period' => ''
         ]);
 
         // Create the service
@@ -178,6 +190,10 @@ class ServiceController extends Controller
             'total_requests' => $validatedData['total_requests'],
             'active_requests' => $validatedData['active_requests'],
             'show_in_the_service_page' => $validatedData['show_in_the_service_page'] ?? false,
+            'trial_currency' => $validatedData['trial_currency'],
+            'trial_price' => $validatedData['trial_price'],
+            'trial_for' => $validatedData['trial_for'],
+            'trial_period' => $validatedData['trial_period']
         ]);
 
         // Attach parent services

@@ -42,7 +42,6 @@
             <div class="invoice-header d-flex justify-content-between align-items-center">
                 <div>
                     <h5>Invoice #{{ $invoice->invoice_no }}</h5>
-                    <p><strong>Status:</strong> {{ $invoice->status ? ucfirst($invoice->status) : 'Unpaid' }}</p>
                 </div>
                 <div class="d-flex align-items-center">
                     <button class="btn btn-danger me-2" onclick="window.location.href='{{ route('invoices.download', $invoice->id) }}'">Download</button>
@@ -103,6 +102,7 @@
                             <th>Item</th>
                             <th>Price</th>
                             <th>Quantity</th>
+                            <th>Discount</th>
                             <th>Total</th>
                         </tr>
                     </thead>
@@ -112,17 +112,18 @@
                             <td>{{ $item->service->service_name ?? $item->item_name }}</td>
                             <td>${{ number_format($item->price, 2) }}</td>
                             <td>{{ $item->quantity }}</td>
+                            <td>${{ number_format($item->discount, 2) }}</td>
                             <td>${{ number_format($item->price * $item->quantity, 2) }}</td>
                         </tr>
                         @endforeach
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                            <td colspan="4" class="text-end"><strong>Subtotal:</strong></td>
                             <td>${{ number_format($invoice->total, 2) }}</td>
                         </tr>
                         <tr>
-                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                            <td colspan="4" class="text-end"><strong>Total:</strong></td>
                             <td><strong>${{ number_format($invoice->total, 2) }}</strong></td>
                         </tr>
                     </tfoot>
@@ -142,9 +143,11 @@
                 </div>
             </div>
 
-            <div class="d-flex align-items-right" style="    float: right;">
-                <button class="btn btn-danger me-2">Continue to Payment</button>
+            @if(!$invoice->paid_at)
+            <div class="d-flex align-items-right" style="float: right;">
+                <button class="btn btn-danger me-2" onclick="window.location.href='{{ route('portal.invoice.payment', $invoice->id) }}'">Continue to Payment</button>
             </div>
+            @endif
         </div>
     </div>
 </div>

@@ -309,7 +309,7 @@
                         <div class="dropdown-divider"></div>
                       </li>
                       <li>
-                        <a class="dropdown-item" href="{{route('profile')}}">
+                        <a class="dropdown-item" href="{{route('portal.profile')}}">
                           <i class="bx bx-user me-2"></i>
                           <span class="align-middle">Your Profile</span>
                         </a>

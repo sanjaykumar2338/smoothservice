@@ -219,6 +219,7 @@ class InvoiceController extends Controller
     {
         // Retrieve the invoice by its ID along with the associated client and items
         $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
+        //echo "<pre>"; print_r($invoice); die;
 
         // Retrieve the services in case you want to display service information in the invoice
         $services = Service::where('user_id', auth()->id())->get();

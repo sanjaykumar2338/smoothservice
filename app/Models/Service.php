@@ -36,7 +36,11 @@ class Service extends Model
         'when_recurring_payment_received_two_order_currency_value',
         'total_requests',
         'active_requests',
-        'show_in_the_service_page'
+        'show_in_the_service_page',
+        'trial_currency',
+        'trial_price',
+        'trial_for',
+        'trial_period'
     ];
 
     protected $casts = [

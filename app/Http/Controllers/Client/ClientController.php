@@ -206,9 +206,12 @@ class ClientController extends Controller
         if (getUserType() == 'web') {
             $user = auth()->guard('web')->user();
             $tableName = 'users'; // For web users
-        } else {
+        } else if(getUserType() == 'team'){
             $user = auth()->guard('team')->user();
             $tableName = 'team_members'; // For team users
+        } else{
+            $user = auth()->guard('client')->user();
+            $tableName = 'clients'; // For team users
         }
 
         // Validate request data
@@ -231,7 +234,12 @@ class ClientController extends Controller
         }
 
         $user->email = $request->input('email');
-        $user->phone_number = $request->input('phoneNumber');
+        if (getUserType() == 'client') {
+            $user->phone = $request->input('phoneNumber');
+        }else{
+            $user->phone_number = $request->input('phoneNumber');
+        }
+
         $user->timezone = $request->input('timezone');
         $user->push_notification = $request->input('push_notification') ? 1 : 0;
 

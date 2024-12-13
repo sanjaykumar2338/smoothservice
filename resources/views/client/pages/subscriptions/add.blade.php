@@ -114,6 +114,11 @@
                                 <input type="number" class="form-control" name="quantities[]" value="1" placeholder="Enter quantity">
                             </div>
 
+                            <div>
+                                <label class="form-label" for="discounts">Discounts</label>
+                                <input type="number" class="form-control" name="discounts[]" value="" placeholder="Enter discount">
+                            </div>
+
                             <!-- Remove Item Button -->
                             <div class="actions">
                                 <button type="button" class="btn btn-danger remove-item" style="display: none;">

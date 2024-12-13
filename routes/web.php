@@ -58,6 +58,12 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
 
     Route::get('/invoices', [MainClientController::class, 'invoices'])->name('portal.invoices');
     Route::get('/invoices/show/{id}', [MainClientController::class, 'invoice_show'])->name('portal.invoices.show');
+    Route::get('/invoice/payment/{id}', [MainClientController::class, 'invoice_payment'])->name('portal.invoice.payment');
+    Route::get('/invoice/payment/process/{id}', [MainClientController::class, 'invoice_payment_process'])->name('portal.invoice.payment.process');
+    Route::post('/invoice/{invoice}/payment-intent', [MainClientController::class, 'createPaymentIntent'])->name('portal.invoice.payment.intent');
+    Route::post('/invoice/{id}/payment/process', [MainClientController::class, 'processPayment'])->name('portal.invoice.payment.process');
+
+    Route::get('/profile', [MainClientController::class, 'profile'])->name('portal.profile');
 });
 
 // For user login

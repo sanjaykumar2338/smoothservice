@@ -158,8 +158,8 @@
                                     <label class="form-label" for="full_editor">Price</label>
 
                                     <div class="input-group" style="width: 53ch;">
-                                        <input type="text" value="" class="custom-input-short" placeholder="CAD" aria-label="Username" aria-describedby="basic-addon11" name="one_time_service_currency">
-                                        <input type="number" value="" class="form-control" placeholder="0.00" aria-label="Username" aria-describedby="basic-addon11" name="one_time_service_currency_value">
+                                        <input type="text" value="{{$service->one_time_service_currency}}" class="custom-input-short" placeholder="CAD" aria-label="Username" aria-describedby="basic-addon11" name="one_time_service_currency">
+                                        <input type="number" value="{{$service->one_time_service_currency_value}}" class="form-control" placeholder="0.00" aria-label="Username" aria-describedby="basic-addon11" name="one_time_service_currency_value">
                                     </div>
 
                                     <!-- for price option -->
@@ -229,8 +229,26 @@
                                     </div>
 
                                     <div class="form-check mt-3">
-                                        <input class="form-check-input" name="with_trial_or_setup_fee" type="checkbox" value="1" id="defaultCheck3" {{ $service->with_trial_or_setup_fee ? 'checked' : '' }}>
+                                        <input class="form-check-input withtrialboxbtn" name="with_trial_or_setup_fee" type="checkbox" value="1" id="defaultCheck3" {{ $service->with_trial_or_setup_fee ? 'checked' : '' }}>
                                         <label class="form-check-label" for="defaultCheck3">With trial or setup fee</label>
+                                    </div>
+
+                                    <div class="input-group withtrialbox" style="{{ $service->with_trial_or_setup_fee ? '' : 'display:none;' }}">
+                                    <input type="text" value="{{$service->trial_currency}}" class="custom-input-short" placeholder="" aria-label="trial_currency" name="trial_currency" aria-describedby="basic-addon11">
+
+                                        <input type="number" value="{{$service->trial_price}}" class="form-control" placeholder="" aria-label="trial_price" name="trial_price" aria-describedby="basic-addon11">
+                                        
+                                        <input type="text" value="for" readonly class="custom-input-short" placeholder="" name="" aria-label="" aria-describedby="basic-addon11">
+                                        
+                                        <input type="number" value="{{$service->trial_for}}" class="form-control" placeholder="" aria-label="trial_for" name="trial_for" aria-describedby="basic-addon11">
+                                        
+                                        <select name="trial_period" id="trial_period" class="custom-input-short">
+                                            <option value="Month" {{ $service->trial_period == 'Month' ? 'selected' : '' }}>Month</option>
+                                            <option value="Year" {{ $service->trial_period == 'Year' ? 'selected' : '' }}>Year</option>
+                                            <option value="Week" {{ $service->trial_period == 'Week' ? 'selected' : '' }}>Week</option>
+                                            <option value="Day" {{ $service->trial_period == 'Day' ? 'selected' : '' }}>Day</option>
+                                        </select>
+
                                     </div>
 
                                     <div class="col-md mt-3">
@@ -850,6 +868,15 @@
                 activeRequestsLink.textContent = 'Limit active requests?';
             }
         });
+    });
+
+    $('.withtrialboxbtn').on('click', function() {
+        let _that = $(this);
+        if (_that.prop('checked')) {
+            $('.withtrialbox').show();
+        } else {
+            $('.withtrialbox').hide();
+        }
     });
 </script>
 @endsection

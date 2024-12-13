@@ -31,7 +31,9 @@ class Invoice extends Model
         'billing_state',       // New billing state field
         'billing_postal_code', // New billing postal/zip code field
         'billing_company',     // New billing company field
-        'billing_tax_id'       // New billing tax ID field
+        'billing_tax_id',       // New billing tax ID field
+        'paid_at',
+        'payment_method'
     ];
     
 
@@ -57,4 +59,8 @@ class Invoice extends Model
     {
         return $this->hasMany(InvoiceRefund::class, 'invoice_id');
     }
+
+    protected $casts = [
+        'paid_at' => 'datetime',
+    ];
 }

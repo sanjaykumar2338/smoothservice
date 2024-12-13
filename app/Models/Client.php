@@ -26,6 +26,8 @@ class Client extends Authenticatable
         'account_balance',
         'status',
         'single_line_of_text',
+        'timezone',
+        'push_notification'
     ];
 
     protected $hidden = [

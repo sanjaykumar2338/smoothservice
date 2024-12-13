@@ -67,7 +67,7 @@
       <li class="menu-header small text-uppercase">
          <span class="menu-header-text" data-i18n="Billing">Billing</span>
       </li>
-      <li class="menu-item {{ request()->routeIs(['portal.invoices','portal.invoices.show']) ? 'active' : '' }}">
+      <li class="menu-item {{ request()->routeIs(['portal.invoices','portal.invoices.show','portal.invoice.payment']) ? 'active' : '' }}">
          <a href="{{ route('portal.invoices') }}" class="menu-link">
             <i class="menu-icon tf-icons bx bx-receipt"></i> <!-- Invoice icon -->
             <div data-i18n="Invoices">Invoices</div>
