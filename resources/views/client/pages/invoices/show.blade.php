@@ -115,37 +115,44 @@
 
             <!-- Invoice Items -->
             <div class="table-responsive mt-4">
-                <table class="table">
+                <table class="table table-borderless">
                     <thead>
                         <tr>
-                            <th>Item</th>
-                            <th>Price</th>
-                            <th>Quantity</th>
-                            <th>Total</th>
+                            <th class="text-start">Item</th>
+                            <th class="text-start">Price</th>
+                            <th class="text-start">Quantity</th>
+                            <th class="text-end">Item Total ({{$invoice->currency}})</th>
+                            <th class="text-end">Item Total (CAD)</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($invoice->items as $item)
                         <tr>
-                            <td>{{ $item->service->service_name ?? $item->item_name }}</td>
-                            <td>${{ number_format($item->price, 2) }}</td>
-                            <td>{{ $item->quantity }}</td>
-                            <td>${{ number_format($item->price * $item->quantity, 2) }}</td>
+                            <td class="text-start">{{ $item->service->service_name ?? $item->item_name }}</td>
+                            <td class="text-start">{{$invoice->currency}} {{ number_format($item->price, 2) }}</td>
+                            <td class="text-start">× {{ $item->quantity }}</td>
+                            <td class="text-end">{{$invoice->currency}} {{ number_format($item->price * $item->quantity, 2) }}</td>
+                            <td class="text-end">${{ number_format($item->price * $item->quantity, 2) }}</td>
                         </tr>
                         @endforeach
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
-                            <td>${{ number_format($invoice->total, 2) }}</td>
+                            <td colspan="2"></td>
+                            <td class="text-end">Subtotal</td>
+                            <td class="text-end">{{$invoice->currency}} {{ number_format($invoice->total, 2) }}</td>
+                            <td class="text-end">${{ number_format($invoice->total, 2) }}</td>
                         </tr>
                         <tr>
-                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                            <td><strong>${{ number_format($invoice->total, 2) }}</strong></td>
+                            <td colspan="2"></td>
+                            <td class="text-end"><strong>Payment due</strong></td>
+                            <td class="text-end"><strong>{{$invoice->currency}} {{ number_format($invoice->total, 2) }}</strong></td>
+                            <td class="text-end">CAD ${{ number_format($invoice->total, 2) }}</td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
+
 
             <!-- Invoice History -->
             <div class="history mt-4">

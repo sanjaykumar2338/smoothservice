@@ -241,8 +241,8 @@ class MainClientController extends Controller
                             ->orWhere('billing_last_name', 'LIKE', '%' . $search . '%')
                             ->orWhere('note', 'LIKE', '%' . $search . '%');
                 });
-            })
-            ->paginate(5);
+            })->orderBy('created_at','desc')
+            ->paginate(10);
         
         
         //echo "<pre>"; print_r($invoices); die;
@@ -309,36 +309,51 @@ class MainClientController extends Controller
             'payment_method' => 'required|string', // e.g., 'stripe'
         ]);
 
-        // Retrieve the invoice
-        $invoice = Invoice::findOrFail($id);
+        try {
+            // Retrieve the invoice
+            $invoice = Invoice::findOrFail($id);
 
-        // Check if the invoice is already paid
-        if ($invoice->paid_at) {
-            return redirect()->route('portal.invoices.show', $id)
-                ->with('status', 'Invoice already paid.');
-        }
+            // Check if the invoice is already paid
+            if ($invoice->paid_at) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invoice already paid.',
+                ], 400);
+            }
 
-        // Perform additional Stripe API checks if necessary
-        $paymentIntentId = $request->input('payment_intent_id');
-        $paymentMethod = $request->input('payment_method');
+            // Retrieve payment details from the request
+            $paymentIntentId = $request->input('payment_intent_id');
+            $paymentMethod = $request->input('payment_method');
 
-        // Simulating payment verification (e.g., via Stripe API)
-        // Assume the payment is verified at this point
-        $paymentVerified = true;
+            // Simulate payment verification (e.g., via Stripe API)
+            // In a real-world application, you would call Stripe APIs here to verify the payment
+            $paymentVerified = true; // Assuming payment is verified
 
-        if ($paymentVerified) {
-            // Mark the invoice as paid
-            $invoice->update([
-                'paid_at' => Carbon::now(),
-                'payment_method' => $paymentMethod,
-            ]);
+            if ($paymentVerified) {
+                // Mark the invoice as paid
+                $invoice->update([
+                    'paid_at' => now(),
+                    'payment_method' => $paymentMethod,
+                ]);
 
-            // Perform any additional post-payment logic
-            return redirect()->route('portal.invoices.show', $id)
-                ->with('status', 'Invoice successfully paid!');
-        } else {
-            return redirect()->route('portal.invoices.show', $id)
-                ->withErrors(['payment' => 'Payment verification failed.']);
+                // Return a success response
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Invoice successfully paid.',
+                ], 200);
+            } else {
+                // Return a failure response if payment verification fails
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment verification failed.',
+                ], 400);
+            }
+        } catch (\Exception $e) {
+            // Handle unexpected errors
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage(),
+            ], 500);
         }
     }
 

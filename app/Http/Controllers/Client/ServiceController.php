@@ -43,7 +43,7 @@ class ServiceController extends Controller
         // Validate the request
         $validatedData = $request->validate([
             'service_name' => 'required|string|max:255',
-            'editor_content' => 'required|string',
+            'editor_content' => 'string',
             'addon' => 'boolean',
             'parent_services' => 'array',
             'group_multiple' => 'boolean',
@@ -128,7 +128,7 @@ class ServiceController extends Controller
         // Validate the request
         $validatedData = $request->validate([
             'service_name' => 'required|string|max:255',
-            'editor_content' => 'required|string',
+            'editor_content' => 'string',
             'addon' => 'boolean',
             'parent_services' => 'array',
             'group_multiple' => 'boolean',

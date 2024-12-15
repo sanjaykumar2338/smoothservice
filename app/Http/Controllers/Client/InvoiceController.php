@@ -69,7 +69,23 @@ class InvoiceController extends Controller
         $partialPayment = $request->has('partial_payment') ? 1 : 0;
         $upfrontPaymentAmount = $partialPayment ? $request->input('upfront_payment_amount') : null;
         $billingDate = $request->has('custom_billing_date') ? $request->input('billing_date') : null;
-        $currency = $request->has('custom_currency') ? $request->input('currency') : 'USD';
+
+        // Determine currency
+        $currency = $request->has('custom_currency') ? $request->input('custom_currency') : null;
+        if (!$currency) {
+            // Check services for `one_time_service_currency`
+            foreach ($request->service_id as $serviceId) {
+                if ($serviceId) {
+                    $service = Service::find($serviceId); // Fetch the service by ID
+                    if ($service && $service->one_time_service_currency) {
+                        $currency = $service->one_time_service_currency;
+                        break; // Use the first available service's currency
+                    }
+                }
+            }
+            // Fallback to CAD if no service has a currency
+            $currency = $currency ?: 'CAD';
+        }
 
         $invoice_no = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
 
@@ -113,10 +129,8 @@ class InvoiceController extends Controller
 
         // Update the total for the invoice
         $invoice->update(['total' => $totalInvoiceAmount]);
-
         return redirect()->route('invoices.list')->with('success', 'Invoice created successfully');
     }
-
 
     // Show the form to edit an existing invoice
     public function edit($id)
@@ -132,7 +146,7 @@ class InvoiceController extends Controller
     // Update an existing invoice
     public function update(Request $request, $id)
     {
-        // Custom validation logic
+        // Validate the request
         $request->validate([
             'client_id' => 'required|exists:clients,id',
             'item_names' => 'required|array',
@@ -154,21 +168,37 @@ class InvoiceController extends Controller
             'due_date' => 'nullable|date',
         ]);
 
+        // Find the invoice
         $invoice = Invoice::findOrFail($id);
 
         // Convert checkbox values
-        $partialPayment = $request->has('partial_payment') ? 1 : 0; // Set to 1 if checked, else 0
-        $sendEmail = $request->has('send_email') ? 1 : 0; // Set to 1 if checked, else 0
+        $partialPayment = $request->has('partial_payment') ? 1 : 0;
+        $sendEmail = $request->has('send_email') ? 1 : 0;
 
-        // Update the main invoice details
+        // Determine the currency
+        $currency = $request->currency;
+        if (!$currency) {
+            foreach ($request->service_id as $serviceId) {
+                if ($serviceId) {
+                    $service = Service::find($serviceId); // Fetch the service by ID
+                    if ($service && $service->one_time_service_currency) {
+                        $currency = $service->one_time_service_currency;
+                        break; // Use the first available service's currency
+                    }
+                }
+            }
+            $currency = $currency ?: 'CAD'; // Fallback to CAD if no service has a currency
+        }
+
+        // Update the invoice details
         $invoice->update([
             'client_id' => $request->client_id,
             'note' => $request->note,
             'send_email' => $sendEmail,
-            'partial_payment' => $partialPayment, // Use 1 or 0
-            'upfront_payment_amount' => $request->upfront_payment_amount ?? null, // Optional field
+            'partial_payment' => $partialPayment,
+            'upfront_payment_amount' => $request->upfront_payment_amount ?? null,
             'billing_date' => $request->billing_date ?? null,
-            'currency' => $request->currency ?? 'USD', // Default to USD
+            'currency' => $currency,
             'due_date' => $request->due_date,
         ]);
 
@@ -191,7 +221,7 @@ class InvoiceController extends Controller
             InvoiceItem::create([
                 'invoice_id' => $invoice->id,
                 'service_id' => $request->service_id[$index] ?? null,
-                'item_name' => $itemName ?: null, // Save the item name if available
+                'item_name' => $itemName ?: null,
                 'description' => $request->descriptions[$index] ?? null,
                 'price' => $price,
                 'quantity' => $quantity,
@@ -199,12 +229,12 @@ class InvoiceController extends Controller
             ]);
         }
 
-        // Update the total in the invoice after recalculating from all items
+        // Update the total for the invoice
         $invoice->update(['total' => $totalInvoiceAmount]);
 
+        // Redirect back with success message
         return redirect()->route('invoices.list')->with('success', 'Invoice updated successfully');
     }
-
 
     // Delete an invoice
     public function destroy($id)

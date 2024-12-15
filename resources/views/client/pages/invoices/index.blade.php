@@ -70,7 +70,7 @@
                         <tr class="clickable-row" data-href="{{ route('invoices.show', $invoice->id) }}">
                             <th scope="row">{{ $invoice->id }}</th>
                             <td>{{ $invoice->client->first_name }} {{ $invoice->client->last_name }}</td>
-                            <td>{{ $invoice->total }}</td>
+                            <td>{{$invoice->currency}} {{ $invoice->total }}</td>
                             <td>{{ $invoice->due_date }}</td>
                             @if(checkPermission('add_edit_delete_invoice'))
                             <td>

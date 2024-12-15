@@ -41,7 +41,7 @@
                         <th>Invoice</th>
                         <th>Date</th>
                         <th>Total</th>
-                        <th>Status</th>
+                        <th>Payment Status</th>
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
@@ -51,7 +51,7 @@
                             <th scope="row"><a href="{{ route('portal.invoices.show', $invoice->id) }}">{{ $invoice->invoice_no }}</a></th>
                             <td>{{ $invoice->created_at->format('M d, Y') }}</td>
                             <td>${{ number_format($invoice->total, 2) }}</td>
-                            <td>{{ $invoice->status ? ucfirst($invoice->status) : 'Unpaid' }}</td>
+                            <td>{{ $invoice->paid_at ? 'Paid On '.$invoice->paid_at->format('M d, Y') : 'Unpaid' }}</td>
                         </tr>
                         @endforeach
                     @else
