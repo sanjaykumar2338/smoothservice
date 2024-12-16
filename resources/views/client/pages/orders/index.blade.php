@@ -65,7 +65,7 @@
                             <th scope="row"><a href="{{ route('order.show', $order->order_no) }}">{{ $order->order_no }}</a></th>
                             <td>{{ $order->title }}</td>
                             <td>{{ $order->client->first_name }} {{ $order->client->last_name }}</td>
-                            <td>{{ $order->service->service_name }}</td>
+                            <td>{{ $order->service?->service_name ?? 'N/A' }}</td>
                             <td>{{ ucfirst($order->status) }}</td>
                             <td>{{ $order->created_at->format('Y-m-d') }}</td>
                             <td>

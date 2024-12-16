@@ -43,7 +43,7 @@ class ServiceController extends Controller
         // Validate the request
         $validatedData = $request->validate([
             'service_name' => 'required|string|max:255',
-            'editor_content' => 'string',
+            'editor_content' => '',
             'addon' => 'boolean',
             'parent_services' => 'array',
             'group_multiple' => 'boolean',
@@ -71,7 +71,8 @@ class ServiceController extends Controller
             'trial_currency' => '',
             'trial_price' => '',
             'trial_for' => '',
-            'trial_period' => ''
+            'trial_period' => '',
+            'service_type' => '',
         ]);
 
         // Update the service
@@ -104,7 +105,8 @@ class ServiceController extends Controller
             'trial_currency' => $validatedData['trial_currency'],
             'trial_price' => $validatedData['trial_price'],
             'trial_for' => $validatedData['trial_for'],
-            'trial_period' => $validatedData['trial_period']
+            'trial_period' => $validatedData['trial_period'],
+            'service_type' => $validatedData['service_type'],
         ]);
 
         // Sync parent services
@@ -128,7 +130,7 @@ class ServiceController extends Controller
         // Validate the request
         $validatedData = $request->validate([
             'service_name' => 'required|string|max:255',
-            'editor_content' => 'string',
+            'editor_content' => '',
             'addon' => 'boolean',
             'parent_services' => 'array',
             'group_multiple' => 'boolean',
@@ -158,7 +160,8 @@ class ServiceController extends Controller
             'trial_currency' => '',
             'trial_price' => '',
             'trial_for' => '',
-            'trial_period' => ''
+            'trial_period' => '',
+            'service_type' => '',
         ]);
 
         // Create the service
@@ -193,7 +196,8 @@ class ServiceController extends Controller
             'trial_currency' => $validatedData['trial_currency'],
             'trial_price' => $validatedData['trial_price'],
             'trial_for' => $validatedData['trial_for'],
-            'trial_period' => $validatedData['trial_period']
+            'trial_period' => $validatedData['trial_period'],
+            'service_type' => $validatedData['service_type'],
         ]);
 
         // Attach parent services

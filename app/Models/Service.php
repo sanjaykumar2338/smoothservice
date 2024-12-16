@@ -40,7 +40,8 @@ class Service extends Model
         'trial_currency',
         'trial_price',
         'trial_for',
-        'trial_period'
+        'trial_period',
+        'service_type',
     ];
 
     protected $casts = [

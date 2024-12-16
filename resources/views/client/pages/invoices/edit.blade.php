@@ -6,9 +6,9 @@
         margin-left: 15px;
     }
     .hidden-field {
-        display: none;
+        display: none !important;
     }
-    
+
     .grid-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -83,9 +83,32 @@
                                     <select class="form-control service-select" name="service_id[]">
                                         <option value="">-- No Service --</option>
                                         @foreach($services as $service)
-                                            <option value="{{ $service->id }}" {{ $item->service_id == $service->id ? 'selected' : '' }}>
-                                                {{ $service->service_name }}
-                                            </option>
+                                            @if($service->service_type == 'recurring')
+                                                
+
+                                                @if($service->trial_for!="")
+                                                    <option data-type="recurring" value="{{ $service->id }}" {{ $item->service_id == $service->id ? 'selected' : '' }}>
+                                                        {{ $service->service_name }} {{$service->trial_currency}} {{$service->trial_price}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, {{ $service->recurring_service_currency }} 
+                                                        ${{ $service->recurring_service_currency_value }}/{{ $service->recurring_service_currency_value_two }} 
+                                                        {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
+                                                    </option>
+                                                @else
+                                            
+                                                <option data-type="recurring" value="{{ $service->id }}" {{ $item->service_id == $service->id ? 'selected' : '' }}>
+                                                    {{ $service->service_name }} {{ $service->recurring_service_currency }} 
+                                                    ${{ $service->recurring_service_currency_value }} / 
+                                                    {{ $service->recurring_service_currency_value_two }} 
+                                                    {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
+                                                </option>
+
+                                                @endif
+
+
+                                            @else
+                                                <option data-type="onetime" value="{{ $service->id }}" {{ $item->service_id == $service->id ? 'selected' : '' }}>
+                                                    {{ $service->service_name }} / {{ $service->one_time_service_currency }} ${{ $service->one_time_service_currency_value }}
+                                                </option>
+                                            @endif
                                         @endforeach
                                     </select>
                                 </div>
@@ -117,6 +140,8 @@
                                 <div>
                                     <label class="form-label" for="discounts">Discounts</label>
                                     <input type="number" class="form-control" name="discounts[]" value="{{ $item->discount }}" placeholder="Enter discount">
+                                    <span class="recurring_discount" style="display:{{$item->service->service_type=='recurring' ? 'block':'none'}}">Recurring discount</span>
+                                    
                                 </div>
 
                                 <!-- Remove Item Button -->
@@ -191,6 +216,37 @@
 </div>
 
 <script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add an event listener to all select elements with the class 'service-select'
+        document.querySelectorAll('.service-select').forEach(function (serviceSelect) {
+            serviceSelect.addEventListener('change', function () {
+                // Get the selected option
+                const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+
+                // Retrieve the 'data-type' attribute
+                const dataType = selectedOption.dataset.type;
+
+                // Output to console or handle accordingly
+                console.log('Selected data-type:', dataType);
+
+                const recurringDiscountSpan = document.querySelector('.recurring_discount');
+
+                // Example: You can now perform conditional logic based on data-type
+                if (dataType === 'recurring') {
+                    console.log('This is a recurring service.');
+                    recurringDiscountSpan.style.display = 'block';
+                } else if (dataType === 'one-time') {
+                    console.log('This is a one-time service.');
+                    recurringDiscountSpan.style.display = 'none';
+                } else {
+                    console.log('No specific data-type found.');
+                    recurringDiscountSpan.style.display = 'none';
+                }
+            });
+        });
+    });
+
     document.addEventListener('DOMContentLoaded', function () {
         let itemIndex = {{ count($invoice->items) }}; // Set initial index based on existing items
 
@@ -200,6 +256,13 @@
             itemTemplate.setAttribute('id', 'item-' + itemIndex); // Set unique id for each new item
             itemTemplate.querySelectorAll('input').forEach(input => input.value = ''); // Clear all inputs in the cloned template
             itemTemplate.querySelector('.remove-item').style.display = 'block'; // Show delete button for cloned items
+            // Select the element with the 'item-name-container' class
+            const itemNameContainer = itemTemplate.querySelector('.item-name-container');
+
+            // Remove the 'hidden-field' class
+            if (itemNameContainer) {
+                itemNameContainer.classList.remove('hidden-field');
+            }
             document.getElementById('items-wrapper').appendChild(itemTemplate); // Append new item to the DOM
             itemIndex++;
         });

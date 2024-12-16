@@ -114,7 +114,7 @@
                         @csrf
                         <div class="mb-3">
                             <label class="form-label" for="service_name">Service Name</label>
-                            <input type="text" class="form-control" id="service_name" name="service_name" placeholder="Service Name" />
+                            <input type="text" class="form-control" id="service_name" name="service_name" placeholder="Service Name" required/>
                         </div>
 
                         <div class="mb-3">
@@ -139,16 +139,18 @@
                             <h5>Pricing</h5>
                         </div>
                         
+                        <input type="hidden" name="service_type" id="service_type" value="onetime">
+
                         <div class="mb-3">
                             <div class="nav-align-top mb-4">
                                 <ul class="nav nav-tabs" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-top-home" aria-controls="navs-top-home" aria-selected="true">
+                                    <button type="button" class="nav-link active onetime service_type_tab" role="tab" data-bs-toggle="tab" data-bs-target="#navs-top-home" aria-controls="navs-top-home" aria-selected="true">
                                         One-time service
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-top-profile" aria-controls="navs-top-profile" aria-selected="false" tabindex="-1">
+                                    <button type="button" class="nav-link recurring service_type_tab" role="tab" data-bs-toggle="tab" data-bs-target="#navs-top-profile" aria-controls="navs-top-profile" aria-selected="false" tabindex="-1">
                                         Recurring service
                                     </button>
                                 </li>
@@ -158,7 +160,7 @@
                                     <label class="form-label" for="full_editor">Price</label>
 
                                     <div class="input-group" style="width: 53ch;">
-                                        <input type="text" value="" class="custom-input-short" placeholder="CAD" aria-label="Username" aria-describedby="basic-addon11" name="one_time_service_currency">
+                                        <input type="text" value="CAD" class="custom-input-short" placeholder="CAD" aria-label="Username" aria-describedby="basic-addon11" name="one_time_service_currency">
                                         <input type="number" value="" class="form-control" placeholder="0.00" aria-label="Username" aria-describedby="basic-addon11" name="one_time_service_currency_value">
                                     </div>
 
@@ -846,6 +848,16 @@
             $('.withtrialbox').show();
         } else {
             $('.withtrialbox').hide();
+        }
+    });
+
+    $('.service_type_tab').on('click', function(){
+        if($(this).hasClass('onetime')){
+            $('#service_type').val('onetime');
+            $('input[name="recurring_service_currency_value_two"]').attr('required', false);
+        }else{
+            $('#service_type').val('recurring');
+            $('input[name="recurring_service_currency_value_two"]').attr('required', true);
         }
     });
 

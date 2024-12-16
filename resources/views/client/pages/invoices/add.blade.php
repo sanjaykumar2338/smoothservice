@@ -6,7 +6,7 @@
         margin-left: 15px;
     }
     .hidden-field {
-        display: none;
+        display: none !important;
     }
     
     .grid-container {
@@ -86,7 +86,35 @@
                                 <select class="form-control service-select" name="service_id[]">
                                     <option value="">-- No Service --</option>
                                     @foreach($services as $service)
-                                        <option value="{{ $service->id }}">{{ $service->service_name }}</option>
+                                        @if($service->service_type == 'recurring')
+                                            
+
+                                            @if($service->trial_for!="")
+                                                <option data-type="recurring" value="{{ $service->id }}">
+                                                    {{ $service->service_name }} {{$service->trial_currency}} {{$service->trial_price}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, {{ $service->recurring_service_currency }} 
+                                                    ${{ $service->recurring_service_currency_value }}/{{ $service->recurring_service_currency_value_two }} 
+                                                    {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
+                                                </option>
+                                            @else
+
+                                            
+
+                                                <option data-type="recurring" value="{{ $service->id }}">
+                                                    {{ $service->service_name }} {{ $service->recurring_service_currency }} 
+                                                    ${{ $service->recurring_service_currency_value }} / 
+                                                    {{ $service->recurring_service_currency_value_two }} 
+                                                    {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
+                                                </option>
+
+
+                                            @endif
+
+
+                                        @else
+                                            <option data-type="onetime" value="{{ $service->id }}">
+                                                {{ $service->service_name }} / {{ $service->one_time_service_currency }} ${{ $service->one_time_service_currency_value }}
+                                            </option>
+                                        @endif
                                     @endforeach
                                 </select>
                             </div>
@@ -118,6 +146,8 @@
                             <div>
                                 <label class="form-label" for="discounts">Discounts</label>
                                 <input type="number" class="form-control" name="discounts[]" value="" placeholder="Enter discount">
+
+                                <span class="recurring_discount" style="display:none;">Recurring discount</span>
                             </div>
 
                             <!-- Remove Item Button -->
@@ -277,6 +307,16 @@
             } else {
                 // Show the item name if no service is selected
                 itemNameContainer.style.display = 'block';
+            }
+
+            const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+            const dataType = selectedOption.dataset.type;
+            const recurringDiscountSpan = document.querySelector('.recurring_discount');
+
+            if (dataType === 'recurring') {
+                recurringDiscountSpan.style.display = 'block';
+            } else {
+                recurringDiscountSpan.style.display = 'none';
             }
         }
 
