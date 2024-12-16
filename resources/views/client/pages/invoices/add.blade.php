@@ -90,26 +90,19 @@
                                             
 
                                             @if($service->trial_for!="")
-                                                <option data-type="recurring" value="{{ $service->id }}">
+                                                <option data-type="recurringwithtrail" value="{{ $service->id }}">
                                                     {{ $service->service_name }} {{$service->trial_currency}} {{$service->trial_price}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, {{ $service->recurring_service_currency }} 
                                                     ${{ $service->recurring_service_currency_value }}/{{ $service->recurring_service_currency_value_two }} 
                                                     {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
                                                 </option>
                                             @else
-
-                                            
-
                                                 <option data-type="recurring" value="{{ $service->id }}">
                                                     {{ $service->service_name }} {{ $service->recurring_service_currency }} 
                                                     ${{ $service->recurring_service_currency_value }} / 
                                                     {{ $service->recurring_service_currency_value_two }} 
                                                     {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
                                                 </option>
-
-
                                             @endif
-
-
                                         @else
                                             <option data-type="onetime" value="{{ $service->id }}">
                                                 {{ $service->service_name }} / {{ $service->one_time_service_currency }} ${{ $service->one_time_service_currency_value }}
@@ -148,6 +141,13 @@
                                 <input type="number" class="form-control" name="discounts[]" value="" placeholder="Enter discount">
 
                                 <span class="recurring_discount" style="display:none;">Recurring discount</span>
+                            </div>
+
+                            <div class="recurring_discount_next_payment" style="display:none;">
+                                <label class="form-label" for="discounts">Discounts</label>
+                                <input type="number" class="form-control" name="discountsnextpayment[]" value="" placeholder="Enter discount">
+
+                                <span>Next payments</span>
                             </div>
 
                             <!-- Remove Item Button -->
@@ -312,10 +312,23 @@
             const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
             const dataType = selectedOption.dataset.type;
             const recurringDiscountSpan = document.querySelector('.recurring_discount');
+            const recurringDiscountSpan2 = document.querySelector('.recurring_discount_next_payment');
 
-            if (dataType === 'recurring') {
+            if(dataType=='recurringwithtrail'){
                 recurringDiscountSpan.style.display = 'block';
+                recurringDiscountSpan2.style.display = 'block';
+                recurringDiscountSpan.textContent = "First Discount";
+            } else if (dataType === 'recurring') {
+                recurringDiscountSpan2.style.display = 'none';
+                recurringDiscountSpan.style.display = 'block';
+                recurringDiscountSpan.textContent = "Recurring discount";
+
+                const inputField = recurringDiscountSpan2.querySelector('input');
+                if (inputField) {
+                    inputField.value = '';
+                }
             } else {
+                recurringDiscountSpan2.style.display = 'none';
                 recurringDiscountSpan.style.display = 'none';
             }
         }

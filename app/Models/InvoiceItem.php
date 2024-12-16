@@ -16,7 +16,8 @@ class InvoiceItem extends Model
         'description',
         'price',
         'quantity',
-        'discount'
+        'discount',
+        'discountsnextpayment',
     ];
 
     public function invoice()

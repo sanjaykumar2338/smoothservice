@@ -87,7 +87,7 @@
                                                 
 
                                                 @if($service->trial_for!="")
-                                                    <option data-type="recurring" value="{{ $service->id }}" {{ $item->service_id == $service->id ? 'selected' : '' }}>
+                                                    <option data-type="recurringwithtrail" value="{{ $service->id }}" {{ $item->service_id == $service->id ? 'selected' : '' }}>
                                                         {{ $service->service_name }} {{$service->trial_currency}} {{$service->trial_price}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, {{ $service->recurring_service_currency }} 
                                                         ${{ $service->recurring_service_currency_value }}/{{ $service->recurring_service_currency_value_two }} 
                                                         {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
@@ -142,6 +142,13 @@
                                     <input type="number" class="form-control" name="discounts[]" value="{{ $item->discount }}" placeholder="Enter discount">
                                     <span class="recurring_discount" style="display:{{$item->service->service_type=='recurring' ? 'block':'none'}}">Recurring discount</span>
                                     
+                                </div>
+
+                                <div class="recurring_discount_next_payment" style="display:none;">
+                                    <label class="form-label" for="discounts">Discounts</label>
+                                    <input type="number" class="form-control" name="discountsnextpayment[]" value="" placeholder="Enter discount">
+
+                                    <span>Next payments</span>
                                 </div>
 
                                 <!-- Remove Item Button -->
@@ -231,16 +238,19 @@
                 console.log('Selected data-type:', dataType);
 
                 const recurringDiscountSpan = document.querySelector('.recurring_discount');
+                const recurringDiscountSpan2 = document.querySelector('.recurring_discount_next_payment');
 
                 // Example: You can now perform conditional logic based on data-type
-                if (dataType === 'recurring') {
-                    console.log('This is a recurring service.');
+                if(dataType=='recurringwithtrail'){
                     recurringDiscountSpan.style.display = 'block';
-                } else if (dataType === 'one-time') {
-                    console.log('This is a one-time service.');
-                    recurringDiscountSpan.style.display = 'none';
+                    recurringDiscountSpan2.style.display = 'block';
+                    recurringDiscountSpan.textContent = "First Discount";
+                } else if (dataType === 'recurring') {
+                    recurringDiscountSpan2.style.display = 'none';
+                    recurringDiscountSpan.style.display = 'block';
+                    recurringDiscountSpan.textContent = "Recurring discount";
                 } else {
-                    console.log('No specific data-type found.');
+                    recurringDiscountSpan2.style.display = 'none';
                     recurringDiscountSpan.style.display = 'none';
                 }
             });

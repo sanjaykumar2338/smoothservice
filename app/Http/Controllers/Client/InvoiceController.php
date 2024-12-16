@@ -112,9 +112,11 @@ class InvoiceController extends Controller
             $price = $request->prices[$index];
             $quantity = $request->quantities[$index];
             $discount = $request->discounts[$index] ?? 0;
+            $discountsnextpayment = $request->discountsnextpayment[$index] ?? 0;
+
             $itemTotal = ($price * $quantity) - $discount;
             $totalInvoiceAmount += $itemTotal;
-
+            
             // Save each invoice item (service or custom item)
             InvoiceItem::create([
                 'invoice_id' => $invoice->id,
@@ -123,7 +125,8 @@ class InvoiceController extends Controller
                 'description' => $request->descriptions[$index] ?? null,
                 'price' => $price,
                 'quantity' => $quantity,
-                'discount' => $discount
+                'discount' => $discount,
+                'discountsnextpayment' => $discountsnextpayment,
             ]);
         }
 
@@ -212,6 +215,7 @@ class InvoiceController extends Controller
             $price = $request->prices[$index];
             $quantity = $request->quantities[$index];
             $discount = $request->discounts[$index] ?? 0;
+            $discountsnextpayment = $request->discountsnextpayment[$index] ?? 0;
 
             // Calculate the item total
             $itemTotal = ($price * $quantity) - $discount;
@@ -225,7 +229,8 @@ class InvoiceController extends Controller
                 'description' => $request->descriptions[$index] ?? null,
                 'price' => $price,
                 'quantity' => $quantity,
-                'discount' => $discount
+                'discount' => $discount,
+                'discountsnextpayment' => $discountsnextpayment,
             ]);
         }
 
