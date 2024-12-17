@@ -259,16 +259,18 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <script>
-
     document.addEventListener('DOMContentLoaded', function () {
-        // Add an event listener to all select elements with the class 'service-select'
-        document.querySelectorAll('.service-select').forEach(function (serviceSelect) {
-            serviceSelect.addEventListener('change', function () {
+        // Event delegation: Listen for change events on the parent container
+        document.body.addEventListener('change', function (e) {
+            // Check if the event target is a service-select dropdown
+            if (e.target && e.target.classList.contains('service-select')) {
+                const serviceSelect = e.target;
+
                 // Get the selected option
                 const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
                 const itemNameContainer2 = serviceSelect.closest('.item-group');
 
-                // Retrieve the 'data-type' attribute
+                // Retrieve the 'data-type' and 'data-price' attributes
                 const dataType = selectedOption.dataset.type;
                 const price = selectedOption.dataset.price;
 
@@ -279,26 +281,38 @@ document.addEventListener('DOMContentLoaded', function () {
                     priceField.value = price;
                 }
 
-                // Output to console or handle accordingly
                 console.log('Selected data-type:', dataType);
 
-                const recurringDiscountSpan = document.querySelector('.recurring_discount');
-                const recurringDiscountSpan2 = document.querySelector('.recurring_discount_next_payment');
+                // Use the current itemNameContainer for recurring spans
+                const recurringDiscountSpan = itemNameContainer2.querySelector('.recurring_discount');
+                const recurringDiscountSpan2 = itemNameContainer2.querySelector('.recurring_discount_next_payment');
 
-                // Example: You can now perform conditional logic based on data-type
-                if(dataType=='recurringwithtrail'){
-                    recurringDiscountSpan.style.display = 'block';
-                    recurringDiscountSpan2.style.display = 'block';
-                    recurringDiscountSpan.textContent = "First Discount";
+                if (dataType === 'recurringwithtrail') {
+                    if (recurringDiscountSpan) {
+                        recurringDiscountSpan.style.display = 'block';
+                        recurringDiscountSpan.textContent = "First Discount";
+                    }
+                    if (recurringDiscountSpan2) {
+                        recurringDiscountSpan2.style.display = 'block';
+                    }
+
+                    itemNameContainer2.querySelector('[name="discountsnextpayment[]"]').style.display = 'block';
+
                 } else if (dataType === 'recurring') {
-                    recurringDiscountSpan2.style.display = 'none';
-                    recurringDiscountSpan.style.display = 'block';
-                    recurringDiscountSpan.textContent = "Recurring discount";
+                    if (recurringDiscountSpan) {
+                        recurringDiscountSpan.style.display = 'block';
+                        recurringDiscountSpan.textContent = "Recurring discount";
+                    }
+                    if (recurringDiscountSpan2) {
+                        recurringDiscountSpan2.style.display = 'none';
+                        const inputField = recurringDiscountSpan2.querySelector('input');
+                        if (inputField) inputField.value = '';
+                    }
                 } else {
-                    recurringDiscountSpan2.style.display = 'none';
-                    recurringDiscountSpan.style.display = 'none';
+                    if (recurringDiscountSpan) recurringDiscountSpan.style.display = 'none';
+                    if (recurringDiscountSpan2) recurringDiscountSpan2.style.display = 'none';
                 }
-            });
+            }
         });
     });
 
@@ -310,6 +324,31 @@ document.addEventListener('DOMContentLoaded', function () {
             const itemTemplate = document.getElementById('item-0').cloneNode(true);
             itemTemplate.setAttribute('id', 'item-' + itemIndex); // Set unique id for each new item
             itemTemplate.querySelectorAll('input').forEach(input => input.value = ''); // Clear all inputs in the cloned template
+
+            const serviceIdSelect = itemTemplate.querySelector('select[name="service_id[]"]'); 
+            serviceIdSelect.selectedIndex = 0;
+            
+            // Change text for recurring_discount class in itemTemplate
+            const recurringDiscount = itemTemplate.querySelector('.recurring_discount');
+            if (recurringDiscount) {
+                recurringDiscount.textContent = 'Recurring payment'; // Set the new text
+                recurringDiscount.style.display = 'none';
+            }
+
+            const recurring_discount_next_payment = itemTemplate.querySelector('.recurring_discount_next_payment');
+            if (recurring_discount_next_payment) {
+                recurring_discount_next_payment.style.display = 'none';
+            }
+
+            // Find the 'discountsnextpayment' input field
+            const discountsNextPaymentField = itemTemplate.querySelector('[name="discountsnextpayment[]"]');
+
+            // Hide and clear the field if it exists
+            if (discountsNextPaymentField) {
+                discountsNextPaymentField.style.display = 'none'; // Hide the field
+                discountsNextPaymentField.value = ''; // Clear the value
+            }
+
             itemTemplate.querySelector('.remove-item').style.display = 'block'; // Show delete button for cloned items
             // Select the element with the 'item-name-container' class
             const itemNameContainer = itemTemplate.querySelector('.item-name-container');

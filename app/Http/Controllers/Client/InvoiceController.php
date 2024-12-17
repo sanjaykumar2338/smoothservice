@@ -121,7 +121,8 @@ class InvoiceController extends Controller
         
             // Check for recurring service with trial price
             if ($service && $service->service_type === 'recurring' && $service->trial_for) {
-                $trialPrice = $service->trial_price ?? 0;
+                //$trialPrice = $service->trial_price ?? 0;
+                $price = $request->prices[$index];
             } else {
                 // Use regular price if not a recurring service with trial
                 $price = $request->prices[$index];
@@ -227,27 +228,41 @@ class InvoiceController extends Controller
 
         // Loop through each item and store them in the invoice_items table
         foreach ($request->item_names as $index => $itemName) {
-            $price = $request->prices[$index];
+            $serviceId = $request->service_id[$index] ?? null;
+            $service = $serviceId ? Service::find($serviceId) : null;
+        
+            // Default values for price, discount, and trial price
+            $price = 0;
             $quantity = $request->quantities[$index];
             $discount = $request->discounts[$index] ?? 0;
             $discountsnextpayment = $request->discountsnextpayment[$index] ?? 0;
-
-            // Calculate the item total
-            $itemTotal = ($price * $quantity) - $discount;
+            $trialPrice = 0;
+        
+            // Check for recurring service with trial price
+            if ($service && $service->service_type === 'recurring' && $service->trial_for) {
+                //$trialPrice = $service->trial_price ?? 0;
+                $price = $request->prices[$index];
+            } else {
+                // Use regular price if not a recurring service with trial
+                $price = $request->prices[$index];
+            }
+        
+            // Calculate total item price
+            $itemTotal = ($trialPrice ? $trialPrice : ($price * $quantity)) - $discount;
             $totalInvoiceAmount += $itemTotal;
-
-            // Save the item
+        
+            // Save each invoice item
             InvoiceItem::create([
                 'invoice_id' => $invoice->id,
-                'service_id' => $request->service_id[$index] ?? null,
-                'item_name' => $itemName ?: null,
+                'service_id' => $serviceId, // Save service if selected
+                'item_name' => $itemName,
                 'description' => $request->descriptions[$index] ?? null,
-                'price' => $price,
+                'price' => $trialPrice ?: $price, // Save trial price if applicable
                 'quantity' => $quantity,
                 'discount' => $discount,
                 'discountsnextpayment' => $discountsnextpayment,
             ]);
-        }
+        }        
 
         // Update the total for the invoice
         $invoice->update(['total' => $totalInvoiceAmount]);

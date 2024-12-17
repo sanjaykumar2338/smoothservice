@@ -149,7 +149,11 @@
 
                         <!-- Item Total -->
                         <td class="text-end">
-                            {{ $invoice->currency }} {{ number_format($item->price * $item->quantity, 2) }}
+                            @if($item->service->service_type!="onetime")
+                                {{ $invoice->currency }} {{ number_format($item->price * $item->quantity - $item->discount, 2) }}
+                            @else
+                                {{ $invoice->currency }} {{ number_format($item->price * $item->quantity - $item->discount, 2) }}
+                            @endif
                         </td>
 
                         <!-- Item Total in CAD -->
