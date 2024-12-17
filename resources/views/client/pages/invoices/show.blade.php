@@ -86,13 +86,14 @@
                     <div class="col-md-6">
                         <table class="table table-borderless">
                             <tbody>
-                                <tr>
-                                    <th>Number:</th>
-                                    <td>{{ $invoice->id }}</td>
-                                </tr>
+                                
                                 <tr>
                                     <th>Unique ID:</th>
-                                    <td>#{{ $invoice->invoice_no }}</td> <!-- Example of a unique ID -->
+                                    <td>#{{ $invoice->id }}</td> <!-- Example of a unique ID -->
+                                </tr>
+                                <tr>
+                                    <th>Invoice no:</th>
+                                    <td>#{{ $invoice->invoice_no }}</td>
                                 </tr>
                                 <tr>
                                     <th>Issued:</th>
