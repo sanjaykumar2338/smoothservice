@@ -42,9 +42,28 @@
             <div class="invoice-header d-flex justify-content-between align-items-center">
                 <div>
                     <h5>Invoice #{{ $invoice->invoice_no }}</h5>
+                    <p><strong>Status:</strong> {{ $invoice->status }}</p>
                 </div>
                 <div class="d-flex align-items-center">
                     <button class="btn btn-danger me-2" onclick="window.location.href='{{ route('invoices.download', $invoice->id) }}'">Download</button>
+                    <div class="dropdown">
+                        <button
+                            type="button"
+                            class="btn dropdown-toggle hide-arrow p-0"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="bx bx-dots-vertical-rounded"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="" data-bs-toggle="modal" data-bs-target="#addOrderModal">Share</a></li>
+                            <li><a class="dropdown-item" href="" data-bs-toggle="modal" data-bs-target="#emailInvoiceModal">Email invoice</a></li>
+                            <li><a class="dropdown-item" href="{{ route('invoices.edit', $invoice->id) }}">Edit</a></li>
+                            <li><a class="dropdown-item" href="" data-bs-toggle="modal" data-bs-target="#updateAddressModal">Update address</a></li>
+                            <li><a class="dropdown-item" href="" data-bs-toggle="modal" data-bs-target="#refundInvoiceModal">Refund</a></li>
+                            <li><a class="dropdown-item" href="{{ route('invoices.duplicate', $invoice->id) }}">Duplicate</a></li>
+                            <li><a class="dropdown-item"  onclick="return confirm('Are you sure?')" href="{{ route('invoices.deleteinvoice', $invoice->id) }}">Delete</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             
@@ -74,7 +93,7 @@
                                 </tr>
                                 <tr>
                                     <th>Unique ID:</th>
-                                    <td>#{{ strtoupper(uniqid()) }}</td> <!-- Example of a unique ID -->
+                                    <td>#{{ $invoice->invoice_no }}</td> <!-- Example of a unique ID -->
                                 </tr>
                                 <tr>
                                     <th>Issued:</th>
@@ -96,42 +115,96 @@
 
             <!-- Invoice Items -->
             <div class="table-responsive mt-4">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th class="text-start">Item</th>
-                            <th class="text-start">Price</th>
-                            <th class="text-start">Quantity</th>
-                            <th class="text-end">Item Total ({{$invoice->currency}})</th>
-                            <th class="text-end">Item Total (CAD)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($invoice->items as $item)
-                        <tr>
-                            <td class="text-start">{{ $item->service->service_name ?? $item->item_name }}</td>
-                            <td class="text-start">{{$invoice->currency}} {{ number_format($item->price, 2) }}</td>
-                            <td class="text-start">× {{ $item->quantity }}</td>
-                            <td class="text-end">{{$invoice->currency}} {{ number_format($item->price * $item->quantity, 2) }}</td>
-                            <td class="text-end">${{ number_format($item->price * $item->quantity, 2) }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="2"></td>
-                            <td class="text-end">Subtotal</td>
-                            <td class="text-end">{{$invoice->currency}} {{ number_format($invoice->total, 2) }}</td>
-                            <td class="text-end">${{ number_format($invoice->total, 2) }}</td>
-                        </tr>
-                        <tr>
-                            <td colspan="2"></td>
-                            <td class="text-end"><strong>Payment due</strong></td>
-                            <td class="text-end"><strong>{{$invoice->currency}} {{ number_format($invoice->total, 2) }}</strong></td>
-                            <td class="text-end">CAD ${{ number_format($invoice->total, 2) }}</td>
-                        </tr>
-                    </tfoot>
-                </table>
+            <table class="table table-borderless">
+                <thead>
+                    <tr>
+                        <th class="text-start">Item</th>
+                        <th class="text-start">Price</th>
+                        <th class="text-start">Quantity</th>
+                        <th class="text-end">Item Total ({{ $invoice->currency }})</th>
+                        <th class="text-end">Item Total (CAD)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($invoice->items as $item)
+                    <tr>
+                        <!-- Item Name -->
+                        <td class="text-start">
+                            {{ $item->service->service_name ?? $item->item_name }}<br>
+                            @if(!empty($item->service->trial_for))
+                                <span class="form-label">
+                                    @php $service = $item->service @endphp
+                                    ${{$service->trial_price - $item->discount}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, then
+                                    ${{ $item->service->recurring_service_currency_value - $item->discountsnextpayment}}/{{ $service->recurring_service_currency_value_two }} 
+                                    {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
+                                </span>
+                            @endif
+                        </td>
+
+                        <!-- Price -->
+                        <td class="text-start">{{ $invoice->currency }} {{ number_format($item->price, 2) }}</td>
+
+                        <!-- Quantity -->
+                        <td class="text-start">× {{ $item->quantity }}</td>
+
+                        <!-- Item Total -->
+                        <td class="text-end">
+                            @if($item->service->service_type!="onetime")
+                                {{ $invoice->currency }} {{ number_format($item->price * $item->quantity - $item->discount, 2) }}
+                            @else
+                                {{ $invoice->currency }} {{ number_format($item->price * $item->quantity - $item->discount, 2) }}
+                            @endif
+                        </td>
+
+                        <!-- Item Total in CAD -->
+                        <td class="text-end">
+                            ${{ number_format($item->price * $item->quantity, 2) }}
+                        </td>
+                    </tr>
+                    @endforeach
+
+                    <!-- Upfront Payment Row -->
+                    @if($invoice->upfront_payment_amount > 0)
+                    <tr>
+                        <td class="text-start"><strong>Upfront Payment</strong></td>
+                        <td class="text-start">
+                            -{{ $invoice->currency }} {{ number_format($invoice->upfront_payment_amount, 2) }}
+                        </td>
+                        <td class="text-start">×1</td>
+                        <td class="text-end"> -{{ $invoice->currency }} {{ number_format($invoice->upfront_payment_amount, 2) }}</td>
+                        <td class="text-end text-danger">
+                            -${{ number_format($invoice->upfront_payment_amount, 2) }}
+                        </td>
+                    </tr>
+                    @endif
+                </tbody>
+                <tfoot>
+                    <!-- Subtotal -->
+                    <tr>
+                        <td colspan="2"></td>
+                        <td class="text-end"><strong>Subtotal</strong></td>
+                        <td class="text-end">
+                            {{ $invoice->currency }} 
+                            {{ number_format($invoice->total - $invoice->upfront_payment_amount, 2) }}
+                        </td>
+                        <td class="text-end">
+                            ${{ number_format($invoice->total - $invoice->upfront_payment_amount, 2) }}
+                        </td>
+                    </tr>
+
+                    <!-- Payment Due -->
+                    <tr>
+                        <td colspan="2"></td>
+                        <td class="text-end"><strong>Payment Due</strong></td>
+                        <td class="text-end">
+                            <strong>{{ $invoice->currency }} {{ number_format($invoice->total - $invoice->upfront_payment_amount, 2) }}</strong>
+                        </td>
+                        <td class="text-end">
+                            <strong>CAD ${{ number_format($invoice->total - $invoice->upfront_payment_amount, 2) }}</strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
             </div>
 
             <!-- Invoice History -->
