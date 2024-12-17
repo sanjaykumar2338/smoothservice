@@ -135,7 +135,7 @@
                                 <span class="form-label">
                                     @php $service = $item->service @endphp
                                     ${{$service->trial_price - $item->discount}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, then
-                                    ${{ $item->price - $item->discountsnextpayment}}/{{ $service->recurring_service_currency_value_two }} 
+                                    ${{ $item->service->recurring_service_currency_value - $item->discountsnextpayment}}/{{ $service->recurring_service_currency_value_two }} 
                                     {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
                                 </span>
                             @endif
