@@ -29,7 +29,7 @@
 </head>
 <body>
     <div class="invoice-header">
-        <h4>Invoice #{{ $invoice->id }}</h4>
+        <h4>Invoice #{{ $invoice->invoice_no }}</h4>
         <p><strong>Status:</strong> {{ $invoice->status }}</p>
     </div>
 
@@ -90,7 +90,7 @@
 
                         <!-- Item Total in CAD -->
                         <td class="text-end">
-                            ${{ number_format($item->price * $item->quantity, 2) }}
+                            ${{ number_format($item->price * $item->quantity - $item->discount, 2) }}
                         </td>
                     </tr>
                     @endforeach

@@ -157,7 +157,7 @@
 
                         <!-- Item Total in CAD -->
                         <td class="text-end">
-                            ${{ number_format($item->price * $item->quantity, 2) }}
+                            ${{ number_format($item->price * $item->quantity - $item->discount, 2) }}
                         </td>
                     </tr>
                     @endforeach
