@@ -87,14 +87,14 @@
                                                 
 
                                                 @if($service->trial_for!="")
-                                                    <option data-type="recurringwithtrail" value="{{ $service->id }}" {{ $item->service_id == $service->id ? 'selected' : '' }}>
+                                                    <option data-type="recurringwithtrail" data-price="{{$service->trial_price}}" value="{{ $service->id }}" {{ $item->service_id == $service->id ? 'selected' : '' }}>
                                                         {{ $service->service_name }} {{$service->trial_currency}} {{$service->trial_price}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, {{ $service->recurring_service_currency }} 
                                                         ${{ $service->recurring_service_currency_value }}/{{ $service->recurring_service_currency_value_two }} 
                                                         {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
                                                     </option>
                                                 @else
                                             
-                                                <option data-type="recurring" value="{{ $service->id }}" {{ $item->service_id == $service->id ? 'selected' : '' }}>
+                                                <option data-type="recurring" data-price="{{$service->recurring_service_currency_value}}" value="{{ $service->id }}" {{ $item->service_id == $service->id ? 'selected' : '' }}>
                                                     {{ $service->service_name }} {{ $service->recurring_service_currency }} 
                                                     ${{ $service->recurring_service_currency_value }} / 
                                                     {{ $service->recurring_service_currency_value_two }} 
@@ -105,7 +105,7 @@
 
 
                                             @else
-                                                <option data-type="onetime" value="{{ $service->id }}" {{ $item->service_id == $service->id ? 'selected' : '' }}>
+                                                <option data-type="onetime" data-price="{{$service->one_time_service_currency_value}}" value="{{ $service->id }}" {{ $item->service_id == $service->id ? 'selected' : '' }}>
                                                     {{ $service->service_name }} / {{ $service->one_time_service_currency }} ${{ $service->one_time_service_currency_value }}
                                                 </option>
                                             @endif
@@ -140,15 +140,13 @@
                                 <div>
                                     <label class="form-label" for="discounts">Discounts</label>
                                     <input type="number" class="form-control" name="discounts[]" value="{{ $item->discount }}" placeholder="Enter discount">
-                                    <span class="recurring_discount" style="display:{{$item->service->service_type=='recurring' ? 'block':'none'}}">Recurring discount</span>
-                                    
+                                    <span class="recurring_discount" style="display:{{$item->service->service_type=='recurring' ? 'block':'none'}}">{{$item->service->service_type=='recurring' ? 'First Payment':'Recurring discount'}}</span>
                                 </div>
 
-                                <div class="recurring_discount_next_payment" style="display:none;">
+                                <div class="recurring_discount_next_payment" style="display:{{$item->service->service_type=='recurring' ? 'block':'none'}}">
                                     <label class="form-label" for="discounts">Discounts</label>
-                                    <input type="number" class="form-control" name="discountsnextpayment[]" value="" placeholder="Enter discount">
-
-                                    <span>Next payments</span>
+                                    <input type="number" class="form-control" name="discountsnextpayment[]" value="{{ $item->discountsnextpayment }}" placeholder="Enter discount">
+                                    <span>Next payment</span>
                                 </div>
 
                                 <!-- Remove Item Button -->
@@ -216,11 +214,49 @@
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit" class="btn btn-primary">Update Invoice</button>
+                <button type="submit" class="btn btn-primary update_invoice">Update Invoice</button>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Add click event listener to the "Add Invoice" button
+    document.querySelector('.update_invoice').addEventListener('click', function (e) {
+        // Prevent default button behavior until validation is passed
+        e.preventDefault();
+
+        // Get all service selects
+        const serviceSelects = document.querySelectorAll('.service-select');
+        const upfrontPaymentInput = document.querySelector('input[name="upfront_payment_amount"]');
+
+        let hasRecurringService = false;
+
+        // Loop through all service selects to check the selected options
+        serviceSelects.forEach(select => {
+            const selectedOption = select.options[select.selectedIndex];
+            const dataType = selectedOption.getAttribute('data-type'); // Get the data-type attribute
+
+            // Check if the selected option has recurring or recurringwithtrail
+            if (dataType === 'recurring' || dataType === 'recurringwithtrail') {
+                hasRecurringService = true;
+            }
+        });
+
+        // Check if upfront payment amount is filled
+        const upfrontPaymentValue = upfrontPaymentInput.value.trim();
+
+        // Validation: If recurring service and upfront payment are used
+        if (hasRecurringService && upfrontPaymentValue !== '') {
+            alert('Partial payments cannot be used with recurring services.');
+        } else {
+            // If validation passes, submit the form
+            e.target.closest('form').submit();
+        }
+    });
+});
+</script>
 
 <script>
 
@@ -230,9 +266,18 @@
             serviceSelect.addEventListener('change', function () {
                 // Get the selected option
                 const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+                const itemNameContainer2 = serviceSelect.closest('.item-group');
 
                 // Retrieve the 'data-type' attribute
                 const dataType = selectedOption.dataset.type;
+                const price = selectedOption.dataset.price;
+
+                const priceField = itemNameContainer2.querySelector('[name="prices[]"]'); // Target the price input field
+
+                // Update the price field
+                if (priceField) {
+                    priceField.value = price;
+                }
 
                 // Output to console or handle accordingly
                 console.log('Selected data-type:', dataType);

@@ -90,13 +90,13 @@
                                             
 
                                             @if($service->trial_for!="")
-                                                <option data-type="recurringwithtrail" value="{{ $service->id }}">
+                                                <option data-type="recurringwithtrail" data-price="{{$service->trial_price}}" value="{{ $service->id }}">
                                                     {{ $service->service_name }} {{$service->trial_currency}} {{$service->trial_price}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, {{ $service->recurring_service_currency }} 
                                                     ${{ $service->recurring_service_currency_value }}/{{ $service->recurring_service_currency_value_two }} 
                                                     {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
                                                 </option>
                                             @else
-                                                <option data-type="recurring" value="{{ $service->id }}">
+                                                <option data-type="recurring" data-price="{{$service->recurring_service_currency_value}}" value="{{ $service->id }}">
                                                     {{ $service->service_name }} {{ $service->recurring_service_currency }} 
                                                     ${{ $service->recurring_service_currency_value }} / 
                                                     {{ $service->recurring_service_currency_value_two }} 
@@ -104,7 +104,7 @@
                                                 </option>
                                             @endif
                                         @else
-                                            <option data-type="onetime" value="{{ $service->id }}">
+                                            <option data-type="onetime" data-price="{{$service->one_time_service_currency_value}}" value="{{ $service->id }}">
                                                 {{ $service->service_name }} / {{ $service->one_time_service_currency }} ${{ $service->one_time_service_currency_value }}
                                             </option>
                                         @endif
@@ -139,15 +139,13 @@
                             <div>
                                 <label class="form-label" for="discounts">Discounts</label>
                                 <input type="number" class="form-control" name="discounts[]" value="" placeholder="Enter discount">
-
                                 <span class="recurring_discount" style="display:none;">Recurring discount</span>
                             </div>
 
                             <div class="recurring_discount_next_payment" style="display:none;">
                                 <label class="form-label" for="discounts">Discounts</label>
                                 <input type="number" class="form-control" name="discountsnextpayment[]" value="" placeholder="Enter discount">
-
-                                <span>Next payments</span>
+                                <span>Next payment</span>
                             </div>
 
                             <!-- Remove Item Button -->
@@ -222,11 +220,49 @@
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit" class="btn btn-primary">Add Invoice</button>
+                <button type="submit" class="btn btn-primary add_invoice">Add Invoice</button>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Add click event listener to the "Add Invoice" button
+    document.querySelector('.add_invoice').addEventListener('click', function (e) {
+        // Prevent default button behavior until validation is passed
+        e.preventDefault();
+
+        // Get all service selects
+        const serviceSelects = document.querySelectorAll('.service-select');
+        const upfrontPaymentInput = document.querySelector('input[name="upfront_payment_amount"]');
+
+        let hasRecurringService = false;
+
+        // Loop through all service selects to check the selected options
+        serviceSelects.forEach(select => {
+            const selectedOption = select.options[select.selectedIndex];
+            const dataType = selectedOption.getAttribute('data-type'); // Get the data-type attribute
+
+            // Check if the selected option has recurring or recurringwithtrail
+            if (dataType === 'recurring' || dataType === 'recurringwithtrail') {
+                hasRecurringService = true;
+            }
+        });
+
+        // Check if upfront payment amount is filled
+        const upfrontPaymentValue = upfrontPaymentInput.value.trim();
+
+        // Validation: If recurring service and upfront payment are used
+        if (hasRecurringService && upfrontPaymentValue !== '') {
+            alert('Partial payments cannot be used with recurring services.');
+        } else {
+            // If validation passes, submit the form
+            e.target.closest('form').submit();
+        }
+    });
+});
+</script>
 
 <script>
 
@@ -301,6 +337,8 @@
         // Function to toggle item name visibility based on service selection
         function toggleItemName(serviceSelect) {
             const itemNameContainer = serviceSelect.closest('.item-group').querySelector('.item-name-container');
+            const itemNameContainer2 = serviceSelect.closest('.item-group');
+
             if (serviceSelect.value) {
                 // Hide the item name if a service is selected
                 itemNameContainer.style.display = 'none';
@@ -311,8 +349,15 @@
 
             const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
             const dataType = selectedOption.dataset.type;
-            const recurringDiscountSpan = document.querySelector('.recurring_discount');
-            const recurringDiscountSpan2 = document.querySelector('.recurring_discount_next_payment');
+            const price = selectedOption.dataset.price;
+            const recurringDiscountSpan = itemNameContainer2.querySelector('.recurring_discount');
+            const recurringDiscountSpan2 = itemNameContainer2.querySelector('.recurring_discount_next_payment');
+            const priceField = itemNameContainer2.querySelector('[name="prices[]"]'); // Target the price input field
+
+            // Update the price field
+            if (priceField) {
+                priceField.value = price;
+            }
 
             if(dataType=='recurringwithtrail'){
                 recurringDiscountSpan.style.display = 'block';
