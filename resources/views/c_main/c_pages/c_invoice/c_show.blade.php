@@ -30,7 +30,6 @@
     }
 </style>
 
-
 <div class="container-xxl flex-grow-1 container-p-y">
     <h4 class="py-3 breadcrumb-wrapper mb-4">
         <span class="text-muted fw-light">Invoices /</span> {{ $invoice->invoice_no }}
@@ -125,12 +124,15 @@
                     </tr>
                 </thead>
                 <tbody>
+                    
+                    @php $next_payment_recurring = 0; @endphp
+
                     @foreach($invoice->items as $item)
                     <tr>
                         <!-- Item Name -->
                         <td class="text-start">
                             {{ $item->service->service_name ?? $item->item_name }}<br>
-                            
+
                             @php $service = $item->service @endphp
                             @if(!empty($item->service->trial_for))
                                 <span class="form-label">
@@ -138,10 +140,15 @@
                                     ${{ $item->service->recurring_service_currency_value - $item->discountsnextpayment}}/{{ $service->recurring_service_currency_value_two }} 
                                     {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
                                 </span>
+
+                                @php $next_payment_recurring += ($item->service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment; @endphp
+
                             @else
                                 @if($item->service->service_type=='recurring')
                                     ${{ $item->service->recurring_service_currency_value - $item->discount}}/{{ $item->service->recurring_service_currency_value_two }} 
                                     {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
+
+                                    @php $next_payment_recurring += ($item->service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment; @endphp
                                 @endif
                             @endif
                         </td>

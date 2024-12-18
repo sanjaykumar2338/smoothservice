@@ -19,18 +19,31 @@
                     </tr>
                 </thead>
                 <tbody>
+                    
+                    @php $next_payment_recurring = 0; @endphp
                     @foreach($invoice->items as $item)
+                    
                     <tr>
                         <!-- Item Name -->
                         <td class="text-start">
                             {{ $item->service->service_name ?? $item->item_name }}<br>
+                            @php $service = $item->service @endphp
                             @if(!empty($item->service->trial_for))
                                 <span class="form-label">
-                                    @php $service = $item->service @endphp
                                     ${{$service->trial_price - $item->discount}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, then
                                     ${{ $item->service->recurring_service_currency_value - $item->discountsnextpayment}}/{{ $service->recurring_service_currency_value_two }} 
                                     {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
                                 </span>
+
+                                @php $next_payment_recurring += ($item->service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment; @endphp
+
+                            @else
+                                @if($item->service->service_type=='recurring')
+                                    ${{ $item->service->recurring_service_currency_value - $item->discount}}/{{ $item->service->recurring_service_currency_value_two }} 
+                                    {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
+
+                                    @php $next_payment_recurring += ($item->service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment; @endphp
+                                @endif
                             @endif
                         </td>
 
@@ -118,6 +131,16 @@
             <button class="btn btn-primary mt-4 w-100" id="submit-button" type="submit">
                 <i class="fas fa-lock"></i> Pay ${{ number_format($invoice->total, 2) }}
             </button>
+
+            @if($next_payment_recurring)
+                <div class="d-flex justify-content-center align-items-center text-center mt-4">
+                    <span class="text-muted fw-bold" style="font-size: 16px;">
+                        ${{ number_format($invoice->total, 2) }} now, then ${{ number_format($next_payment_recurring, 2) }}/month
+                    </span>
+                </div>
+            @endif
+
+
         </form>
     </div>
 </div>
@@ -185,6 +208,7 @@
                             name: "{{ $invoice->client->first_name }} {{ $invoice->client->last_name }}",
                         },
                     },
+                    setup_future_usage: 'off_session' // Enable reusability for subscriptions
                 });
 
                 if (error) {
@@ -192,7 +216,6 @@
                     submitButton.disabled = false;
                     submitButton.innerHTML = 'Pay ${{ number_format($invoice->total, 2) }}';
                 } else {
-                    // Submit the payment details to the backend
                     const response = await fetch('{{ route("portal.invoice.payment.process", $invoice->id) }}', {
                         method: 'POST',
                         headers: {
@@ -201,7 +224,8 @@
                         },
                         body: JSON.stringify({
                             payment_intent_id: paymentIntent.id,
-                            payment_method: 'stripe',
+                            payment_method: paymentIntent.payment_method, // Retrieve the actual PaymentMethod ID
+                            recurring_payment: "{{ number_format($next_payment_recurring, 2) }}"
                         }),
                     });
 

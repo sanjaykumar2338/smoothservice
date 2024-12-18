@@ -29,6 +29,12 @@ use App\Models\Invoice;
 use App\Models\User;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
+use Stripe\Subscription;
+use Stripe\Customer;
+use Stripe\Price;
+use Stripe\Product;
+use Stripe\PaymentMethod;
+use App\Models\InvoiceSubscription;
 use Carbon\Carbon;
 use DB;
 
@@ -303,53 +309,92 @@ class MainClientController extends Controller
 
     public function processPayment(Request $request, $id)
     {
-        // Validate the payment data
         $request->validate([
             'payment_intent_id' => 'required|string',
-            'payment_method' => 'required|string', // e.g., 'stripe'
+            'payment_method' => 'required|string',
+            'recurring_payment' => 'nullable|numeric|min:1',
         ]);
 
         try {
-            // Retrieve the invoice
             $invoice = Invoice::findOrFail($id);
+            $client = Client::findOrFail($invoice->client_id);
 
             // Check if the invoice is already paid
             if ($invoice->paid_at) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invoice already paid.',
-                ], 400);
+                return response()->json(['success' => false, 'message' => 'Invoice already paid.'], 400);
             }
 
-            // Retrieve payment details from the request
-            $paymentIntentId = $request->input('payment_intent_id');
-            $paymentMethod = $request->input('payment_method');
+            Stripe::setApiKey(env('STRIPE_SECRET'));
 
-            // Simulate payment verification (e.g., via Stripe API)
-            // In a real-world application, you would call Stripe APIs here to verify the payment
-            $paymentVerified = true; // Assuming payment is verified
+            // 1. Create or retrieve a Stripe Customer
+            if (!$client->stripe_customer_id) {
+                $stripeCustomer = \Stripe\Customer::create([
+                    'email' => $client->email,
+                    'name' => $client->first_name . ' ' . $client->last_name,
+                ]);
+                $client->update(['stripe_customer_id' => $stripeCustomer->id]);
+            } else {
+                $stripeCustomer = \Stripe\Customer::retrieve($client->stripe_customer_id);
+            }
 
-            if ($paymentVerified) {
-                // Mark the invoice as paid
-                $invoice->update([
-                    'paid_at' => now(),
-                    'payment_method' => $paymentMethod,
+            // 2. Retrieve and attach the PaymentMethod to the Customer
+            $paymentMethodId = $request->input('payment_method');
+            $paymentMethod = \Stripe\PaymentMethod::retrieve($paymentMethodId);
+            $paymentMethod->attach(['customer' => $stripeCustomer->id]);
+
+            // Set the default payment method for the customer
+            \Stripe\Customer::update($stripeCustomer->id, [
+                'invoice_settings' => ['default_payment_method' => $paymentMethodId],
+            ]);
+
+            // 3. Mark the invoice as paid
+            $invoice->update([
+                'paid_at' => now(),
+                'payment_method' => 'stripe',
+            ]);
+
+            // 4. If `recurring_payment` is set, create a subscription
+            if ($request->filled('recurring_payment')) {
+                // Create a product for recurring payments
+                $product = \Stripe\Product::create([
+                    'name' => 'Subscription for Invoice #' . $invoice->id,
+                    'metadata' => ['invoice_id' => $invoice->id],
                 ]);
 
-                // Return a success response
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Invoice successfully paid.',
-                ], 200);
-            } else {
-                // Return a failure response if payment verification fails
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Payment verification failed.',
-                ], 400);
+                // Create a price for the subscription
+                $price = \Stripe\Price::create([
+                    'unit_amount' => $request->recurring_payment * 100, // Convert dollars to cents
+                    'currency' => 'usd',
+                    'recurring' => ['interval' => 'month'],
+                    'product' => $product->id,
+                ]);
+
+                // Create a subscription
+                $subscription = \Stripe\Subscription::create([
+                    'customer' => $stripeCustomer->id,
+                    'items' => [['price' => $price->id]],
+                    'default_payment_method' => $paymentMethodId, // Use the attached payment method
+                    'metadata' => ['invoice_id' => $invoice->id],
+                ]);
+
+                // Store subscription details in the database
+                InvoiceSubscription::create([
+                    'invoice_id' => $invoice->id,
+                    'subscription_id' => $subscription->id,
+                    'amount' => $request->recurring_payment,
+                    'currency' => 'usd',
+                    'intervel' => 'month',
+                    'starts_at' => now(),
+                    'ends_at' => now()->addMonths(1), // Set an example for next billing cycle
+                ]);
             }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Invoice successfully paid and subscription created.',
+            ], 200);
+
         } catch (\Exception $e) {
-            // Handle unexpected errors
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred: ' . $e->getMessage(),
