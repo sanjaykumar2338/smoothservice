@@ -277,7 +277,7 @@ class MainClientController extends Controller
         $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
 
         if ($invoice->paid_at) {
-            return redirect()->back()->with('error', 'Invoice already paid.');
+            return redirect()->route('portal.invoices.show',$invoice->id)->with('error', 'Invoice already paid.');
         }
 
         // Retrieve the services in case you want to display service information in the invoice
@@ -382,34 +382,19 @@ class MainClientController extends Controller
                     'subscription_id' => $subscription->id,
                     'amount' => $request->recurring_payment,
                     'currency' => 'usd',
-                    'interval' => 'month',
+                    'intervel' => 'month',
                     'starts_at' => now(),
                     'ends_at' => now()->addMonth(),
                 ]);
             }
 
-            // 5. Attempt to transfer the amount to the connected account
-            $transferSuccess = false;
-            if ($addedByUser->stripe_connect_account_id) {
-                try {
-                    $transferAmount = $invoice->total * 100;
-                    \Stripe\Transfer::create([
-                        'amount' => $transferAmount,
-                        'currency' => 'usd',
-                        'destination' => $addedByUser->stripe_connect_account_id,
-                        'transfer_group' => 'INVOICE_' . $invoice->id,
-                    ]);
-                    $transferSuccess = true;
-                } catch (\Exception $transferException) {
-                    \Log::error('Transfer failed for Invoice #' . $invoice->id . ': ' . $transferException->getMessage());
-                    $transferSuccess = false;
-                }
-            }
+            // 5. Send email notifications
+            Mail::to($addedByUser->email)->send(new \App\Mail\InvoicePaid($invoice, $client, $addedByUser));
+            Mail::to($client->email)->send(new \App\Mail\InvoicePaidConfirmation($invoice, $client));
 
-            // Response for successful payment
             return response()->json([
                 'success' => true,
-                'message' => 'Invoice successfully paid.' . (!$transferSuccess ? ' However, the fund transfer failed. Please contact support.' : ''),
+                'message' => 'Invoice successfully paid and email notifications sent.',
             ], 200);
 
         } catch (\Exception $e) {
