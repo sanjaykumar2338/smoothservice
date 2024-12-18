@@ -276,6 +276,10 @@ class MainClientController extends Controller
         // Retrieve the invoice by its ID along with the associated client and items
         $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
 
+        if ($invoice->paid_at) {
+            return redirect()->back()->with('error', 'Invoice already paid.');
+        }
+
         // Retrieve the services in case you want to display service information in the invoice
         $services = Service::where('user_id', auth()->id())->get();
 
@@ -312,14 +316,14 @@ class MainClientController extends Controller
         $request->validate([
             'payment_intent_id' => 'required|string',
             'payment_method' => 'required|string',
-            'recurring_payment' => 'nullable|numeric|min:0', // Allow validation for numeric and 0.00
+            'recurring_payment' => 'nullable|numeric|min:0',
         ]);
 
         try {
             $invoice = Invoice::findOrFail($id);
             $client = Client::findOrFail($invoice->client_id);
+            $addedByUser = User::findOrFail($invoice->added_by);
 
-            // Check if the invoice is already paid
             if ($invoice->paid_at) {
                 return response()->json(['success' => false, 'message' => 'Invoice already paid.'], 400);
             }
@@ -342,7 +346,6 @@ class MainClientController extends Controller
             $paymentMethod = \Stripe\PaymentMethod::retrieve($paymentMethodId);
             $paymentMethod->attach(['customer' => $stripeCustomer->id]);
 
-            // Set the default payment method for the customer
             \Stripe\Customer::update($stripeCustomer->id, [
                 'invoice_settings' => ['default_payment_method' => $paymentMethodId],
             ]);
@@ -353,31 +356,27 @@ class MainClientController extends Controller
                 'payment_method' => 'stripe',
             ]);
 
-            // 4. If `recurring_payment` is set, valid, and greater than 0, create a subscription
+            // 4. If `recurring_payment` is set and valid, create a subscription
             if ($request->filled('recurring_payment') && $request->recurring_payment > 0) {
-                // Create a product for recurring payments
                 $product = \Stripe\Product::create([
                     'name' => 'Subscription for Invoice #' . $invoice->id,
                     'metadata' => ['invoice_id' => $invoice->id],
                 ]);
 
-                // Create a price for the subscription
                 $price = \Stripe\Price::create([
-                    'unit_amount' => $request->recurring_payment * 100, // Convert dollars to cents
+                    'unit_amount' => $request->recurring_payment * 100,
                     'currency' => 'usd',
                     'recurring' => ['interval' => 'month'],
                     'product' => $product->id,
                 ]);
 
-                // Create a subscription
                 $subscription = \Stripe\Subscription::create([
                     'customer' => $stripeCustomer->id,
                     'items' => [['price' => $price->id]],
-                    'default_payment_method' => $paymentMethodId, // Use the attached payment method
+                    'default_payment_method' => $paymentMethodId,
                     'metadata' => ['invoice_id' => $invoice->id],
                 ]);
 
-                // Store subscription details in the database
                 InvoiceSubscription::create([
                     'invoice_id' => $invoice->id,
                     'subscription_id' => $subscription->id,
@@ -385,13 +384,32 @@ class MainClientController extends Controller
                     'currency' => 'usd',
                     'interval' => 'month',
                     'starts_at' => now(),
-                    'ends_at' => now()->addMonth(), // Set the next billing cycle
+                    'ends_at' => now()->addMonth(),
                 ]);
             }
 
+            // 5. Attempt to transfer the amount to the connected account
+            $transferSuccess = false;
+            if ($addedByUser->stripe_connect_account_id) {
+                try {
+                    $transferAmount = $invoice->total * 100;
+                    \Stripe\Transfer::create([
+                        'amount' => $transferAmount,
+                        'currency' => 'usd',
+                        'destination' => $addedByUser->stripe_connect_account_id,
+                        'transfer_group' => 'INVOICE_' . $invoice->id,
+                    ]);
+                    $transferSuccess = true;
+                } catch (\Exception $transferException) {
+                    \Log::error('Transfer failed for Invoice #' . $invoice->id . ': ' . $transferException->getMessage());
+                    $transferSuccess = false;
+                }
+            }
+
+            // Response for successful payment
             return response()->json([
                 'success' => true,
-                'message' => 'Invoice successfully paid' . ($request->recurring_payment > 0 ? ' and subscription created.' : '.'),
+                'message' => 'Invoice successfully paid.' . (!$transferSuccess ? ' However, the fund transfer failed. Please contact support.' : ''),
             ], 200);
 
         } catch (\Exception $e) {
