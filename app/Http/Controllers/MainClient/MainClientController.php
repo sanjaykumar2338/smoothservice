@@ -312,7 +312,7 @@ class MainClientController extends Controller
         $request->validate([
             'payment_intent_id' => 'required|string',
             'payment_method' => 'required|string',
-            'recurring_payment' => 'nullable|numeric|min:1',
+            'recurring_payment' => 'nullable|numeric|min:0', // Allow validation for numeric and 0.00
         ]);
 
         try {
@@ -353,8 +353,8 @@ class MainClientController extends Controller
                 'payment_method' => 'stripe',
             ]);
 
-            // 4. If `recurring_payment` is set, create a subscription
-            if ($request->filled('recurring_payment')) {
+            // 4. If `recurring_payment` is set, valid, and greater than 0, create a subscription
+            if ($request->filled('recurring_payment') && $request->recurring_payment > 0) {
                 // Create a product for recurring payments
                 $product = \Stripe\Product::create([
                     'name' => 'Subscription for Invoice #' . $invoice->id,
@@ -383,15 +383,15 @@ class MainClientController extends Controller
                     'subscription_id' => $subscription->id,
                     'amount' => $request->recurring_payment,
                     'currency' => 'usd',
-                    'intervel' => 'month',
+                    'interval' => 'month',
                     'starts_at' => now(),
-                    'ends_at' => now()->addMonths(1), // Set an example for next billing cycle
+                    'ends_at' => now()->addMonth(), // Set the next billing cycle
                 ]);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Invoice successfully paid and subscription created.',
+                'message' => 'Invoice successfully paid' . ($request->recurring_payment > 0 ? ' and subscription created.' : '.'),
             ], 200);
 
         } catch (\Exception $e) {
