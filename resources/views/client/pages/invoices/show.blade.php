@@ -131,13 +131,19 @@
                         <!-- Item Name -->
                         <td class="text-start">
                             {{ $item->service->service_name ?? $item->item_name }}<br>
+                            
+                            @php $service = $item->service @endphp
                             @if(!empty($item->service->trial_for))
                                 <span class="form-label">
-                                    @php $service = $item->service @endphp
                                     ${{$service->trial_price - $item->discount}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, then
                                     ${{ $item->service->recurring_service_currency_value - $item->discountsnextpayment}}/{{ $service->recurring_service_currency_value_two }} 
                                     {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
                                 </span>
+                            @else
+                                @if($item->service->service_type=='recurring')
+                                    ${{ $item->service->recurring_service_currency_value - $item->discount}}/{{ $item->service->recurring_service_currency_value_two }} 
+                                    {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
+                                @endif
                             @endif
                         </td>
 

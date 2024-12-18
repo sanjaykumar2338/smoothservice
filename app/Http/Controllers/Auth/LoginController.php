@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Client;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Session;
 
 class LoginController extends Controller
 {
@@ -88,5 +89,26 @@ class LoginController extends Controller
         Auth::login($user);
 
         return redirect()->intended(route('dashboard'));
+    }
+
+    public function switchBackToAdmin()
+    {
+        // Check if the admin ID is stored in the session
+        if (Session::has('admin_id')) {
+            $adminId = Session::get('admin_id');
+            
+            // Log out the current client
+            $user = User::find($adminId);
+            
+            // Log back in as the user
+            Auth::guard('web')->login($user);
+
+            // Forget the admin_id session
+            \Session::forget('admin_id');
+
+            return redirect()->route('dashboard')->with('success', 'You are now back as admin.');
+        }
+
+        return redirect()->route('login')->with('error', 'No admin session found.');
     }
 }

@@ -315,6 +315,15 @@
                         </a>
                       </li>
 
+                      @if (Session::has('admin_id'))
+                        <li>
+                          <a class="dropdown-item" href="{{route('switch_back')}}">
+                            <i class="bx bx-arrow-back"></i>
+                            <span class="align-middle">Back to Admin</span>
+                          </a>
+                        </li>  
+                      @endif
+
                       @if(getUserType()=='web')
                       <li>
                         <a class="dropdown-item" href="#">

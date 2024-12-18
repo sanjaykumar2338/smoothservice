@@ -42,6 +42,7 @@ Route::post('password/email', [ForgotPasswordController::class,'sendResetLinkEma
 Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/switch-back', [LoginController::class, 'switchBackToAdmin'])->name('switch_back');
 
 // For client login
 Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () {

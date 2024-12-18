@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Ticket;
 use App\Models\TicketReply;
 use App\Models\ClientReply;
+use App\Models\User;
 use DB;
 
 class ClientController extends Controller
@@ -322,6 +323,8 @@ class ClientController extends Controller
         if (!$client) {
             return redirect()->route('client.list')->with('error', 'Client not found.');
         }
+
+        \Session::put('admin_id', getUserID());
 
         // Log out the current admin (optional)
         Auth::guard('web')->logout();
