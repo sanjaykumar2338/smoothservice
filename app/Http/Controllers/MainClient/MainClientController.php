@@ -318,7 +318,6 @@ class MainClientController extends Controller
             'payment_method' => 'required|string',
             'recurring_payment' => 'nullable|numeric|min:0',
             'interval' => 'nullable|numeric',
-            //'interval' => 'nullable|string|in:day,week,month,year',
         ]);
 
         try {
@@ -333,14 +332,29 @@ class MainClientController extends Controller
             Stripe::setApiKey(env('STRIPE_SECRET'));
 
             // 1. Create or retrieve a Stripe Customer
-            if (!$client->stripe_customer_id) {
+            $stripeCustomer = null;
+            if ($client->stripe_customer_id) {
+                try {
+                    $stripeCustomer = \Stripe\Customer::retrieve($client->stripe_customer_id);
+                } catch (\Stripe\Exception\InvalidRequestException $e) {
+                    // If the customer does not exist on Stripe, create a new one
+                    if (str_contains($e->getMessage(), 'No such customer')) {
+                        $stripeCustomer = \Stripe\Customer::create([
+                            'email' => $client->email,
+                            'name' => $client->first_name . ' ' . $client->last_name,
+                        ]);
+                        $client->update(['stripe_customer_id' => $stripeCustomer->id]);
+                    } else {
+                        throw $e; // Re-throw other exceptions
+                    }
+                }
+            } else {
+                // Create a new Stripe Customer if no ID exists in the database
                 $stripeCustomer = \Stripe\Customer::create([
                     'email' => $client->email,
                     'name' => $client->first_name . ' ' . $client->last_name,
                 ]);
                 $client->update(['stripe_customer_id' => $stripeCustomer->id]);
-            } else {
-                $stripeCustomer = \Stripe\Customer::retrieve($client->stripe_customer_id);
             }
 
             // 2. Retrieve and attach the PaymentMethod to the Customer
@@ -379,14 +393,12 @@ class MainClientController extends Controller
                 ]);
 
                 // Determine the start date for the subscription
-                // Ensure billing_date is in the future
                 $billingDate = $invoice->billing_date 
-                ? Carbon::parse($invoice->billing_date)->startOfDay() 
-                : now()->addDay(); // Default to tomorrow if no billing_date is set
+                    ? Carbon::parse($invoice->billing_date)->startOfDay() 
+                    : now()->addDay(); // Default to tomorrow if no billing_date is set
 
                 if ($billingDate->isPast()) {
-                // If billing_date is in the past, set it to the next day
-                $billingDate = now()->addDay();
+                    $billingDate = now()->addDay();
                 }
 
                 $subscription = \Stripe\Subscription::create([
