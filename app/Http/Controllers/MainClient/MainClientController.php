@@ -317,6 +317,8 @@ class MainClientController extends Controller
             'payment_intent_id' => 'required|string',
             'payment_method' => 'required|string',
             'recurring_payment' => 'nullable|numeric|min:0',
+            'interval' => 'nullable|numeric',
+            //'interval' => 'nullable|string|in:day,week,month,year',
         ]);
 
         try {
@@ -363,18 +365,36 @@ class MainClientController extends Controller
                     'metadata' => ['invoice_id' => $invoice->id],
                 ]);
 
+                $intervalType = 'month';
+                $intervalCount = $request->input('interval', 1);
+
                 $price = \Stripe\Price::create([
                     'unit_amount' => $request->recurring_payment * 100,
                     'currency' => 'usd',
-                    'recurring' => ['interval' => 'month'],
+                    'recurring' => [
+                        'interval' => $intervalType,
+                        'interval_count' => $intervalCount,
+                    ],
                     'product' => $product->id,
                 ]);
+
+                // Determine the start date for the subscription
+                // Ensure billing_date is in the future
+                $billingDate = $invoice->billing_date 
+                ? Carbon::parse($invoice->billing_date)->startOfDay() 
+                : now()->addDay(); // Default to tomorrow if no billing_date is set
+
+                if ($billingDate->isPast()) {
+                // If billing_date is in the past, set it to the next day
+                $billingDate = now()->addDay();
+                }
 
                 $subscription = \Stripe\Subscription::create([
                     'customer' => $stripeCustomer->id,
                     'items' => [['price' => $price->id]],
                     'default_payment_method' => $paymentMethodId,
                     'metadata' => ['invoice_id' => $invoice->id],
+                    'billing_cycle_anchor' => $billingDate->timestamp, // Set start date
                 ]);
 
                 InvoiceSubscription::create([
@@ -383,8 +403,8 @@ class MainClientController extends Controller
                     'amount' => $request->recurring_payment,
                     'currency' => 'usd',
                     'intervel' => 'month',
-                    'starts_at' => now(),
-                    'ends_at' => now()->addMonth(),
+                    'starts_at' => $billingDate,
+                    'ends_at' => $billingDate->copy()->addMonth(),
                 ]);
             }
 
@@ -407,5 +427,71 @@ class MainClientController extends Controller
 
     public function profile(){
         return view('c_main.c_profile');
+    }
+
+    public function invoice_subscription(Request $request)
+    {
+        $search = $request->input('search'); // Get the search query from the request
+
+        // Query InvoiceSubscription and related Invoice data
+        $subscriptions = InvoiceSubscription::with(['invoice.client'])
+            ->whereHas('invoice', function ($query) use ($search) {
+                $query->where('client_id', $this->client_id) // Ensure this condition is applied
+                    ->when($search, function ($query, $search) {
+                        $query->where('billing_first_name', 'LIKE', '%' . $search . '%')
+                            ->orWhere('billing_last_name', 'LIKE', '%' . $search . '%')
+                            ->orWhere('note', 'LIKE', '%' . $search . '%');
+                    });
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('c_main.c_pages.c_invoice.c_subscription', compact('subscriptions', 'search'));
+    }
+
+    public function cancel_subscription(Request $request, $id)
+    {
+        $subscription = InvoiceSubscription::findOrFail($id);
+
+        // Check if the subscription is already canceled
+        if ($subscription->cancelled_at) {
+            return redirect()->back()->with('error', 'Subscription is already cancelled.');
+        }
+
+        try {
+            // Cancel the subscription on Stripe
+            if ($subscription->subscription_id) {
+                \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+
+                $stripeSubscription = \Stripe\Subscription::retrieve($subscription->subscription_id);
+                $stripeSubscription->cancel();
+            }
+
+            // Update the database to reflect the cancellation
+            $subscription->update([
+                'cancelled_at' => now(),
+            ]);
+
+            // Send email notifications
+            $invoice = $subscription->invoice; // Assuming `invoice` relation is defined in the model
+            $client = $invoice->client; // Assuming `client` relation is defined in the model
+            $owner = User::find($invoice->added_by); // Retrieve the user who added the invoice
+
+            $details = [
+                'subject' => 'Subscription Cancelled',
+                'message' => 'The subscription for invoice #' . $invoice->invoice_no . ' has been cancelled.',
+                'subscription' => $subscription,
+                'invoice' => $invoice,
+                'client' => $client,
+            ];
+
+            Mail::to($owner->email)->send(new \App\Mail\CommonNotification($details));
+            Mail::to($client->email)->send(new \App\Mail\CommonNotification($details));
+
+            return redirect()->back()->with('success', 'Subscription cancelled successfully, and email notifications sent.');
+        } catch (\Exception $e) {
+            // Handle any errors that occur during the cancellation process
+            return redirect()->back()->with('error', 'An error occurred while cancelling the subscription: ' . $e->getMessage());
+        }
     }
 }

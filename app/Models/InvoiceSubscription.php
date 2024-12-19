@@ -22,5 +22,19 @@ class InvoiceSubscription extends Model
         'intervel',         // Subscription interval (e.g., month)
         'starts_at',        // Start date of the subscription
         'ends_at',          // End date of the subscription or trial
+        'cancelled_at',
     ];
+
+    protected $casts = [
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    // Define the relationship to the Invoice model
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class, 'invoice_id', 'id');
+    }
 }

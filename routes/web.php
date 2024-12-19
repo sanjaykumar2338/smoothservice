@@ -63,6 +63,8 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
     Route::get('/invoice/payment/process/{id}', [MainClientController::class, 'invoice_payment_process'])->name('portal.invoice.payment.process');
     Route::post('/invoice/{invoice}/payment-intent', [MainClientController::class, 'createPaymentIntent'])->name('portal.invoice.payment.intent');
     Route::post('/invoice/{id}/payment/process', [MainClientController::class, 'processPayment'])->name('portal.invoice.payment.process');
+    Route::get('/invoice/subscription', [MainClientController::class, 'invoice_subscription'])->name('portal.invoice.subscription');
+    Route::post('/subscriptions/{id}/cancel', [MainClientController::class, 'cancel_subscription'])->name('portal.subscriptions.cancel');
 
     Route::get('/profile', [MainClientController::class, 'profile'])->name('portal.profile');
 });

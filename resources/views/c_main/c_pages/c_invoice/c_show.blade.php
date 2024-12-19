@@ -125,7 +125,10 @@
                 </thead>
                 <tbody>
                     
-                    @php $next_payment_recurring = 0; @endphp
+                    @php 
+                        $next_payment_recurring = 0; 
+                        $total_discount = 0;
+                    @endphp
 
                     @foreach($invoice->items as $item)
                     <tr>
@@ -148,7 +151,9 @@
                                     ${{ $item->service->recurring_service_currency_value - $item->discount}}/{{ $item->service->recurring_service_currency_value_two }} 
                                     {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
 
-                                    @php $next_payment_recurring += ($item->service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment; @endphp
+                                    @php 
+                                        $next_payment_recurring += ($item->service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                                        @endphp
                                 @endif
                             @endif
                         </td>

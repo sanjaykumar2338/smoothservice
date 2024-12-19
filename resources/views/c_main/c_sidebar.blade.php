@@ -73,8 +73,8 @@
             <div data-i18n="Invoices">Invoices</div>
          </a>
       </li>
-      <li class="menu-item {{ request()->routeIs(['']) ? 'active' : '' }}">
-         <a href="#" class="menu-link">
+      <li class="menu-item {{ request()->routeIs(['portal.invoice.subscription']) ? 'active' : '' }}">
+         <a href="{{ route('portal.invoice.subscription') }}" class="menu-link">
             <i class="menu-icon tf-icons bx bx-book"></i> <!-- Subscription icon, you can replace it if needed -->
             <div data-i18n="Subscriptions">Subscriptions</div>
          </a>

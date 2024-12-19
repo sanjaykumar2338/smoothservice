@@ -20,7 +20,12 @@
                 </thead>
                 <tbody>
                     
-                    @php $next_payment_recurring = 0; @endphp
+                    @php 
+                        $next_payment_recurring = 0; 
+                        $total_discount = 0;
+                        $interval_total = [];
+                    @endphp
+
                     @foreach($invoice->items as $item)
                     
                     <tr>
@@ -31,7 +36,7 @@
                             @if(!empty($item->service->trial_for))
                                 <span class="form-label">
                                     ${{$service->trial_price - $item->discount}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, then
-                                    ${{ $item->service->recurring_service_currency_value - $item->discountsnextpayment}}/{{ $service->recurring_service_currency_value_two }} 
+                                    ${{ $item->service->recurring_service_currency_value}}/{{ $service->recurring_service_currency_value_two }} 
                                     {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
                                 </span>
 
@@ -39,11 +44,16 @@
 
                             @else
                                 @if($item->service->service_type=='recurring')
-                                    ${{ $item->service->recurring_service_currency_value - $item->discount}}/{{ $item->service->recurring_service_currency_value_two }} 
+                                    ${{ $item->service->recurring_service_currency_value}}/{{ $item->service->recurring_service_currency_value_two }} 
                                     {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
 
-                                    @php $next_payment_recurring += ($item->service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment; @endphp
+                                    @php 
+                                        $next_payment_recurring += ($item->service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment; 
+                                        $total_discount += $item->discount;
+                                        $interval_total[] = $item->service->recurring_service_currency_value_two;
+                                    @endphp
                                 @endif
+                                
                             @endif
                         </td>
 
@@ -56,7 +66,7 @@
                         <!-- Item Total -->
                         <td class="text-end">
                             @if($item->service->service_type!="onetime")
-                                {{ $invoice->currency }} {{ number_format($item->price * $item->quantity - $item->discount, 2) }}
+                                {{ $invoice->currency }} {{ number_format($item->price, 2) }}
                             @else
                                 {{ $invoice->currency }} {{ number_format($item->price * $item->quantity - $item->discount, 2) }}
                             @endif
@@ -64,7 +74,7 @@
 
                         <!-- Item Total in CAD -->
                         <td class="text-end">
-                            ${{ number_format($item->price * $item->quantity - $item->discount, 2) }}
+                            ${{ number_format($item->price * $item->quantity, 2) }}
                         </td>
                     </tr>
                     @endforeach
@@ -91,10 +101,10 @@
                         <td class="text-end"><strong>Subtotal</strong></td>
                         <td class="text-end">
                             {{ $invoice->currency }} 
-                            {{ number_format($invoice->total - $invoice->upfront_payment_amount, 2) }}
+                            {{ number_format($invoice->total - $invoice->upfront_payment_amount + $total_discount, 2) }}
                         </td>
                         <td class="text-end">
-                            ${{ number_format($invoice->total - $invoice->upfront_payment_amount, 2) }}
+                            ${{ number_format($invoice->total - $invoice->upfront_payment_amount + $total_discount, 2) }}
                         </td>
                     </tr>
 
@@ -103,10 +113,10 @@
                         <td colspan="2"></td>
                         <td class="text-end"><strong>Payment Due</strong></td>
                         <td class="text-end">
-                            <strong>{{ $invoice->currency }} {{ number_format($invoice->total - $invoice->upfront_payment_amount, 2) }}</strong>
+                            <strong>{{ $invoice->currency }} {{ number_format($invoice->total - $invoice->upfront_payment_amount + $total_discount, 2) }}</strong>
                         </td>
                         <td class="text-end">
-                            <strong>CAD ${{ number_format($invoice->total - $invoice->upfront_payment_amount, 2) }}</strong>
+                            <strong>CAD ${{ number_format($invoice->total - $invoice->upfront_payment_amount + $total_discount, 2) }}</strong>
                         </td>
                     </tr>
                 </tfoot>
@@ -116,6 +126,9 @@
             <p><strong>Client:</strong> {{ $invoice->client->first_name }} {{ $invoice->client->last_name }}</p>
             <p><strong>Total Amount:</strong> ${{ number_format($invoice->total, 2) }}</p>
             <p><strong>Note:</strong> {{ $invoice->note }}</p>
+            @if($total_discount)
+                <p><strong>Discount:</strong> ${{ number_format($total_discount,2) }}</p>
+            @endif
         </div>
 
         <!-- Stripe Payment Form -->
@@ -133,9 +146,13 @@
             </button>
 
             @if($next_payment_recurring)
+                @php
+                    $interval = ceil(array_sum($interval_total) / count($interval_total));
+                    $interval_text = $interval == 1 ? 'month' : $interval . ' months';
+                @endphp
                 <div class="d-flex justify-content-center align-items-center text-center mt-4">
                     <span class="text-muted fw-bold" style="font-size: 16px;">
-                        ${{ number_format($invoice->total, 2) }} now, then ${{ number_format($next_payment_recurring, 2) }}/month
+                        ${{ number_format($invoice->total, 2) }} now, then ${{ number_format($next_payment_recurring - $total_discount, 2) }}/{{$interval_text}}
                     </span>
                 </div>
             @endif
@@ -216,6 +233,8 @@
                     submitButton.disabled = false;
                     submitButton.innerHTML = 'Pay ${{ number_format($invoice->total, 2) }}';
                 } else {
+
+                    const interval = {{ $interval ?? 1 }}; // Default to 1 if interval is not provided
                     const response = await fetch('{{ route("portal.invoice.payment.process", $invoice->id) }}', {
                         method: 'POST',
                         headers: {
@@ -225,7 +244,8 @@
                         body: JSON.stringify({
                             payment_intent_id: paymentIntent.id,
                             payment_method: paymentIntent.payment_method, // Retrieve the actual PaymentMethod ID
-                            recurring_payment: "{{ number_format($next_payment_recurring, 2) }}"
+                            recurring_payment: "{{ number_format($next_payment_recurring - $total_discount, 2) }}",
+                            interval: interval,
                         }),
                     });
 
