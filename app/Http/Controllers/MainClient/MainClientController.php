@@ -326,6 +326,48 @@ class MainClientController extends Controller
             $addedByUser = User::findOrFail($invoice->added_by);
 
             if ($invoice->paid_at) {
+                return redirect()->route('portal.invoices.show', $invoice->id)->with('error', 'Invoice already paid.');
+            }
+
+            Stripe::setApiKey(env('STRIPE_SECRET'));
+
+            // Process Stripe payment logic as shown earlier...
+
+            // Mark the invoice as paid
+            $invoice->update([
+                'paid_at' => now(),
+                'payment_method' => 'stripe',
+            ]);
+
+            // Send email notifications
+            Mail::to($addedByUser->email)->send(new \App\Mail\InvoicePaid($invoice, $client, $addedByUser));
+            Mail::to($client->email)->send(new \App\Mail\InvoicePaidConfirmation($invoice, $client));
+
+            // Redirect to the invoice page with a success message
+            return redirect()->route('portal.invoices.show', $invoice->id)
+                            ->with('success', 'Payment successful. Invoice has been paid.');
+        } catch (\Exception $e) {
+            // Redirect back with an error message
+            return redirect()->route('portal.invoices.show', $id)
+                            ->with('error', 'An error occurred: ' . $e->getMessage());
+        }
+    }
+
+    public function processPaymentOld(Request $request, $id)
+    {
+        $request->validate([
+            'payment_intent_id' => 'required|string',
+            'payment_method' => 'required|string',
+            'recurring_payment' => 'nullable|numeric|min:0',
+            'interval' => 'nullable|numeric',
+        ]);
+
+        try {
+            $invoice = Invoice::findOrFail($id);
+            $client = Client::findOrFail($invoice->client_id);
+            $addedByUser = User::findOrFail($invoice->added_by);
+
+            if ($invoice->paid_at) {
                 return response()->json(['success' => false, 'message' => 'Invoice already paid.'], 400);
             }
 
@@ -439,6 +481,165 @@ class MainClientController extends Controller
 
     public function profile(){
         return view('c_main.c_profile');
+    }
+
+    public function createCheckoutSession(Request $request, Invoice $invoice)
+    {
+        try {
+            // Ensure the authenticated user can access the invoice
+            if ($invoice->user_id !== auth()->id()) {
+                return response()->json(['error' => 'Unauthorized access'], 403);
+            }
+
+            $addedByUser = User::findOrFail($invoice->added_by);
+
+            if (empty($addedByUser->stripe_connect_account_id)) {
+                return response()->json(['error' => 'Seller has not connected their Stripe account'], 400);
+            }
+
+            $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET'));
+
+            // Check for recurring payment
+            $nextPaymentRecurring = $request->input('next_payment_recurring', 0);
+            $intervalText = $request->input('interval_text', '1 month');
+
+            if ($nextPaymentRecurring > 0) {
+                // Extract interval type and count from $intervalText
+                $intervalDetails = explode(' ', $intervalText);
+                $intervalCount = intval($intervalDetails[0]) ?? 1; // Default to 1
+                $intervalType = isset($intervalDetails[1]) && str_contains(strtolower($intervalDetails[1]), 'month') 
+                                ? 'month' 
+                                : 'year'; // Default to 'month'
+    
+                // Create a product and price for the subscription
+                $product = $stripe->products->create([
+                    'name' => 'Recurring Payment for Invoice #' . $invoice->invoice_no,
+                    'description' => 'Recurring payment every ' . $intervalText,
+                ]);
+    
+                $price = $stripe->prices->create([
+                    'unit_amount' => $nextPaymentRecurring * 100,
+                    'currency' => 'usd',
+                    'recurring' => [
+                        'interval' => $intervalType,
+                        'interval_count' => $intervalCount,
+                    ],
+                    'product' => $product->id,
+                ]);
+    
+                // Create a Checkout Session for subscriptions
+                $session = $stripe->checkout->sessions->create([
+                    'payment_method_types' => ['card'],
+                    'line_items' => [
+                        [
+                            'price' => $price->id,
+                            'quantity' => 1,
+                        ],
+                    ],
+                    'mode' => 'subscription',
+                    'subscription_data' => [
+                        'application_fee_percent' => 100, // Adjust as needed (e.g., 1 dollar)
+                        'transfer_data' => [
+                            'destination' => $addedByUser->stripe_connect_account_id,
+                        ],
+                    ],
+                    'success_url' => route('portal.invoices.show.new', $invoice->id) . '?payment_status=success&is_subscription=true',
+                    'cancel_url' => route('portal.invoices.show.new', $invoice->id) . '?payment_status=canceled',
+                ]);
+            }  else {
+                // One-time payment session
+                $session = $stripe->checkout->sessions->create([
+                    'payment_method_types' => ['card'],
+                    'line_items' => [
+                        [
+                            'price_data' => [
+                                'currency' => 'usd',
+                                'product_data' => [
+                                    'name' => 'Invoice Payment for ' . $invoice->invoice_no,
+                                    'description' => 'Payment for invoice #' . $invoice->invoice_no,
+                                ],
+                                'unit_amount' => $invoice->total * 100,
+                            ],
+                            'quantity' => 1,
+                        ],
+                    ],
+                    'mode' => 'payment',
+                    'payment_intent_data' => [
+                        'on_behalf_of' => $addedByUser->stripe_connect_account_id,
+                        'transfer_data' => [
+                            'destination' => $addedByUser->stripe_connect_account_id,
+                        ],
+                    ],
+                    'success_url' => route('portal.invoices.show.new', $invoice->id) . '?payment_status=success',
+                    'cancel_url' => route('portal.invoices.show.new', $invoice->id) . '?payment_status=canceled',
+                ]);
+            }
+
+            return response()->json(['url' => $session->url], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function invoice_show_new($id, Request $request)
+    {
+        $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
+        $paymentStatus = $request->query('payment_status');
+        $isSubscription = $request->query('is_subscription') === 'true';
+
+        $message = null;
+
+        if ($paymentStatus === 'success' && $invoice->paid_at==null) {
+            $client = Client::findOrFail($invoice->client_id);
+            $addedByUser = User::findOrFail($invoice->added_by);
+
+            if (!$invoice->paid_at) {
+                // Mark the invoice as paid
+                $invoice->update([
+                    'paid_at' => now(),
+                    'payment_method' => 'stripe',
+                ]);
+
+                // If it's a subscription, store the subscription details
+                if ($isSubscription) {
+                    Stripe::setApiKey(env('STRIPE_SECRET'));
+
+                    $subscriptionId = $request->query('subscription_id'); // Pass the subscription ID from Stripe
+                    $subscription = \Stripe\Subscription::retrieve($subscriptionId);
+
+                    InvoiceSubscription::create([
+                        'invoice_id' => $invoice->id,
+                        'subscription_id' => $subscription->id,
+                        'amount' => $subscription->plan->amount / 100,
+                        'currency' => $subscription->plan->currency,
+                        'intervel' => $subscription->plan->interval,
+                        'starts_at' => Carbon::createFromTimestamp($subscription->current_period_start),
+                        'ends_at' => Carbon::createFromTimestamp($subscription->current_period_end),
+                    ]);
+                }
+
+                // Send email notifications
+                Mail::to($addedByUser->email)->send(new \App\Mail\InvoicePaid($invoice, $client, $addedByUser));
+                Mail::to($client->email)->send(new \App\Mail\InvoicePaidConfirmation($invoice, $client));
+
+                $message = 'Payment successful. Thank you for your payment.';
+            } else {
+                $message = 'Invoice already paid.';
+            }
+        } elseif ($paymentStatus === 'canceled') {
+            $message = 'Payment canceled. Please try again.';
+        }
+
+        // Retrieve the services in case you want to display service information in the invoice
+        $services = Service::where('user_id', auth()->id())->get();
+
+        // Fetch all users and team members added by the current logged-in user
+        $users = User::all();
+        $teamMembers = TeamMember::where('added_by', auth()->id())->get();
+
+        // Pass the invoice data to the view
+        return view('c_main.c_pages.c_invoice.c_show', compact('invoice', 'services', 'users', 'teamMembers', 'message'));
     }
 
     public function invoice_subscription(Request $request)

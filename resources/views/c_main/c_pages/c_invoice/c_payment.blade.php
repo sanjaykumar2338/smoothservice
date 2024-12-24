@@ -124,15 +124,23 @@
 
         <div class="invoice-card">
             <p><strong>Client:</strong> {{ $invoice->client->first_name }} {{ $invoice->client->last_name }}</p>
-            <p><strong>Total Amount:</strong> ${{ number_format($invoice->total, 2) }}</p>
-            <p><strong>Note:</strong> {{ $invoice->note }}</p>
             @if($total_discount)
                 <p><strong>Discount:</strong> ${{ number_format($total_discount,2) }}</p>
+            @endif
+
+            @if($next_payment_recurring)
+                @php
+                    $interval = ceil(array_sum($interval_total) / count($interval_total));
+                    $interval_text = $interval == 1 ? 'month' : $interval . ' months';
+                @endphp
+                <p><strong>Total Amount:</strong> ${{ number_format($invoice->total, 2) }} now, then ${{ number_format($next_payment_recurring - $total_discount, 2) }}/{{$interval_text}}</p>
+            @else
+                <p><strong>Total Amount:</strong> ${{ number_format($invoice->total, 2) }}</p>
             @endif
         </div>
 
         <!-- Stripe Payment Form -->
-        <form id="payment-form" action="{{ route('portal.invoice.payment.process', $invoice->id) }}" method="POST">
+        <form style="display:none;" id="payment-form" action="{{ route('portal.invoice.payment.process', $invoice->id) }}" method="POST">
             @csrf
             <div class="form-group">
                 <label for="card-element" class="form-label">Enter your card details</label>
@@ -156,14 +164,66 @@
                     </span>
                 </div>
             @endif
+        </form>
 
-
+        <form id="checkout-form" method="POST" action="{{ route('portal.invoice.payment.checkout', $invoice->id) }}">
+            @csrf
+            <button class="btn btn-primary mt-4 w-100" id="checkout-button" type="submit">
+                <i class="fas fa-lock"></i> Pay ${{ number_format($invoice->total, 2) }}
+            </button>
+            @if($next_payment_recurring)
+                @php
+                    $interval = ceil(array_sum($interval_total) / count($interval_total));
+                    $interval_text = $interval == 1 ? 'month' : $interval . ' months';
+                @endphp
+                <div class="d-flex justify-content-center align-items-center text-center mt-4">
+                    <span class="text-muted fw-bold" style="font-size: 16px;">
+                        ${{ number_format($invoice->total, 2) }} now, then ${{ number_format($next_payment_recurring - $total_discount, 2) }}/{{$interval_text}}
+                    </span>
+                </div>
+            @endif
         </form>
     </div>
 </div>
 
 <!-- Include Stripe.js -->
 <script src="https://js.stripe.com/v3/"></script>
+<script>
+    document.getElementById('checkout-form').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const button = document.getElementById('checkout-button');
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirecting...';
+
+        try {
+            const response = await fetch('{{ route("portal.invoice.payment.checkout", $invoice->id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                },
+                body: JSON.stringify({
+                    total_now: {{ number_format($invoice->total, 2) }},
+                    next_payment_recurring: {{ number_format($next_payment_recurring - $total_discount, 2) ?? 0 }},
+                    interval_text: '{{ $interval_text ?? "month" }}',
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error(data.error || 'Failed to create checkout session.');
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+            button.disabled = false;
+            button.innerHTML = 'Pay ${{ number_format($invoice->total, 2) }}';
+        }
+    });
+</script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const stripe = Stripe('{{ env('STRIPE_KEY') }}');
