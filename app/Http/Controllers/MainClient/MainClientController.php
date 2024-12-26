@@ -286,9 +286,220 @@ class MainClientController extends Controller
         // Fetch all users and team members added by the current logged-in user
         $users = User::all();
         $teamMembers = TeamMember::where('added_by', auth()->id())->get();
+        $addedByUser = User::findOrFail($invoice->added_by);
 
         // Pass the invoice data to the view
-        return view('c_main.c_pages.c_invoice.c_payment', compact('invoice', 'services', 'users', 'teamMembers'));
+        return view('c_main.c_pages.c_invoice.c_payment', compact('invoice', 'services', 'users', 'teamMembers', 'addedByUser'));
+    }
+
+    public function processRecurringPayment(Request $request, $id)
+    {
+        try {
+            $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
+            $client = Client::findOrFail($invoice->client_id);
+            $addedByUser = User::findOrFail($invoice->added_by);
+
+            if ($invoice->paid_at) {
+                return response()->json(['success' => false, 'message' => 'Invoice already paid.'], 400);
+            }
+
+            $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET'));
+
+            // Validate input
+            $paymentMethodId = $request->input('payment_method');
+            if (!$paymentMethodId) {
+                return response()->json(['success' => false, 'message' => 'Payment method is required.'], 400);
+            }
+
+            if (empty($client->billing_address)) {
+                return response()->json(['success' => false, 'message' => 'Billing address is required for export transactions.'], 400);
+            }
+
+            // Retrieve or create a customer on the connected account
+            $stripeCustomer = null;
+            if (empty($client->stripe_customer_id)) {
+                // Create a new customer if not already exists
+                $stripeCustomer = $stripe->customers->create(
+                    [
+                        'email' => $client->email,
+                        'name' => $client->first_name . ' ' . $client->last_name,
+                        'address' => [
+                            'line1' => $client->billing_address ?? null,
+                            'line2' => $client->billing_address ?? null,
+                            'city' => $client->city ?? null,
+                            'state' => $client->state ?? null,
+                            'postal_code' => $client->postal_code ?? null,
+                            'country' => $client->country ?? null,
+                        ],
+                    ],
+                    ['stripe_account' => $addedByUser->stripe_connect_account_id]
+                );
+                // Save the Stripe customer ID to the client
+                $client->update(['stripe_customer_id' => $stripeCustomer->id]);
+            } else {
+                try {
+                    // Retrieve the existing customer
+                    $stripeCustomer = $stripe->customers->retrieve(
+                        $client->stripe_customer_id,
+                        [],
+                        ['stripe_account' => $addedByUser->stripe_connect_account_id]
+                    );
+
+                    // Update the customer details if they differ
+                    $stripe->customers->update(
+                        $client->stripe_customer_id,
+                        [
+                            'email' => $client->email,
+                            'name' => $client->first_name . ' ' . $client->last_name,
+                            'address' => [
+                                'line1' => $client->billing_address ?? null,
+                                'line2' => $client->billing_address ?? null,
+                                'city' => $client->city ?? null,
+                                'state' => $client->state ?? null,
+                                'postal_code' => $client->postal_code ?? null,
+                                'country' => $client->country ?? null,
+                            ],
+                        ],
+                        ['stripe_account' => $addedByUser->stripe_connect_account_id]
+                    );
+                } catch (\Stripe\Exception\InvalidRequestException $e) {
+                    // Handle the case where the customer ID is invalid or not found
+                    $stripeCustomer = $stripe->customers->create(
+                        [
+                            'email' => $client->email,
+                            'name' => $client->first_name . ' ' . $client->last_name,
+                            'address' => [
+                                'line1' => $client->billing_address ?? null,
+                                'line2' => $client->billing_address ?? null,
+                                'city' => $client->city ?? null,
+                                'state' => $client->state ?? null,
+                                'postal_code' => $client->postal_code ?? null,
+                                'country' => $client->country ?? null,
+                            ],
+                        ],
+                        ['stripe_account' => $addedByUser->stripe_connect_account_id]
+                    );
+                    // Update the client record with the new Stripe customer ID
+                    $client->update(['stripe_customer_id' => $stripeCustomer->id]);
+                }
+            }
+
+            // Attach the payment method to the customer in the connected account
+            $stripe->paymentMethods->attach(
+                $paymentMethodId,
+                ['customer' => $stripeCustomer->id],
+                ['stripe_account' => $addedByUser->stripe_connect_account_id]
+            );
+
+            // Update the default payment method for the customer
+            $stripe->customers->update(
+                $stripeCustomer->id,
+                [
+                    'invoice_settings' => ['default_payment_method' => $paymentMethodId],
+                ],
+                ['stripe_account' => $addedByUser->stripe_connect_account_id]
+            );
+
+            // Create a product and price for the subscription
+            $product = $stripe->products->create(
+                [
+                    'name' => 'Recurring Payment for Invoice #' . $invoice->invoice_no,
+                ],
+                ['stripe_account' => $addedByUser->stripe_connect_account_id]
+            );
+
+            $price = $stripe->prices->create(
+                [
+                    'unit_amount' => $request->input('recurring_payment') * 100,
+                    'currency' => 'usd',
+                    'recurring' => [
+                        'interval' => $request->input('interval', 'month'),
+                        'interval_count' => $request->input('num_interval', 1),
+                    ],
+                    'product' => $product->id,
+                ],
+                ['stripe_account' => $addedByUser->stripe_connect_account_id]
+            );
+
+            // Create the subscription
+            $subscription = $stripe->subscriptions->create(
+                [
+                    'customer' => $stripeCustomer->id,
+                    'items' => [['price' => $price->id]],
+                    'expand' => ['latest_invoice.payment_intent'],
+                ],
+                ['stripe_account' => $addedByUser->stripe_connect_account_id]
+            );
+
+            // Save subscription details
+            $ins = InvoiceSubscription::create([
+                'invoice_id' => $invoice->id,
+                'subscription_id' => $subscription->id,
+                'amount' => $request->input('recurring_payment'),
+                'currency' => 'usd',
+                'intervel' => $request->input('interval', 'month'),
+                'starts_at' => now(),
+                'ends_at' => now()->addMonths($request->input('interval_count', 1)),
+            ]);
+
+            // Handle 3D Secure (SCA)
+            if ($subscription->latest_invoice->payment_intent->status === 'requires_action') {
+                return response()->json([
+                    'requires_action' => true,
+                    'client_secret' => $subscription->latest_invoice->payment_intent->client_secret,
+                    'subscription_id' => $subscription->id, // Include subscription ID
+                    'stored_subscrption_id' => $ins->id,
+                ]);
+            }
+
+            $ins->update([
+                'completed' => 1
+            ]);
+
+            $invoice->update([
+                'paid_at' => now(),
+                'payment_method' => 'stripe_subscription',
+            ]);
+
+            Mail::to($addedByUser->email)->send(new \App\Mail\InvoicePaid($invoice, $client, $addedByUser));
+            Mail::to($client->email)->send(new \App\Mail\InvoicePaidConfirmation($invoice, $client));
+
+            return response()->json(['success' => true, 'message' => 'Recurring payment created successfully.'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function finalizeSubscription(Request $request)
+    {
+        try {
+            $subscriptionId = $request->input('subscription_id');
+            $invoiceId = $request->input('invoice_id');
+            $invoice = Invoice::with(['client', 'items'])->findOrFail($invoiceId);
+            $client = Client::findOrFail($invoice->client_id);
+            $addedByUser = User::findOrFail($invoice->added_by);
+
+            // Retrieve the subscription details
+            $stored_subscrption_id = $request->input('stored_subscrption_id');
+            $sub = InvoiceSubscription::find($stored_subscrption_id);
+
+            // Save subscription details in the database
+            $sub->update([
+                'completed' => 1
+            ]);
+
+            // Update the invoice
+            Invoice::where('id', $invoiceId)->update([
+                'paid_at' => now(),
+                'payment_method' => 'stripe_subscription',
+            ]);
+
+            Mail::to($addedByUser->email)->send(new \App\Mail\InvoicePaid($invoice, $client, $addedByUser));
+            Mail::to($client->email)->send(new \App\Mail\InvoicePaidConfirmation($invoice, $client));
+            return response()->json(['success' => true, 'message' => 'Subscription finalized successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()]);
+        }
     }
 
     public function createPaymentIntent(Request $request, Invoice $invoice)

@@ -16,6 +16,7 @@ class Client extends Authenticatable
         'billing_address',
         'country',
         'state',
+        'city',
         'postal_code',
         'company',
         'tax_id',

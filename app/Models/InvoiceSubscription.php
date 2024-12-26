@@ -22,6 +22,7 @@ class InvoiceSubscription extends Model
         'intervel',         // Subscription interval (e.g., month)
         'starts_at',        // Start date of the subscription
         'ends_at',          // End date of the subscription or trial
+        'completed',
         'cancelled_at',
     ];
 

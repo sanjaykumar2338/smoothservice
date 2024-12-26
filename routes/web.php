@@ -62,11 +62,13 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
     Route::get('/invoice/payment/{id}', [MainClientController::class, 'invoice_payment'])->name('portal.invoice.payment');
     Route::get('/invoice/payment/process/{id}', [MainClientController::class, 'invoice_payment_process'])->name('portal.invoice.payment.process');
     Route::post('/invoice/{invoice}/payment-intent', [MainClientController::class, 'createPaymentIntent'])->name('portal.invoice.payment.intent');
-    Route::post('/invoice/{id}/payment/process', [MainClientController::class, 'processPayment'])->name('portal.invoice.payment.process');
+    Route::post('/invoice/{id}/payment/process', [MainClientController::class, 'processPaymentOld'])->name('portal.invoice.payment.process');
     Route::get('/invoice/subscription', [MainClientController::class, 'invoice_subscription'])->name('portal.invoice.subscription');
     Route::post('/subscriptions/{id}/cancel', [MainClientController::class, 'cancel_subscription'])->name('portal.subscriptions.cancel');
     Route::post('/invoices/{invoice}/checkout', [MainClientController::class, 'createCheckoutSession'])->name('portal.invoice.payment.checkout');
     Route::get('/invoices/show/result/{id}', [MainClientController::class, 'invoice_show_new'])->name('portal.invoices.show.new');
+    Route::post('/invoice/{id}/payment/recurring', [MainClientController::class, 'processRecurringPayment'])->name('portal.invoice.payment.recurring');
+    Route::post('/subscriptions/finalize', [MainClientController::class, 'finalizeSubscription'])->name('portal.subscriptions.finalize');
 
 
     Route::get('/profile', [MainClientController::class, 'profile'])->name('portal.profile');
