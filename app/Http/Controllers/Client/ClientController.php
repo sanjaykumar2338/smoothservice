@@ -62,6 +62,7 @@ class ClientController extends Controller
             'billing_address' => 'required|string|max:255',
             'country' => 'required|string|max:255',
             'state' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
             'postal_code' => 'required|string|max:255',
             'company' => 'required|string|max:255',
             'tax_id' => 'required|string|max:255',
@@ -83,6 +84,7 @@ class ClientController extends Controller
             'billing_address' => $validatedData['billing_address'],
             'country' => $validatedData['country'],
             'state' => $validatedData['state'],
+            'city' => $validatedData['city'],
             'postal_code' => $validatedData['postal_code'],
             'company' => $validatedData['company'],
             'tax_id' => $validatedData['tax_id'],
@@ -124,6 +126,7 @@ class ClientController extends Controller
             'billing_address' => 'required|string|max:255',
             'country' => 'required|string|max:255',
             'state' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
             'postal_code' => 'required|string|max:255',
             'company' => 'required|string|max:255',
             'tax_id' => 'required|string|max:255',
@@ -142,6 +145,7 @@ class ClientController extends Controller
         $client->billing_address = $validatedData['billing_address'] ?? $client->billing_address;
         $client->country = $validatedData['country'] ?? $client->country;
         $client->state = $validatedData['state'] ?? $client->state;
+        $client->city = $validatedData['city'] ?? $client->city;
         $client->postal_code = $validatedData['postal_code'] ?? $client->postal_code;
         $client->company = $validatedData['company'] ?? $client->company;
         $client->tax_id = $validatedData['tax_id'] ?? $client->tax_id;

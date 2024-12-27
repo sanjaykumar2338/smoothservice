@@ -121,6 +121,12 @@
                             <input type="text" class="form-control" id="state" name="state" value="{{ old('state') }}" placeholder="Enter State / Province / Region" required />
                         </div>
 
+                        <!-- City -->
+                        <div class="mb-3">
+                            <label class="form-label" for="city">City</label>
+                            <input type="text" class="form-control" id="city" name="city" value="{{ old('city') }}" placeholder="Enter City" required />
+                        </div>
+
                         <!-- Postal / Zip Code -->
                         <div class="mb-3">
                             <label class="form-label" for="postal_code">Postal / Zip Code</label>
