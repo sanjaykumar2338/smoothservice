@@ -133,9 +133,14 @@
                 </button>
             </form>
         @else
-            <form id="checkout-form" method="POST" action="{{ route('portal.invoice.payment.checkout', $invoice->id) }}">
+            <form id="checkout-form">
                 @csrf
-                <button class="btn btn-primary mt-4 w-100" id="checkout-button" type="submit">
+                <div class="form-group">
+                    <label for="card-element" class="form-label">Enter your card details</label>
+                    <div id="card-element-2" class="form-control"></div>
+                    <div id="card-errors" role="alert" class="text-danger mt-2"></div>
+                </div>
+                <button class="btn btn-primary mt-4 w-100" id="checkout-button" type="button">
                     <i class="fas fa-lock"></i> Pay ${{ number_format($invoice->total, 2) }}
                 </button>
             </form>
@@ -146,6 +151,12 @@
 <script src="https://js.stripe.com/v3/"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+
+        const cardElement = document.getElementById('card-element');
+        if (!cardElement) {
+            return;
+        }
+
         const stripe = Stripe('{{ env('STRIPE_KEY') }}', { stripeAccount: '{{ $addedByUser->stripe_connect_account_id }}' });
         const elements = stripe.elements();
         const card = elements.create('card', {
@@ -255,39 +266,95 @@
 </script>
 
 <script>
-    document.getElementById('checkout-form').addEventListener('submit', async function (event) {
+document.addEventListener('DOMContentLoaded', function () {
+    const cardElement2 = document.getElementById('card-element-2');
+    if (!cardElement2) {
+        return;
+    }
+
+    const stripe = Stripe('{{ env('STRIPE_KEY') }}', { stripeAccount: '{{ $addedByUser->stripe_connect_account_id }}' });
+    const elements = stripe.elements();
+    const card = elements.create('card', {
+        hidePostalCode: true,
+        style: {
+            base: {
+                color: '#32325d',
+                fontFamily: 'Helvetica, Arial, sans-serif',
+                fontSize: '16px',
+                '::placeholder': { color: '#aab7c4' },
+            },
+            invalid: {
+                color: '#fa755a',
+                iconColor: '#fa755a',
+            },
+        },
+    });
+
+    card.mount('#card-element-2');
+
+    const form = document.getElementById('checkout-form');
+    const button = document.getElementById('checkout-button');
+
+    button.addEventListener('click', async function (event) {
         event.preventDefault();
-        const button = document.getElementById('checkout-button');
         button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirecting...';
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
         try {
-            const response = await fetch('{{ route("portal.invoice.payment.checkout", $invoice->id) }}', {
+            const { paymentMethod, error } = await stripe.createPaymentMethod({
+                type: 'card',
+                card: card,
+                billing_details: {
+                    name: "{{ $invoice->client->first_name }} {{ $invoice->client->last_name }}",
+                    email: "{{ $invoice->client->email }}",
+                },
+            });
+
+            if (error) {
+                document.getElementById('card-errors').textContent = error.message;
+                button.disabled = false;
+                button.innerHTML = 'Pay Now';
+                return;
+            }
+
+            const response = await fetch('{{ route("portal.invoice.payment.one-time", $invoice->id) }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                 },
-                body: JSON.stringify({
-                    total_now: {{ number_format($invoice->total, 2) }},
-                    next_payment_recurring: {{ number_format($next_payment_recurring - $total_discount, 2) ?? 0 }},
-                    interval_text: '{{ $interval_text ?? "month" }}',
-                }),
+                body: JSON.stringify({ payment_method: paymentMethod.id }),
             });
 
-            const data = await response.json();
+            const result = await response.json();
+            console.log(result,'result');
 
-            if (data.url) {
-                window.location.href = data.url;
+            if (result.requires_action) {
+                const { error: confirmError } = await stripe.confirmCardPayment(result.client_secret);
+                console.log(confirmError,'confirmError',error);
+
+                if (confirmError) {
+                    document.getElementById('card-errors').textContent = confirmError.message;
+                    button.disabled = false;
+                    button.innerHTML = 'Pay Now';
+                    return;
+                } else {
+                    window.location.href = '{{ route("portal.paymentonetimecompleted", $invoice->id) }}';
+                }
+            } else if (result.success) {
+                window.location.href = '{{ route("portal.invoices.show", $invoice->id) }}';
             } else {
-                throw new Error(data.error || 'Failed to create checkout session.');
+                document.getElementById('card-errors').textContent = result.message || 'Payment failed.';
+                button.disabled = false;
+                button.innerHTML = 'Pay Now';
             }
         } catch (error) {
-            alert('Error: ' + error.message);
+            document.getElementById('card-errors').textContent = error.message;
             button.disabled = false;
-            button.innerHTML = 'Pay ${{ number_format($invoice->total, 2) }}';
+            button.innerHTML = 'Pay Now';
         }
     });
+});
 </script>
 
 <style>

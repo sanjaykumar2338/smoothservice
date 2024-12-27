@@ -502,6 +502,138 @@ class MainClientController extends Controller
         }
     }
 
+    public function processOneTimePayment(Request $request, $id)
+    {
+        try {
+            $invoice = Invoice::with(['client'])->findOrFail($id);
+            $client = Client::findOrFail($invoice->client_id);
+            $addedByUser = User::findOrFail($invoice->added_by);
+
+            if ($invoice->paid_at) {
+                return response()->json(['success' => false, 'message' => 'Invoice already paid.'], 400);
+            }
+
+            $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET'));
+
+            // Validate input
+            $paymentMethodId = $request->input('payment_method');
+            if (!$paymentMethodId) {
+                return response()->json(['success' => false, 'message' => 'Payment method is required.'], 400);
+            }
+
+            if (empty($client->billing_address)) {
+                return response()->json(['success' => false, 'message' => 'Billing address is required for export transactions.'], 400);
+            }
+
+            // Retrieve or create a Stripe customer
+            if (empty($client->stripe_customer_id)) {
+                $stripeCustomer = $stripe->customers->create(
+                    [
+                        'email' => $client->email,
+                        'name' => $client->first_name . ' ' . $client->last_name,
+                        'address' => [
+                            'line1' => $client->billing_address ?? null,
+                            'line2' => $client->billing_address ?? null,
+                            'city' => $client->city ?? null,
+                            'state' => $client->state ?? null,
+                            'postal_code' => $client->postal_code ?? null,
+                            'country' => $client->country ?? null,
+                        ],
+                    ],
+                    ['stripe_account' => $addedByUser->stripe_connect_account_id]
+                );
+                $client->update(['stripe_customer_id' => $stripeCustomer->id]);
+            } else {
+                $stripeCustomer = $stripe->customers->retrieve(
+                    $client->stripe_customer_id,
+                    [],
+                    ['stripe_account' => $addedByUser->stripe_connect_account_id]
+                );
+            }
+
+            // Attach the payment method to the customer
+            $stripe->paymentMethods->attach(
+                $paymentMethodId,
+                ['customer' => $stripeCustomer->id],
+                ['stripe_account' => $addedByUser->stripe_connect_account_id]
+            );
+
+            // Create a PaymentIntent
+            $paymentIntent = $stripe->paymentIntents->create([
+                'amount' => $invoice->total * 100, // Amount in cents
+                'currency' => 'usd',
+                'customer' => $stripeCustomer->id,
+                'payment_method' => $paymentMethodId,
+                'description' => 'Payment for Invoice #' . $invoice->invoice_no,
+                'confirm' => true,
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                    'allow_redirects' => 'never',
+                ],
+            ], ['stripe_account' => $addedByUser->stripe_connect_account_id]);            
+
+            if ($paymentIntent->status === 'requires_action') {
+                return response()->json([
+                    'requires_action' => true,
+                    'client_secret' => $paymentIntent->client_secret,
+                ]);
+            }
+
+            if ($paymentIntent->status === 'succeeded') {
+                $invoice->update([
+                    'paid_at' => now(),
+                    'payment_method' => 'stripe_one_time',
+                ]);
+
+                Mail::to($addedByUser->email)->send(new \App\Mail\InvoicePaid($invoice, $client, $addedByUser));
+                Mail::to($client->email)->send(new \App\Mail\InvoicePaidConfirmation($invoice, $client));
+
+                return response()->json(['success' => true, 'message' => 'Payment completed successfully.'], 200);
+            }
+
+            return response()->json(['success' => false, 'message' => 'Payment failed.'], 400);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function paymentonetimecompleted($id, Request $request){
+        $invoice = Invoice::with(['client'])->findOrFail($id);
+        $client = Client::findOrFail($invoice->client_id);
+        $addedByUser = User::findOrFail($invoice->added_by);
+
+        if ($invoice->paid_at === Null) {
+            $invoice->update([
+                'paid_at' => now(),
+                'payment_method' => 'stripe_one_time',
+            ]);
+
+            Mail::to($addedByUser->email)->send(new \App\Mail\InvoicePaid($invoice, $client, $addedByUser));
+            Mail::to($client->email)->send(new \App\Mail\InvoicePaidConfirmation($invoice, $client));
+            return redirect()->route('portal.invoices.show', $id)
+                            ->with('success', 'Payment completed successfully.');
+        }
+
+        return redirect()->route('portal.invoices.show', $id)
+                            ->with('success', 'Payment already completed.');
+    }
+
+    public function handleReturn(Request $request)
+    {
+        $paymentIntentId = $request->input('payment_intent');
+        $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntentId);
+
+        if ($paymentIntent->status === 'succeeded') {
+            // Payment succeeded
+            return redirect()->route('portal.invoices.show', $invoiceId)
+                            ->with('success', 'Payment completed successfully.');
+        } else {
+            // Payment failed
+            return redirect()->route('portal.invoices.show', $invoiceId)
+                            ->with('error', 'Payment failed. Please try again.');
+        }
+    }
+
     public function createPaymentIntent(Request $request, Invoice $invoice)
     {
         // Ensure the authenticated user can access the invoice

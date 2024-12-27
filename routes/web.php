@@ -69,7 +69,9 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
     Route::get('/invoices/show/result/{id}', [MainClientController::class, 'invoice_show_new'])->name('portal.invoices.show.new');
     Route::post('/invoice/{id}/payment/recurring', [MainClientController::class, 'processRecurringPayment'])->name('portal.invoice.payment.recurring');
     Route::post('/subscriptions/finalize', [MainClientController::class, 'finalizeSubscription'])->name('portal.subscriptions.finalize');
-
+    Route::post('/portal/invoice/payment/one-time/{id}', [MainClientController::class, 'processOneTimePayment'])->name('portal.invoice.payment.one-time');
+    Route::get('/payment/return', [MainClientController::class, 'handleReturn'])->name('payment.return');
+    Route::get('/paymentonetimecompleted/{id}', [MainClientController::class, 'paymentonetimecompleted'])->name('portal.paymentonetimecompleted');
 
     Route::get('/profile', [MainClientController::class, 'profile'])->name('portal.profile');
 });
