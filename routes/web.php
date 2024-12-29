@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Artisan;
 
 //for cleint
 use App\Http\Controllers\MainClient\MainClientController;
+use App\Http\Controllers\MainClient\PaypalController;
 
 //Route for login , register
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
@@ -72,7 +73,6 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
     Route::post('/portal/invoice/payment/one-time/{id}', [MainClientController::class, 'processOneTimePayment'])->name('portal.invoice.payment.one-time');
     Route::get('/payment/return', [MainClientController::class, 'handleReturn'])->name('payment.return');
     Route::get('/paymentonetimecompleted/{id}', [MainClientController::class, 'paymentonetimecompleted'])->name('portal.paymentonetimecompleted');
-
     Route::get('/profile', [MainClientController::class, 'profile'])->name('portal.profile');
 });
 
@@ -290,6 +290,9 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::get('/paypal/connect', [IntegrationsController::class, 'connect'])->name('paypal.connect');
     Route::get('/paypal/callback', [IntegrationsController::class, 'callback'])->name('paypal.callback');
     Route::post('/paypal/disconnect', [IntegrationsController::class, 'disconnectstripe'])->name('paypal.disconnect');
+
+    Route::get('/paypal/onboard', [IntegrationsController::class, 'onboardSeller'])->name('paypal.onboard');
+    Route::get('/paypal/onboard/success', [IntegrationsController::class, 'onboardSuccess'])->name('paypal.onboard.success');
 });
 
 Route::get('logout', function() {

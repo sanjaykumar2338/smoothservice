@@ -24,6 +24,7 @@ use Stripe\Stripe;
 use Stripe\SetupIntent;
 use Stripe\StripeClient;
 use Illuminate\Support\Facades\Auth;
+use GuzzleHttp\Client as GClient;
 
 class IntegrationsController extends Controller
 {
@@ -208,6 +209,82 @@ class IntegrationsController extends Controller
             \Log::error('PayPal disconnect error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'An error occurred while disconnecting from PayPal.');
         }
+    }
+
+    public function onboardSeller()
+    {
+        $client = new GClient();
+        $clientId = env('PAYPAL_CLIENT_ID');
+        $secret = env('PAYPAL_SECRET');
+        $baseUrl = env('PAYPAL_MODE') === 'sandbox'
+            ? 'https://api-m.sandbox.paypal.com'
+            : 'https://api-m.paypal.com';
+
+        // Get Access Token
+        $response = $client->post("$baseUrl/v1/oauth2/token", [
+            'auth' => [$clientId, $secret],
+            'form_params' => [
+                'grant_type' => 'client_credentials',
+            ],
+        ]);
+
+        $accessToken = json_decode($response->getBody(), true)['access_token'];
+
+        // Create Partner Referral Request
+        $partnerReferralData = [
+            'tracking_id' => uniqid('seller_'),
+            'operations' => [
+                [
+                    'operation' => 'API_INTEGRATION',
+                    'api_integration_preference' => [
+                        'rest_api_integration' => [
+                            'integration_method' => 'PAYPAL',
+                            'integration_type' => 'THIRD_PARTY',
+                            'third_party_details' => [
+                                'features' => ['PAYMENT', 'REFUND'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'products' => ['EXPRESS_CHECKOUT'],
+            'legal_consents' => [
+                [
+                    'type' => 'SHARE_DATA_CONSENT',
+                    'granted' => true,
+                ],
+            ],
+            'partner_config_override' => [
+                'return_url' => route('paypal.onboard.success'),
+            ],
+        ];
+
+        $response = $client->post("$baseUrl/v2/customer/partner-referrals", [
+            'headers' => [
+                'Authorization' => "Bearer $accessToken",
+                'Content-Type' => 'application/json',
+                // 'PayPal-Partner-Attribution-Id' => 'SMOOTHSERVICE_SP_PPCP', // Add BN Code here
+            ],
+            'json' => $partnerReferralData,
+        ]);
+
+        $result = json_decode($response->getBody(), true);
+        // Redirect the seller to PayPal
+        return redirect($result['links'][1]['href']);
+    }
+
+    public function onboardSuccess(Request $request)
+    {
+        // Save seller's PayPal Merchant ID (retrieved via webhook or query params)
+        $sellerMerchantId = $request->query('merchantIdInPayPal');
+        // Store this in the database
+        // Seller::create(['merchant_id' => $sellerMerchantId, 'status' => 'connected']);
+
+        $user = Auth::user();
+        $user->paypal_connect_account_id = $sellerMerchantId;
+        $user->save();
+        return redirect()->route('integrations.paypal')->with('success', 'Paypal account connected successfully.');
+        //return response()->json(['message' => 'Seller onboarded successfully!', 'merchant_id' => $sellerMerchantId]);
     }
 }
 

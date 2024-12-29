@@ -133,7 +133,7 @@
       </li>
 
       <!-- integrations -->
-      <li class="menu-item {{ request()->routeIs(['integrations','integrations.stripe.connect']) ? 'active' : '' }}">
+      <li class="menu-item {{ request()->routeIs(['integrations','integrations.stripe.connect','integrations.paypal']) ? 'active' : '' }}">
          <a href="{{ route('integrations') }}" class="menu-link">
             <i class="menu-icon tf-icons bx bx-plug"></i>
             <div data-i18n="Integrations">Integrations</div>
