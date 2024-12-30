@@ -1139,6 +1139,11 @@ class MainClientController extends Controller
         $client = Client::findOrFail($invoice->client_id);
         $addedByUser = User::findOrFail($invoice->added_by);
 
+        if($addedByUser->paypal_connect_account_id==""){
+            return redirect()->route('portal.invoices.show', $invoice->id)
+                ->with('error', 'Seller has not connected their paypal merchant account');
+        }
+
         $client = new GClient();
         $clientId = env('PAYPAL_CLIENT_ID');
         $secret = env('PAYPAL_SECRET');
