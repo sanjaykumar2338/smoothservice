@@ -286,5 +286,13 @@ class IntegrationsController extends Controller
         return redirect()->route('integrations.paypal')->with('success', 'Paypal account connected successfully.');
         //return response()->json(['message' => 'Seller onboarded successfully!', 'merchant_id' => $sellerMerchantId]);
     }
+
+    public function merchantDisconnect(Request $request){
+        
+        $user = Auth::user();
+        $user->paypal_connect_account_id = '';
+        $user->save();
+        return redirect()->route('integrations.paypal')->with('success', 'Paypal  disconnected successfully.');
+    }
 }
 

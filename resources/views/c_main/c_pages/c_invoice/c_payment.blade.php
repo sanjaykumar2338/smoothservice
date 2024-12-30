@@ -23,6 +23,7 @@
                     $total_discount = 0;
                     $interval_total = [];
                     $interval = '';
+                    $interval_text = '';
                 @endphp
 
                 @foreach($invoice->items as $item)

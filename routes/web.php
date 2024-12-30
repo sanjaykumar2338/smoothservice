@@ -61,6 +61,8 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
     Route::get('/invoices', [MainClientController::class, 'invoices'])->name('portal.invoices');
     Route::get('/invoices/show/{id}', [MainClientController::class, 'invoice_show'])->name('portal.invoices.show');
     Route::get('/invoice/payment/{id}', [MainClientController::class, 'invoice_payment'])->name('portal.invoice.payment');
+    Route::get('/invoice/payment/paypal/{id}', [MainClientController::class, 'invoice_payment_paypal'])->name('portal.invoice.payment.paypal');
+
     Route::get('/invoice/payment/process/{id}', [MainClientController::class, 'invoice_payment_process'])->name('portal.invoice.payment.process');
     Route::post('/invoice/{invoice}/payment-intent', [MainClientController::class, 'createPaymentIntent'])->name('portal.invoice.payment.intent');
     Route::post('/invoice/{id}/payment/process', [MainClientController::class, 'processPaymentOld'])->name('portal.invoice.payment.process');
@@ -74,6 +76,10 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
     Route::get('/payment/return', [MainClientController::class, 'handleReturn'])->name('payment.return');
     Route::get('/paymentonetimecompleted/{id}', [MainClientController::class, 'paymentonetimecompleted'])->name('portal.paymentonetimecompleted');
     Route::get('/profile', [MainClientController::class, 'profile'])->name('portal.profile');
+
+    Route::get('/paypal/create-payment/{id}', [MainClientController::class, 'createOneTimePaymentPaypal'])->name('portal.paypal.create.payment');
+    Route::get('/paypal/payment-success', [MainClientController::class, 'paypalOneTimePaymentSuccess'])->name('portal.paypal.payment.success');
+    Route::get('/paypal/payment-cancel', [MainClientController::class, 'paypalOneTimePaymentCancel'])->name('portal.paypal.payment.cancel');
 });
 
 // For user login
@@ -293,6 +299,7 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
 
     Route::get('/paypal/onboard', [IntegrationsController::class, 'onboardSeller'])->name('paypal.onboard');
     Route::get('/paypal/onboard/success', [IntegrationsController::class, 'onboardSuccess'])->name('paypal.onboard.success');
+    Route::get('/paypal/merchant/disconnect', [IntegrationsController::class, 'merchantDisconnect'])->name('paypal.merchant.disconnect');
 });
 
 Route::get('logout', function() {

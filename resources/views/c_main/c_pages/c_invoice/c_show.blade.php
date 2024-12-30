@@ -238,10 +238,23 @@
             </div>
 
             @if(!$invoice->paid_at)
-            <div class="d-flex align-items-right" style="float: right;">
-                <button class="btn btn-danger me-2" onclick="window.location.href='{{ route('portal.invoice.payment', $invoice->id) }}'">Continue to Payment</button>
-            </div>
+                <!-- Pay with Stripe -->
+                <div class="d-flex align-items-right" style="float: right; margin-right: 10px;">
+                    <button class="btn btn-danger d-flex align-items-center" onclick="window.location.href='{{ route('portal.invoice.payment', $invoice->id) }}'">
+                        <i class="bx bxl-stripe integration-icon me-2"></i>
+                        Pay with Stripe
+                    </button>
+                </div>
+
+                <!-- Pay with PayPal -->
+                <div class="d-flex align-items-right" style="float: right;">
+                    <button style="margin-right: 8px;" class="btn btn-danger d-flex align-items-center" onclick="window.location.href='{{ route('portal.invoice.payment.paypal', $invoice->id) }}'">
+                        <i class="bx bxl-paypal integration-icon me-2"></i>
+                        Pay with PayPal
+                    </button>
+                </div>
             @endif
+
         </div>
     </div>
 </div>

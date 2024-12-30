@@ -37,6 +37,7 @@ use Stripe\PaymentMethod;
 use App\Models\InvoiceSubscription;
 use Carbon\Carbon;
 use DB;
+use GuzzleHttp\Client as GClient;
 
 class MainClientController extends Controller
 {
@@ -290,6 +291,27 @@ class MainClientController extends Controller
 
         // Pass the invoice data to the view
         return view('c_main.c_pages.c_invoice.c_payment', compact('invoice', 'services', 'users', 'teamMembers', 'addedByUser'));
+    }
+
+    public function invoice_payment_paypal($id)
+    {
+        // Retrieve the invoice by its ID along with the associated client and items
+        $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
+
+        if ($invoice->paid_at) {
+            return redirect()->route('portal.invoices.show',$invoice->id)->with('error', 'Invoice already paid.');
+        }
+
+        // Retrieve the services in case you want to display service information in the invoice
+        $services = Service::where('user_id', auth()->id())->get();
+
+        // Fetch all users and team members added by the current logged-in user
+        $users = User::all();
+        $teamMembers = TeamMember::where('added_by', auth()->id())->get();
+        $addedByUser = User::findOrFail($invoice->added_by);
+
+        // Pass the invoice data to the view
+        return view('c_main.c_pages.c_invoice.c_paypal_payment', compact('invoice', 'services', 'users', 'teamMembers', 'addedByUser'));
     }
 
     public function processRecurringPayment(Request $request, $id)
@@ -1049,5 +1071,157 @@ class MainClientController extends Controller
             // Handle any errors that occur during the cancellation process
             return redirect()->back()->with('error', 'An error occurred while cancelling the subscription: ' . $e->getMessage());
         }
+    }
+
+    public function getPaymentType($id){
+        // Calculate totals and discounts
+        $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
+
+        $total_discount = 0;
+        $next_payment_recurring = 0;
+        $interval_total = [];
+        $interval = '';
+        $interval_text = '';
+
+        // Display items
+        foreach ($invoice->items as $item) {
+            $service = $item->service ?? null;
+
+            if (!empty($service->trial_for)) {
+                $next_payment_recurring += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+            } else {
+                if ($service && $service->service_type == 'recurring') {
+                    $next_payment_recurring += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                    $total_discount += $item->discount;
+                    $interval_total[] = $service->recurring_service_currency_value_two;
+                }
+            }
+        }
+
+        // Calculate interval
+        if ($next_payment_recurring) {
+            $interval = ceil(array_sum($interval_total) / count($interval_total));
+            $interval_text = $interval == 1 ? 'month' : ' month';
+        }
+
+        // Payment due calculation
+        $payment_due = $invoice->total - $invoice->upfront_payment_amount + $total_discount;
+
+        // Output client and discount details
+        $client_name = $invoice->client->first_name . ' ' . $invoice->client->last_name;
+        $total_amount_text = $next_payment_recurring
+            ? "$" . number_format($invoice->total, 2) . " now, then $" . number_format($next_payment_recurring - $total_discount, 2) . "/{$interval_text}"
+            : "$" . number_format($invoice->total, 2);
+        
+        if($next_payment_recurring){
+            return [
+                'total_amount' => $invoice->total,
+                'recurring_payment' => number_format($next_payment_recurring - $total_discount, 2),
+                'interval_text' => $interval_text,
+                'interval' => $interval,
+                'payment_type' => 'recurring',
+            ];
+        }else{
+            return [
+                'total_amount' => $invoice->total,
+                'recurring_payment' => '',
+                'interval_text' => '',
+                'interval' => '',
+                'payment_type' => 'onetime',
+            ];
+        }
+    }
+
+    public function createOneTimePaymentPaypal(Request $request, $id)
+    {
+        $invoice_info = $this->getPaymentType($id);
+        $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
+        $client = Client::findOrFail($invoice->client_id);
+        $addedByUser = User::findOrFail($invoice->added_by);
+
+        $client = new GClient();
+        $clientId = env('PAYPAL_CLIENT_ID');
+        $secret = env('PAYPAL_SECRET');
+        $baseUrl = env('PAYPAL_MODE') === 'sandbox'
+            ? 'https://api-m.sandbox.paypal.com'
+            : 'https://api-m.paypal.com';
+
+        // Get Access Token
+        $response = $client->post("$baseUrl/v1/oauth2/token", [
+            'auth' => [$clientId, $secret],
+            'form_params' => [
+                'grant_type' => 'client_credentials',
+            ],
+            'verify' => false,
+        ]);
+
+        $accessToken = json_decode($response->getBody(), true)['access_token'];
+
+        // Create Payment Order
+        $orderData = [
+            'intent' => 'CAPTURE',
+            'purchase_units' => [
+                [
+                    'amount' => [
+                        'currency_code' => 'USD',
+                        'value' => $invoice_info['total_amount']
+                    ],
+                    'payee' => [
+                        'merchant_id' => $addedByUser->paypal_connect_account_id,
+                    ],
+                ],
+            ],
+            'payment_source' => [
+                'paypal' => [
+                    'experience_context' => [
+                        "payment_method_preference" => "IMMEDIATE_PAYMENT_REQUIRED",
+                        "landing_page" => "LOGIN",
+                        "user_action" => "PAY_NOW",
+                        'return_url' => route('portal.paypal.payment.success', ['id' => $id]),
+                        'cancel_url' => route('portal.paypal.payment.cancel', ['id' => $id]),
+                    ],
+                ],
+            ],
+        ];
+
+        try {
+            $response = $client->post("$baseUrl/v2/checkout/orders", [
+                'headers' => [
+                    'Authorization' => "Bearer $accessToken",
+                    'Content-Type' => 'application/json',
+                    'PayPal-Partner-Attribution-Id' => 'SMOOTHSERVICE_SP_PPCP',
+                ],
+                'verify' => false,
+                'json' => $orderData,
+            ]);
+
+            $result = json_decode($response->getBody(), true);
+            return redirect($result['links'][1]['href']);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return response()->json([
+                'error' => 'Unable to create PayPal order. Please try again later.',
+            ], 400);
+        }
+    }
+
+    public function paypalOneTimePaymentSuccess(Request $request)
+    {
+        $invoiceId = $request->query('id'); // Retrieve the invoice ID from the query string
+        $invoice = Invoice::findOrFail($invoiceId);
+
+        $invoice->update([
+            'paid_at' => now(),
+            'payment_method' => 'paypal',
+        ]);
+
+        return redirect()->route('portal.invoices.show', $invoiceId)
+            ->with('success', 'Payment successful! Your invoice has been marked as paid.');
+    }
+
+    public function paypalOneTimePaymentCancel(Request $request)
+    {
+        $invoiceId = $request->query('id'); // Retrieve the invoice ID from the query string
+        return redirect()->route('portal.invoices.show', $invoiceId)
+            ->with('error', 'Payment was canceled. Please try again.');
     }
 }

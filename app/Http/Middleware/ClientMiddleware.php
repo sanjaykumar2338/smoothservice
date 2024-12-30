@@ -17,7 +17,6 @@ class ClientMiddleware
     public function handle($request, Closure $next)
     {
         // Check if the user is authenticated via the 'clients' guard
-        echo Auth::guard('client')->check(); die;
         if (!Auth::guard('client')->check()) {
             // Redirect to the client login page if not authenticated
             return redirect()->route('login')->with('error', 'You must be logged in as a client to access this page.');
