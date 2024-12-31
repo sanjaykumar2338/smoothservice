@@ -86,6 +86,7 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
     Route::get('/recurring/paypal/payment/success', [PaypalController::class, 'paypalRecurringPaymentSuccess'])->name('portal.recurring.paypal.payment.success');
     Route::get('/recurring/paypal/payment/cancel', [PaypalController::class, 'paypalRecurringPaymentCancel'])->name('portal.recurring.paypal.payment.cancel');
     Route::post('/paypal/cancel/subscription/{id}', [PaypalController::class, 'cancelPaypalSubscription'])->name('portal.paypal.cancel.subscription');
+    Route::get('/paypal/cancel/subscription/webhook', [PaypalController::class, 'handleWebhook'])->name('portal.paypal.cancel.subscription.webhook');
 });
 
 // For user login
