@@ -77,9 +77,15 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
     Route::get('/paymentonetimecompleted/{id}', [MainClientController::class, 'paymentonetimecompleted'])->name('portal.paymentonetimecompleted');
     Route::get('/profile', [MainClientController::class, 'profile'])->name('portal.profile');
 
-    Route::get('/paypal/create-payment/{id}', [MainClientController::class, 'createOneTimePaymentPaypal'])->name('portal.paypal.create.payment');
-    Route::get('/paypal/payment-success', [MainClientController::class, 'paypalOneTimePaymentSuccess'])->name('portal.paypal.payment.success');
-    Route::get('/paypal/payment-cancel', [MainClientController::class, 'paypalOneTimePaymentCancel'])->name('portal.paypal.payment.cancel');
+    Route::get('/paypal/create-payment/{id}', [PaypalController::class, 'createOneTimePaymentPaypal'])->name('portal.paypal.create.payment');
+    Route::get('/paypal/payment-success', [PaypalController::class, 'paypalOneTimePaymentSuccess'])->name('portal.paypal.payment.success');
+    Route::get('/paypal/payment-cancel', [PaypalController::class, 'paypalOneTimePaymentCancel'])->name('portal.paypal.payment.cancel');
+
+    Route::match(['get', 'post'], '/paypal/create-subscription-plan/{id}', [PayPalController::class, 'createSubscriptionPlan'])->name('portal.paypal.createSubscriptionPlan');
+    Route::match(['get', 'post'], '/paypal/create-product', [PayPalController::class, 'createProduct'])->name('portal.paypal.createProduct');
+    Route::get('/recurring/paypal/payment/success', [PaypalController::class, 'paypalRecurringPaymentSuccess'])->name('portal.recurring.paypal.payment.success');
+    Route::get('/recurring/paypal/payment/cancel', [PaypalController::class, 'paypalRecurringPaymentCancel'])->name('portal.recurring.paypal.payment.cancel');
+    Route::post('/paypal/cancel/subscription/{id}', [PaypalController::class, 'cancelPaypalSubscription'])->name('portal.paypal.cancel.subscription');
 });
 
 // For user login

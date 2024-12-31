@@ -41,9 +41,10 @@
                         <th>Invoice</th>
                         <th>Amount</th>
                         <th>Interval</th>
+                        <th>Payment Method</th>
                         <th>Starts At</th>
                         <th>Ends At</th>
-                        <th>Actions</th>
+                        <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
@@ -53,14 +54,26 @@
                             <td><a href="{{ route('portal.invoices.show', $subscription->invoice_id) }}">{{ $subscription->invoice->invoice_no }}</a></td>
                             <td>${{ number_format($subscription->amount, 2) }} {{ strtoupper($subscription->currency) }}</td>
                             <td>{{ ucfirst($subscription->intervel) }}</td>
+                            <td>{{ ucfirst($subscription->payment_by) }}</td>
                             <td>{{ $subscription->starts_at ? \Carbon\Carbon::parse($subscription->starts_at)->format('M d, Y') : 'N/A' }}</td>
                             <td>{{ $subscription->ends_at ? \Carbon\Carbon::parse($subscription->ends_at)->format('M d, Y') : 'Ongoing' }}</td>
-                            <td>
+                            <td class="text-end">
                                 @if(!$subscription->cancelled_at)
-                                <form action="{{ route('portal.subscriptions.cancel', $subscription->id) }}" method="POST" style="display: inline-block;">
-                                    @csrf
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this subscription?')">Cancel</button>
-                                </form>
+                                    
+                                    @if($subscription->payment_by=='stripe' || $subscription->payment_by=="")
+                                        <form action="{{ route('portal.subscriptions.cancel', $subscription->id) }}" method="POST" style="display: inline-block;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this subscription?')">Cancel</button>
+                                        </form>
+                                    @endif
+
+                                    @if($subscription->payment_by=='paypal')
+                                        <form action="{{ route('portal.paypal.cancel.subscription', $subscription->id) }}" method="POST" style="display: inline-block;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this subscription?')">Cancel</button>
+                                        </form>
+                                    @endif
+
                                 @else
                                 <span class="badge bg-secondary">Cancelled on {{ \Carbon\Carbon::parse($subscription->cancelled_at)->format('M d, Y') }}</span>
                                 @endif

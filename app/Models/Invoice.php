@@ -33,7 +33,8 @@ class Invoice extends Model
         'billing_company',     // New billing company field
         'billing_tax_id',       // New billing tax ID field
         'paid_at',
-        'payment_method'
+        'payment_method',
+        'paypal_product_id',
     ];
     
 

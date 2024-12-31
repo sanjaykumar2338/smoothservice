@@ -102,7 +102,7 @@ class InvoiceController extends Controller
             'total' => 0,
             'added_by' => auth()->id(),
             'public_key' => \Str::random(32),
-            'invoice_no' => $invoice_no
+            'invoice_no' => $invoice_no,
         ]);
 
         $totalInvoiceAmount = 0;
@@ -145,10 +145,60 @@ class InvoiceController extends Controller
             ]);
         }        
 
+        $title = $invoice->invoice_no.' invoice product id';
+        $paypal_product_id = $this->createProduct($title);
+
         // Update the total for the invoice
         $invoice->update(['total' => $totalInvoiceAmount]);
+        $invoice->update(['paypal_product_id' => $paypal_product_id]);
 
         return redirect()->route('invoices.list')->with('success', 'Invoice created successfully');
+    }
+
+    public function createProduct($title)
+    {
+        $client = new \GuzzleHttp\Client();
+        $clientId = env('PAYPAL_CLIENT_ID');
+        $secret = env('PAYPAL_SECRET');
+        $baseUrl = env('PAYPAL_MODE') === 'sandbox'
+            ? 'https://api-m.sandbox.paypal.com'
+            : 'https://api-m.paypal.com';
+
+        // Get Access Token
+        $response = $client->post("$baseUrl/v1/oauth2/token", [
+            'auth' => [$clientId, $secret],
+            'form_params' => [
+                'grant_type' => 'client_credentials',
+            ],
+            'verify' => false,
+        ]);
+
+        $accessToken = json_decode($response->getBody(), true)['access_token'];
+
+        // Create the product
+        $productData = [
+            'name' => $title,
+            'description' => $title.' subscription.',
+            'type' => 'SERVICE', // SERVICE or PHYSICAL
+            'category' => 'SOFTWARE', // Choose an appropriate category
+        ];
+
+        try {
+            $response = $client->post("$baseUrl/v1/catalogs/products", [
+                'headers' => [
+                    'Authorization' => "Bearer $accessToken",
+                    'Content-Type' => 'application/json',
+                    'PayPal-Partner-Attribution-Id' => 'SMOOTHSERVICE_SP_PPCP',
+                ],
+                'verify' => false,
+                'json' => $productData,
+            ]);
+
+            $product = json_decode($response->getBody(), true);
+            return $product['id'];
+        } catch (\Exception $e) {
+            return '';
+        }
     }
 
     // Show the form to edit an existing invoice

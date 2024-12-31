@@ -122,7 +122,7 @@
         </div>
 
         @if($next_payment_recurring)
-            <a class="btn btn-primary mt-4 w-100" id="recurring-submit-button" type="button" href="{{route('portal.paypal.create.payment',$invoice->id)}}">
+            <a class="btn btn-primary mt-4 w-100" id="recurring-submit-button" type="button" href="{{route('portal.paypal.createSubscriptionPlan',$invoice->id)}}">
                 <i class="fas fa-lock"></i>&nbsp;&nbsp;Pay ${{ number_format($invoice->total, 2) }} now, then ${{ number_format($next_payment_recurring - $total_discount, 2) }}/{{$interval_text}}
             </a>
         @else

@@ -23,6 +23,7 @@ class InvoiceSubscription extends Model
         'starts_at',        // Start date of the subscription
         'ends_at',          // End date of the subscription or trial
         'completed',
+        'payment_by',
         'cancelled_at',
     ];
 
