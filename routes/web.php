@@ -44,6 +44,7 @@ Route::get('password/reset/{token}', [ResetPasswordController::class, 'showReset
 Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/switch-back', [LoginController::class, 'switchBackToAdmin'])->name('switch_back');
+Route::get('/paypal/cancel/subscription/webhook', [LoginController::class, 'handleWebhook'])->name('portal.paypal.cancel.subscription.webhook');
 
 // For client login
 Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () {
@@ -86,7 +87,6 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
     Route::get('/recurring/paypal/payment/success', [PaypalController::class, 'paypalRecurringPaymentSuccess'])->name('portal.recurring.paypal.payment.success');
     Route::get('/recurring/paypal/payment/cancel', [PaypalController::class, 'paypalRecurringPaymentCancel'])->name('portal.recurring.paypal.payment.cancel');
     Route::post('/paypal/cancel/subscription/{id}', [PaypalController::class, 'cancelPaypalSubscription'])->name('portal.paypal.cancel.subscription');
-    Route::get('/paypal/cancel/subscription/webhook', [PaypalController::class, 'handleWebhook'])->name('portal.paypal.cancel.subscription.webhook');
 });
 
 // For user login

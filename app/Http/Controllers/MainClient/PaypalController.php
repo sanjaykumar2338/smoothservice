@@ -428,31 +428,4 @@ class PaypalController extends Controller
             return redirect()->back()->with('error', 'An unexpected error occurred. Please try again later.');
         }
     }
-
-    public function handleWebhook(Request $request)
-    {
-        $eventType = $request->input('event_type');
-
-        if (in_array($eventType, ['BILLING.SUBSCRIPTION.CANCELLED', 'BILLING.SUBSCRIPTION.SUSPENDED', 'BILLING.SUBSCRIPTION.PAYMENT.FAILED'])) {
-            $subscriptionId = $request->input('resource.id');
-
-            // Locate the subscription in your database
-            $invoiceSub = InvoiceSubscription::where('subscription_id', $subscriptionId)->first();
-
-            if (!$invoiceSub || $invoiceSub->cancelled_at) {
-                Log::info("Webhook received for subscription {$subscriptionId}, already processed or not found.");
-                return response()->json(['message' => 'Subscription already processed or not found.'], 200);
-            }
-
-            // Update the subscription in the database
-            $invoiceSub->update([
-                'cancelled_at' => now(),
-            ]);
-
-            Log::info("Subscription {$subscriptionId} canceled due to event {$eventType}.");
-            return response()->json(['message' => 'Subscription cancellation processed successfully.'], 200);
-        }
-
-        return response()->json(['message' => 'Event type not handled.'], 200);
-    }
 }

@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\InvoiceSubscription;
 use App\Models\Client;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -110,5 +111,31 @@ class LoginController extends Controller
         }
 
         return redirect()->route('login')->with('error', 'No admin session found.');
+    }
+
+    public function handleWebhook(Request $request)
+    {
+        $eventType = $request->input('event_type');
+        if (in_array($eventType, ['BILLING.SUBSCRIPTION.CANCELLED', 'BILLING.SUBSCRIPTION.SUSPENDED', 'BILLING.SUBSCRIPTION.PAYMENT.FAILED'])) {
+            $subscriptionId = $request->input('resource.id');
+
+            // Locate the subscription in your database
+            $invoiceSub = InvoiceSubscription::where('subscription_id', $subscriptionId)->first();
+
+            if (!$invoiceSub || $invoiceSub->cancelled_at) {
+                Log::info("Webhook received for subscription {$subscriptionId}, already processed or not found.");
+                return response()->json(['message' => 'Subscription already processed or not found.'], 200);
+            }
+
+            // Update the subscription in the database
+            $invoiceSub->update([
+                'cancelled_at' => now(),
+            ]);
+
+            Log::info("Subscription {$subscriptionId} canceled due to event {$eventType}.");
+            return response()->json(['message' => 'Subscription cancellation processed successfully.'], 200);
+        }
+
+        return response()->json(['message' => 'Event type not handled.'], 200);
     }
 }
