@@ -37,7 +37,10 @@
                                 ${{ $item->service->recurring_service_currency_value}}/{{ $service->recurring_service_currency_value_two }} 
                                 {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
                             </span>
-                            @php $next_payment_recurring += ($item->service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment; @endphp
+                            @php 
+                                $next_payment_recurring += ($item->service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                                $interval_total[] = $item->service->trial_for; 
+                            @endphp
                         @else
                             @if($item->service->service_type=='recurring')
                                 ${{ $item->service->recurring_service_currency_value}}/{{ $item->service->recurring_service_currency_value_two }} 

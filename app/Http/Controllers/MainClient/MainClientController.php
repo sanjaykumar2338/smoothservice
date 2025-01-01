@@ -38,12 +38,16 @@ use App\Models\InvoiceSubscription;
 use Carbon\Carbon;
 use DB;
 use GuzzleHttp\Client as GClient;
+use App\Services\PayPalService;
 
 class MainClientController extends Controller
 {
     public $client_id;
-    public function __construct() {
+    protected $payPalService;
+
+    public function __construct(PayPalService $payPalService) {
         $this->client_id = getUserID();
+        $this->payPalService = $payPalService;
     }
 
     public function dashboard()
@@ -314,6 +318,7 @@ class MainClientController extends Controller
         return view('c_main.c_pages.c_invoice.c_paypal_payment', compact('invoice', 'services', 'users', 'teamMembers', 'addedByUser'));
     }
 
+    //this is the original method for stripe payment
     public function processRecurringPayment(Request $request, $id)
     {
         try {
@@ -443,12 +448,26 @@ class MainClientController extends Controller
                 ['stripe_account' => $addedByUser->stripe_connect_account_id]
             );
 
+            // Determine the start date for the subscription
+            $billingDate = $invoice->billing_date 
+            ? Carbon::parse($invoice->billing_date)->startOfDay() 
+            : now()->addDay(); // Default to tomorrow if no billing_date is set
+
+            if ($billingDate->isPast()) {
+                $billingDate = now()->addDay();
+            }
+
+
+            $inv = $this->payPalService->getPaymentType($invoice->id);
+
             // Create the subscription
             $subscription = $stripe->subscriptions->create(
                 [
                     'customer' => $stripeCustomer->id,
                     'items' => [['price' => $price->id]],
                     'expand' => ['latest_invoice.payment_intent'],
+                    'billing_cycle_anchor' => $billingDate->timestamp,
+                    'metadata' => ['invoice_id' => $invoice->id],
                 ],
                 ['stripe_account' => $addedByUser->stripe_connect_account_id]
             );
@@ -492,6 +511,7 @@ class MainClientController extends Controller
         }
     }
 
+    //this method used after subscription is created after finalize
     public function finalizeSubscription(Request $request)
     {
         try {

@@ -152,6 +152,11 @@ class InvoiceController extends Controller
         $invoice->update(['total' => $totalInvoiceAmount]);
         $invoice->update(['paypal_product_id' => $paypal_product_id]);
 
+        if ($sendEmail) {
+            $client = Client::findOrFail($request->client_id);
+            Mail::to($client->email)->send(new \App\Mail\InvoiceGenerated($invoice, $client));
+        }
+
         return redirect()->route('invoices.list')->with('success', 'Invoice created successfully');
     }
 

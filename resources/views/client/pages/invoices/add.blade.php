@@ -200,6 +200,7 @@
                             </div>
                             <div class="hidden-field" id="billing_date_field">
                                 <input type="date" class="form-control mt-2" name="billing_date">
+                                <p>If you want the Stripe subscription to start at a specific date. Current date will be used if the invoice is not paid before this billing date.</p>
                             </div>
                         </div>
 

@@ -66,6 +66,7 @@ class PaypalController extends Controller
 
             if (!empty($service->trial_for)) {
                 $next_payment_recurring += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                $interval_total[] = $service->trial_for;
             } else {
                 if ($service && $service->service_type == 'recurring') {
                     $next_payment_recurring += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
@@ -267,7 +268,7 @@ class PaypalController extends Controller
         $description = 'This is a monthly subscription plan.';
 
         try {
-            $plan = $this->payPalService->createSubscriptionPlan($productId, $planName, $description, $invoice_info['recurring_payment'], $addedByUser->paypal_connect_account_id, $client, $invoice->id);
+            $plan = $this->payPalService->createSubscriptionPlan($productId, $planName, $description, $invoice_info['recurring_payment'], $addedByUser->paypal_connect_account_id, $client, $invoice->id, $invoice);
             return redirect($plan);
         } catch (\Exception $e) {
             return redirect()->route('portal.invoices.show', $id)
