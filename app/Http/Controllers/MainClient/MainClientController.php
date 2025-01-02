@@ -460,17 +460,51 @@ class MainClientController extends Controller
 
             $inv = $this->payPalService->getPaymentType($invoice->id);
 
+            // Determine interval settings for Stripe
+            $intervalUnit = strtolower($inv['interval_text']); // 'month', 'week', etc.
+            $intervalCount = (int)$inv['interval']; // 1, 2, etc.
+
+            // Prepare subscription data
+            $subscriptionData = [
+                'customer' => $stripeCustomer->id,
+                'items' => [
+                    [
+                        'price' => $price->id,
+                        'quantity' => 1, // Adjust quantity as needed
+                    ]
+                ],
+                'expand' => ['latest_invoice.payment_intent'],
+                'billing_cycle_anchor' => $billingDate->timestamp,
+                'metadata' => [
+                    'invoice_id' => $invoice->id,
+                    'payment_type' => $inv['payment_type'], // 'recurring'
+                    'interval_text' => $inv['interval_text'], // 'month', 'week'
+                    'interval' => $inv['interval'], // '1', '2'
+                    'total_amount' => $inv['total_amount'], // Total amount for reference
+                    'recurring_payment' => $inv['recurring_payment'], // Recurring charge
+                ],
+            ];
+
+            // Add upfront charge if total_amount > 0
+            if ($inv['total_amount'] > 0) {
+                $subscriptionData['add_invoice_items'] = [
+                    [
+                        'price_data' => [
+                            'currency' => 'usd', // Replace with your currency
+                            'product' => $product->id, // Reference a product
+                            'unit_amount' => $inv['total_amount'] * 100, // Stripe expects amount in cents
+                        ],
+                        'quantity' => 1,
+                    ]
+                ];
+            }
+
             // Create the subscription
             $subscription = $stripe->subscriptions->create(
-                [
-                    'customer' => $stripeCustomer->id,
-                    'items' => [['price' => $price->id]],
-                    'expand' => ['latest_invoice.payment_intent'],
-                    'billing_cycle_anchor' => $billingDate->timestamp,
-                    'metadata' => ['invoice_id' => $invoice->id],
-                ],
+                $subscriptionData,
                 ['stripe_account' => $addedByUser->stripe_connect_account_id]
             );
+
 
             // Save subscription details
             $ins = InvoiceSubscription::create([

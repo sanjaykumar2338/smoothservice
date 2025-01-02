@@ -38,8 +38,8 @@ class InvoiceController extends Controller
     public function create($client_id = null)
     {
         $teamMemberId = getUserID();
-        $clients = Client::where('added_by',$teamMemberId)->get();
-        $services = Service::where('user_id',$teamMemberId)->get();
+        $clients = Client::where('added_by',$teamMemberId)->orderBy('created_at','desc')->get();
+        $services = Service::where('user_id',$teamMemberId)->orderBy('created_at','desc')->get();
 
         return view('client.pages.invoices.add', compact('clients', 'services', 'client_id'));
     }
