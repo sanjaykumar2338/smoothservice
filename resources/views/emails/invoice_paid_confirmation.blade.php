@@ -8,7 +8,7 @@
 <body>
     <h1>Invoice Payment Confirmation</h1>
     <p>Dear {{ $client->first_name }},</p>
-    <p>Your payment for Invoice #{{ $invoice->id }} has been successfully processed.</p>
+    <p>Your payment for Invoice #{{ $invoice->invoice_no }} has been successfully processed.</p>
     <p>Amount: ${{ number_format($invoice->total, 2) }}</p>
     <p>Thank you for your payment!</p>
 </body>

@@ -476,7 +476,7 @@ class MainClientController extends Controller
                 'expand' => ['latest_invoice.payment_intent'],
                 'billing_cycle_anchor' => $billingDate->timestamp,
                 'metadata' => [
-                    'invoice_id' => $invoice->id,
+                    'invoice_id' => $invoice->invoice_no,
                     'payment_type' => $inv['payment_type'], // 'recurring'
                     'interval_text' => $inv['interval_text'], // 'month', 'week'
                     'interval' => $inv['interval'], // '1', '2'
@@ -495,9 +495,10 @@ class MainClientController extends Controller
                             'unit_amount' => $inv['total_amount'] * 100, // Stripe expects amount in cents
                         ],
                         'quantity' => 1,
+                        'description' => 'Upfront payment for subscription invoice no #'.$invoice->invoice_no, // Add description here
                     ]
                 ];
-            }
+            }            
 
             // Create the subscription
             $subscription = $stripe->subscriptions->create(

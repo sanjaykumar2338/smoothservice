@@ -78,7 +78,7 @@
 
         <!-- Email Content -->
         <div class="email-content">
-            <h1>Order confirmation (#{{ $invoice->id }})</h1>
+            <h1>Order confirmation (#{{ $invoice->invoice_no }})</h1>
             <p>Hey {{ $invoice->client->first_name }},</p>
             <p>Thank you for your business. Below are the details of your order.</p>
 

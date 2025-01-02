@@ -6,7 +6,7 @@
     <title>Invoice Paid Notification</title>
 </head>
 <body>
-    <h1>Invoice #{{ $invoice->id }} Paid</h1>
+    <h1>Invoice #{{ $invoice->invoice_no }} Paid</h1>
     <p>Dear {{ $addedByUser->name }},</p>
     <p>The invoice created for {{ $client->first_name }} {{ $client->last_name }} has been paid.</p>
     <p>Amount: ${{ number_format($invoice->total, 2) }}</p>
