@@ -47,6 +47,7 @@ class InvoiceController extends Controller
     // Store a new invoice in the database
     public function store(Request $request)
     {
+        //echo "<pre>"; print_r($request->all()); die;
         // Validate the request
         $request->validate([
             'client_id' => 'required|exists:clients,id',

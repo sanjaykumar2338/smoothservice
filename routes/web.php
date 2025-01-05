@@ -17,6 +17,7 @@ use App\Http\Controllers\Client\RoleController;
 use App\Http\Controllers\Client\InvoiceController;
 use App\Http\Controllers\Client\SubscriptionController;
 use App\Http\Controllers\Client\CouponController;
+use App\Http\Controllers\Client\CompanyController;
 use App\Http\Controllers\Client\TicketController;
 use App\Http\Controllers\Client\TicketTagController;
 use App\Http\Controllers\Client\BillingController;
@@ -307,6 +308,16 @@ Route::middleware(CheckWebOrTeam::class)->group(function () {
     Route::get('/paypal/onboard', [IntegrationsController::class, 'onboardSeller'])->name('paypal.onboard');
     Route::get('/paypal/onboard/success', [IntegrationsController::class, 'onboardSuccess'])->name('paypal.onboard.success');
     Route::get('/paypal/merchant/disconnect', [IntegrationsController::class, 'merchantDisconnect'])->name('paypal.merchant.disconnect');
+
+    // Show the company settings page
+    Route::get('/company', [CompanyController::class, 'index'])->name('company.list');
+
+    // Update or create company settings (for both new entries and updates)
+    Route::post('/company/update', [CompanyController::class, 'update'])->name('company.update');
+    Route::put('/company/update', [CompanyController::class, 'update'])->name('company.update');
+
+    // Remove an image from the company settings
+    Route::get('/company/image/remove', [CompanyController::class, 'removeImage'])->name('company.image.remove');
 });
 
 Route::get('logout', function() {

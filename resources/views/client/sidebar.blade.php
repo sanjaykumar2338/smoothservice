@@ -163,7 +163,9 @@
                'setting.ticketstatuses.delete',
                'tickettags.list',
                'tickettags.create',
-               'tickettags.edit'
+               'tickettags.edit',
+               'company.list',
+               'company.edit',
             ]) ? 'open active' : ''}}">
          <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-cog"></i>
@@ -207,6 +209,13 @@
                   <div data-i18n="Roles">Roles</div>
                </a>
             </li>
+          
+            <li class="menu-item {{ request()->routeIs(['company.list', 'company.edit']) ? 'active' : '' }}">
+               <a href="{{ route('company.list') }}" class="menu-link">
+                  <div data-i18n="Company">Company</div>
+               </a>
+            </li>
+
          </ul>
       </li>
    </ul>

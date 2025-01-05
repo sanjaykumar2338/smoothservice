@@ -228,41 +228,41 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Add click event listener to the "Add Invoice" button
-    document.querySelector('.add_invoice').addEventListener('click', function (e) {
-        // Prevent default button behavior until validation is passed
-        e.preventDefault();
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add click event listener to the "Add Invoice" button
+        document.querySelector('.add_invoice').addEventListener('click', function (e) {
+            // Prevent default button behavior until validation is passed
+            e.preventDefault();
 
-        // Get all service selects
-        const serviceSelects = document.querySelectorAll('.service-select');
-        const upfrontPaymentInput = document.querySelector('input[name="upfront_payment_amount"]');
+            // Get all service selects
+            const serviceSelects = document.querySelectorAll('.service-select');
+            const upfrontPaymentInput = document.querySelector('input[name="upfront_payment_amount"]');
 
-        let hasRecurringService = false;
+            let hasRecurringService = false;
 
-        // Loop through all service selects to check the selected options
-        serviceSelects.forEach(select => {
-            const selectedOption = select.options[select.selectedIndex];
-            const dataType = selectedOption.getAttribute('data-type'); // Get the data-type attribute
+            // Loop through all service selects to check the selected options
+            serviceSelects.forEach(select => {
+                const selectedOption = select.options[select.selectedIndex];
+                const dataType = selectedOption.getAttribute('data-type'); // Get the data-type attribute
 
-            // Check if the selected option has recurring or recurringwithtrail
-            if (dataType === 'recurring' || dataType === 'recurringwithtrail') {
-                hasRecurringService = true;
+                // Check if the selected option has recurring or recurringwithtrail
+                if (dataType === 'recurring' || dataType === 'recurringwithtrail') {
+                    hasRecurringService = true;
+                }
+            });
+
+            // Check if upfront payment amount is filled
+            const upfrontPaymentValue = upfrontPaymentInput.value.trim();
+
+            // Validation: If recurring service and upfront payment are used
+            if (hasRecurringService && upfrontPaymentValue !== '') {
+                alert('Partial payments cannot be used with recurring services.');
+            } else {
+                // If validation passes, submit the form
+                e.target.closest('form').submit();
             }
         });
-
-        // Check if upfront payment amount is filled
-        const upfrontPaymentValue = upfrontPaymentInput.value.trim();
-
-        // Validation: If recurring service and upfront payment are used
-        if (hasRecurringService && upfrontPaymentValue !== '') {
-            alert('Partial payments cannot be used with recurring services.');
-        } else {
-            // If validation passes, submit the form
-            e.target.closest('form').submit();
-        }
     });
-});
 </script>
 
 <script>
