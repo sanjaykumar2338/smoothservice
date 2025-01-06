@@ -61,7 +61,6 @@ class LoginController extends Controller
         ])->withInput($request->only('email'));
     }
 
-
     public function register(){
         return view('auth.register');
     }
@@ -75,6 +74,13 @@ class LoginController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'workspace' => [
+                'required',
+                'string',
+                'max:255',
+                'alpha_dash', // Allows letters, numbers, dashes, and underscores
+                'unique:users,workspace', // Ensure it's unique across users
+            ],
         ]);
 
         if ($validator->fails()) {
@@ -85,6 +91,7 @@ class LoginController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'workspace' => $data['workspace'], // Save workspace
         ]);
 
         Auth::login($user);

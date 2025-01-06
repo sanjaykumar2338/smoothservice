@@ -7,6 +7,7 @@ use App\Models\InvoiceItem;
 use App\Models\Service;
 use App\Models\Client;
 use App\Models\User;
+use App\Models\Order;
 use App\Models\TeamMember;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -35,13 +36,24 @@ class InvoiceController extends Controller
     }
 
     // Show the form to create a new invoice
-    public function create($client_id = null)
+    public function create(Request $request, $client_id = null)
     {
         $teamMemberId = getUserID();
         $clients = Client::where('added_by',$teamMemberId)->orderBy('created_at','desc')->get();
         $services = Service::where('user_id',$teamMemberId)->orderBy('created_at','desc')->get();
+        $orderId = $request->get('order_id');
+        $order = '';
 
-        return view('client.pages.invoices.add', compact('clients', 'services', 'client_id'));
+        if($orderId){
+            $order = Order::where('order_no', $orderId)->first();
+            if(!$order){
+                return redirect()->back()->with('error', 'Order not found!');
+            }else{
+                $client_id = $order->client->id;
+            }
+        }
+
+        return view('client.pages.invoices.add', compact('clients', 'services', 'client_id', 'order'));
     }
 
     // Store a new invoice in the database
@@ -63,6 +75,7 @@ class InvoiceController extends Controller
             'discounts.*' => 'nullable|numeric|min:0',
             'due_date' => 'nullable|date',
             'upfront_payment_amount' => 'nullable|numeric|min:0',
+            'order_id' => 'nullable',
         ]);
 
         // Convert checkbox values
@@ -93,6 +106,7 @@ class InvoiceController extends Controller
         // Create the invoice record
         $invoice = Invoice::create([
             'client_id' => $request->client_id,
+            'order_id' => $request->order_id,
             'due_date' => $request->due_date,
             'note' => $request->note,
             'send_email' => $sendEmail,

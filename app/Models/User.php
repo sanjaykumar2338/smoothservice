@@ -31,7 +31,8 @@ class User extends Authenticatable
         'card_exp_month',
         'card_exp_year',
         'stripe_connect_account_id',
-        'paypal_connect_account_id'
+        'paypal_connect_account_id',
+        'workspace',
     ];
 
     /**

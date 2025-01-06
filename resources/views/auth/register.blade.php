@@ -77,6 +77,30 @@
         </div>
 
         <div class="mb-3">
+            <label class="form-label" for="workspace">Choose a Workspace URL</label>
+            <div class="input-group">
+                <span class="input-group-text">https://</span>
+                <input
+                    type="text"
+                    id="workspace"
+                    class="form-control @error('workspace') is-invalid @enderror"
+                    name="workspace"
+                    placeholder="company"
+                    aria-describedby="workspace"
+                />
+                <span class="input-group-text">.smoothservice.net</span>
+            </div>
+            <small class="text-muted">
+                This is where you'll access your portal. You can change this link or set up your own domain later.
+            </small>
+            @error('workspace')
+                <div class="invalid-feedback">
+                    {{ $message }}
+                </div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
             <button class="btn btn-primary d-grid w-100">Sign up</button>
         </div>
     </form>

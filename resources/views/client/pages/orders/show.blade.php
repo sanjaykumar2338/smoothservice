@@ -65,7 +65,14 @@
                   <ul class="dropdown-menu dropdown-menu-end">
                      <li><a class="dropdown-item" href="{{route('order.edit',$order->id)}}">Edit</a></li>
                      <li><a class="dropdown-item" href="{{route('order.project_data',$order->id)}}">Add Project data</a></li>
-                     <li><a style="display:none;" class="dropdown-item" href="javascript:void(0);">Create an invoice</a></li>
+                     <li>
+                        <a 
+                        style="" 
+                        class="dropdown-item" 
+                        href="{{ route('invoices.create', ['order_id' => $order->order_no]) }}">
+                        Create an Invoice
+                        </a>
+                     </li>
                      <li>
                         <a class="dropdown-item" href="javascript:void(0);" onclick="duplicateOrder({{ $order->id }})">Duplicate order</a>
                      </li>

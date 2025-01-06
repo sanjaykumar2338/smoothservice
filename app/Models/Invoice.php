@@ -35,6 +35,7 @@ class Invoice extends Model
         'paid_at',
         'payment_method',
         'paypal_product_id',
+        'order_id',
     ];
     
 
