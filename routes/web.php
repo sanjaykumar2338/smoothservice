@@ -48,8 +48,9 @@ Route::middleware(CheckSubdomain::class)->group(function () {
     Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     Route::get('/switch-back', [LoginController::class, 'switchBackToAdmin'])->name('switch_back');
-    Route::get('/paypal/cancel/subscription/webhook', [LoginController::class, 'handleWebhook'])->name('portal.paypal.cancel.subscription.webhook');
 });
+
+Route::get('/paypal/cancel/subscription/webhook', [LoginController::class, 'handleWebhook'])->name('portal.paypal.cancel.subscription.webhook');
 
 Route::domain('{username}.' . env('SESSION_DOMAIN'))->group(function () {
     Route::get('/profile', function ($username) {

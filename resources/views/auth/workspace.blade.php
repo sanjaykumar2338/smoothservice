@@ -38,7 +38,6 @@
 
     <div class="mt-3 text-center">
         <a href="{{ route('register') }}">Don't have a workspace yet?</a>
-        <a href="{{ route('home') }}" class="d-block mt-2">← Return</a>
     </div>
 </div>
 
