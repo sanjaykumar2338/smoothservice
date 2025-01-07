@@ -34,7 +34,7 @@ use App\Http\Controllers\MainClient\PaypalController;
 
 //Route for login , register
 Route::get('/', [LoginController::class, 'showWorkspaceForm'])->name('workspace');
-Route::middleware('CheckSubdomain')->group(function () {
+Route::middleware(CheckSubdomain::class)->group(function () {
     // Authentication routes
     Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('login', [LoginController::class, 'login']);
