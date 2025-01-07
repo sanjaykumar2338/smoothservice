@@ -42,19 +42,17 @@ class LoginController extends Controller
 
         // Attempt login for web users with remember functionality
         if (Auth::guard('web')->attempt($credentials, $remember)) {
-            return redirect()->to('https://clients.smoothservice.net');
-            return redirect()->intended(route('dashboard'));
+            return redirect('https://clients.smoothservice.net')->with('status', 'Test string: Web user login successful');
         }
 
         // Attempt login for team members with remember functionality
         if (Auth::guard('team')->attempt($credentials, $remember)) {
-            return redirect()->intended(route('order.list')); // Team member dashboard
+            return redirect('https://clients.smoothservice.net')->with('status', 'Test string: Team member login successful');
         }
 
         // Attempt login for clients with remember functionality
         if (Auth::guard('client')->attempt($credentials, $remember)) {
-            // Redirect all clients to the fixed URL
-            return redirect()->to('https://clients.smoothservice.net');
+            return redirect('https://clients.smoothservice.net')->with('status', 'Test string: Client login successful');
         }
 
         // If credentials don't match, redirect back with an error

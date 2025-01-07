@@ -47,6 +47,20 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Route::get('/switch-back', [LoginController::class, 'switchBackToAdmin'])->name('switch_back');
 Route::get('/paypal/cancel/subscription/webhook', [LoginController::class, 'handleWebhook'])->name('portal.paypal.cancel.subscription.webhook');
 
+
+Route::domain('{username}.' . env('SESSION_DOMAIN'))->group(function () {
+    Route::get('/', function ($username) {
+        return "Welcome to the subdomain: " . $username;
+    })->name('profile');
+
+    Auth::routes();
+});
+
+Route::get('/', function () {
+    $users = \App\User::all();
+    return "Root domain route. Total users: " . $users->count();
+})->name('root');
+
 // For client login
 Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () {
     Route::get('dashboard', [MainClientController::class, 'dashboard'])->name('portal.dashboard');
