@@ -33,8 +33,8 @@ use App\Http\Controllers\MainClient\MainClientController;
 use App\Http\Controllers\MainClient\PaypalController;
 
 //Route for login , register
+Route::get('/', [LoginController::class, 'showWorkspaceForm'])->name('workspace');
 Route::middleware(CheckSubdomain::class)->group(function () {
-    Route::get('/', [LoginController::class, 'showWorkspaceForm'])->name('workspace');
     Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('login', [LoginController::class, 'login']);
     Route::get('register', [LoginController::class, 'register'])->name('register');
@@ -43,7 +43,7 @@ Route::middleware(CheckSubdomain::class)->group(function () {
     Route::post('validate-workspace', [LoginController::class, 'validateWorkspace'])->name('validate.workspace');
 
     Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-    Route::post('password/email', [ForgotPasswordController::class,'sendResetLinkEmail'])->name('password.email');
+    Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
     Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
     Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

@@ -24,17 +24,17 @@ class CheckSubdomain
         // Get the session domain from the environment
         $sessionDomain = ltrim(env('SESSION_DOMAIN', 'smoothservice.net'), '.');
 
-        // Check if the subdomain is the main domain or 'www'
-        if ($subdomain === $sessionDomain || $subdomain === 'www') {
-            // Redirect to workspace form if accessing the main domain
-            return redirect("https://{$sessionDomain}/workspace");
+        // Allow the main domain to proceed without redirecting
+        if ($host === $sessionDomain || $subdomain === 'www') {
+            return $next($request); // Allow main domain requests
         }
 
         // Check if the subdomain exists in the User table
         $user = User::where('workspace', $subdomain)->first();
+
         if (!$user) {
-            // Return a 404 response if the subdomain doesn't exist
-            abort(404, 'Subdomain not found');
+            // Redirect to the main domain if subdomain doesn't exist
+            return redirect("https://{$sessionDomain}");
         }
 
         // Allow the request to proceed if subdomain exists
