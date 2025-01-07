@@ -30,10 +30,11 @@ class LoginController extends Controller
             return view('auth.login'); // Show the login form
         }
 
-        // Redirect to the default domain login page if subdomain doesn't exist
-        return redirect("https://{$sessionDomain}/register")->with('status','Workspace not found!');
+        // Redirect to the default domain register page if subdomain doesn't exist
+        return redirect("https://{$sessionDomain}/register")->with('status', 'Workspace not found!');
     }
 
+    // Show the workspace form
     public function showWorkspaceForm(Request $request)
     {
         // Extract the subdomain from the current request
@@ -51,8 +52,8 @@ class LoginController extends Controller
             return redirect("https://{$subdomain}.{$sessionDomain}/login");
         }
 
-        // Redirect to the default domain if subdomain doesn't exist
-        return redirect("https://{$sessionDomain}");
+        // Render the workspace selection form if no subdomain exists
+        return view('auth.workspace');
     }
 
     public function logout()
