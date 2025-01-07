@@ -26,7 +26,7 @@ class LoginController extends Controller
     }
 
     // Handle the login request
-    public function login(Request $request)
+    public function loginold(Request $request)
     {
         // Validate the incoming request
         $request->validate([
@@ -53,6 +53,64 @@ class LoginController extends Controller
         // Attempt login for clients with remember functionality
         if (Auth::guard('client')->attempt($credentials, $remember)) {
             return redirect()->intended(route('portal.dashboard'));
+        }
+
+        // If credentials don't match, redirect back with an error
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->withInput($request->only('email'));
+    }
+
+    public function login(Request $request)
+    {
+        // Validate the incoming request
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        // Get the credentials
+        $credentials = $request->only('email', 'password');
+        
+        // Check if 'remember' checkbox is checked
+        $remember = $request->filled('remember');
+
+        // Get the session domain from .env
+        $sessionDomain = env('SESSION_DOMAIN', '.smoothservice.net');
+
+        // Attempt login for web users
+        if (Auth::guard('web')->attempt($credentials, $remember)) {
+            $workspace = Auth::guard('web')->user()->workspace;
+
+            // Redirect to their subdomain or fallback to default route
+            if ($workspace) {
+                return redirect()->intended("https://{$workspace}{$sessionDomain}/dashboard");
+            }
+            return redirect()->intended(route('dashboard')); // Fallback to main site
+        }
+
+        // Attempt login for team members
+        if (Auth::guard('team')->attempt($credentials, $remember)) {
+            $addedBy = Auth::guard('team')->user()->added_by;
+            $workspace = \App\Models\User::where('id', $addedBy)->value('workspace');
+
+            // Redirect to their subdomain or fallback to default route
+            if ($workspace) {
+                return redirect()->intended("https://{$workspace}{$sessionDomain}/order-list");
+            }
+            return redirect()->intended(route('order.list')); // Fallback to main site
+        }
+
+        // Attempt login for clients
+        if (Auth::guard('client')->attempt($credentials, $remember)) {
+            $addedBy = Auth::guard('client')->user()->added_by;
+            $workspace = \App\Models\User::where('id', $addedBy)->value('workspace');
+
+            // Redirect to their subdomain or fallback to default route
+            if ($workspace) {
+                return redirect()->intended("https://{$workspace}{$sessionDomain}/portal-dashboard");
+            }
+            return redirect()->intended(route('portal.dashboard')); // Fallback to main site
         }
 
         // If credentials don't match, redirect back with an error
