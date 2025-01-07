@@ -34,11 +34,9 @@ class LoginController extends Controller
         }
 
         // If the subdomain doesn't exist, show the workspace form
-        return view('auth.workspace')->withErrors([
-            'workspace' => 'Invalid workspace or subdomain does not exist.',
-        ]);
+        return view('auth.workspace')->with('error', 'No admin session found.');
     }
-
+    
     public function logout()
     {
         Auth::logout();
