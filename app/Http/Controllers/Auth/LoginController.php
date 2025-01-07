@@ -41,6 +41,10 @@ class LoginController extends Controller
         $host = $request->getHost();
         $subdomain = explode('.', $host)[0]; // Get the subdomain part
 
+        if(!$subdomain){
+            return view('auth.workspace'); 
+        }
+
         // Get the session domain from the environment
         $sessionDomain = ltrim(env('SESSION_DOMAIN', '.smoothservice.net'), '.');
 
