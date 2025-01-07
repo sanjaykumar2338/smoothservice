@@ -53,7 +53,7 @@ class LoginController extends Controller
         }
 
         // Render the workspace selection form if no subdomain exists
-        return redirect("https://{$sessionDomain}/workspace");
+        return view('auth.workspace');
     }
 
     public function logout()
