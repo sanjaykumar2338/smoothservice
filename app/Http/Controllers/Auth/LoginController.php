@@ -52,7 +52,7 @@ class LoginController extends Controller
         }
 
         // Redirect to the default domain if subdomain doesn't exist
-        return redirect("https://{$sessionDomain}/workspace")->with('status','Workspace not found!');
+        return redirect("https://{$sessionDomain}/login")->with('status','Workspace not found!');
     }
 
     public function logout()
