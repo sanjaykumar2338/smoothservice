@@ -36,33 +36,18 @@ use App\Http\Controllers\MainClient\PaypalController;
 Route::get('/', [LoginController::class, 'showWorkspaceForm'])->name('workspace');
 Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('login', [LoginController::class, 'login']);
-    
-Route::middleware(CheckSubdomain::class)->group(function () {
-    // Authentication routes
-    Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('login', [LoginController::class, 'login']);
-    Route::get('register', [LoginController::class, 'register'])->name('register');
-    Route::post('register', [LoginController::class, 'create_account'])->name('register');
-    Route::get('forget', [LoginController::class, 'forget'])->name('forget');
-    Route::post('validate-workspace', [LoginController::class, 'validateWorkspace'])->name('validate.workspace');
+Route::get('register', [LoginController::class, 'register'])->name('register');
+Route::post('register', [LoginController::class, 'create_account'])->name('register');
+Route::get('forget', [LoginController::class, 'forget'])->name('forget');
+Route::post('validate-workspace', [LoginController::class, 'validateWorkspace'])->name('validate.workspace');
 
-    // Password reset routes
-    Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-    Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
-    Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-    Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
-
-    // Additional routes
-    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-    Route::get('/switch-back', [LoginController::class, 'switchBackToAdmin'])->name('switch_back');
-});
-
+Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('password/email', [ForgotPasswordController::class,'sendResetLinkEmail'])->name('password.email');
+Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/switch-back', [LoginController::class, 'switchBackToAdmin'])->name('switch_back');
 Route::get('/paypal/cancel/subscription/webhook', [LoginController::class, 'handleWebhook'])->name('portal.paypal.cancel.subscription.webhook');
-
-// Fallback route
-Route::fallback(function () {
-    return redirect('/');
-});
 
 Route::domain('{username}.' . env('SESSION_DOMAIN'))->group(function () {
     Route::get('/profile', function ($username) {
