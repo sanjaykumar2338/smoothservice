@@ -53,7 +53,7 @@ class LoginController extends Controller
         }
 
         // Render the workspace selection form if no subdomain exists
-        return view('auth.workspace');
+        abort(404);
     }
 
     public function logout()
