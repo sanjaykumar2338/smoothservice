@@ -49,7 +49,7 @@ Route::get('/paypal/cancel/subscription/webhook', [LoginController::class, 'hand
 
 
 Route::domain('{username}.' . env('SESSION_DOMAIN'))->group(function () {
-    Route::get('/', function ($username) {
+    Route::get('/profile', function ($username) {
         return "You are logged in as: " . $username;
     })->name('profile');
 });
