@@ -41,8 +41,7 @@ class LoginController extends Controller
         $host = $request->getHost();
         $subdomain = explode('.', $host)[0]; // Get the subdomain part
 
-        echo $subdomain; die;
-        if(!$subdomain){
+        if($subdomain=='smoothservice'){
             return view('auth.workspace'); 
         }
 
