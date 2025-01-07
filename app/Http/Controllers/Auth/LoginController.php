@@ -42,17 +42,20 @@ class LoginController extends Controller
 
         // Attempt login for web users with remember functionality
         if (Auth::guard('web')->attempt($credentials, $remember)) {
-            return redirect()->intended(route('dashboard'));
+            // Redirect to subdomain
+            return redirect()->intended('https://client.smoothservice.net');
         }
 
         // Attempt login for team members with remember functionality
         if (Auth::guard('team')->attempt($credentials, $remember)) {
-            return redirect()->intended(route('order.list')); // Team member dashboard
+            // Redirect to subdomain
+            return redirect()->intended('https://team.smoothservice.net');
         }
 
         // Attempt login for clients with remember functionality
         if (Auth::guard('client')->attempt($credentials, $remember)) {
-            return redirect()->intended(route('portal.dashboard'));
+            // Redirect to subdomain
+            return redirect()->intended('https://client.smoothservice.net');
         }
 
         // If credentials don't match, redirect back with an error
@@ -60,6 +63,7 @@ class LoginController extends Controller
             'email' => 'The provided credentials do not match our records.',
         ])->withInput($request->only('email'));
     }
+
 
     public function register(){
         return view('auth.register');
