@@ -56,10 +56,6 @@ Route::domain('{username}.' . env('SESSION_DOMAIN'))->group(function () {
     Auth::routes();
 });
 
-Route::get('/', function () {;
-    return "Root domain route. Total users: ";
-})->name('root');
-
 // For client login
 Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () {
     Route::get('dashboard', [MainClientController::class, 'dashboard'])->name('portal.dashboard');
