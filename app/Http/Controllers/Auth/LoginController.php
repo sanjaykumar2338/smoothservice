@@ -19,9 +19,24 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
-    public function showWorkspaceForm()
+    public function showWorkspaceForm(Request $request)
     {
-        return view('auth.workspace');
+        // Extract the subdomain from the current request
+        $host = $request->getHost();
+        $subdomain = explode('.', $host)[0]; // Get the subdomain part
+
+        // Check if the subdomain exists in the User table
+        $user = \App\Models\User::where('workspace', $subdomain)->first();
+
+        if ($user) {
+            // Redirect to the login page if the subdomain exists
+            return redirect()->route('login');
+        }
+
+        // If the subdomain doesn't exist, show the workspace form
+        return view('auth.workspace')->withErrors([
+            'workspace' => 'Invalid workspace or subdomain does not exist.',
+        ]);
     }
 
     public function logout()
