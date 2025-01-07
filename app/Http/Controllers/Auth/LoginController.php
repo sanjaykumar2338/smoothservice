@@ -136,9 +136,9 @@ class LoginController extends Controller
         $user = \App\Models\User::where('workspace', $workspace)->first();
 
         if ($user) {
-            // Redirect to the subdomain if the workspace exists
+            // Redirect to the login page of the validated workspace
             $sessionDomain = env('SESSION_DOMAIN', '.smoothservice.net');
-            return redirect()->intended("https://{$workspace}{$sessionDomain}");
+            return redirect()->intended("https://{$workspace}{$sessionDomain}/login");
         }
 
         // If the workspace doesn't exist, return with an error
