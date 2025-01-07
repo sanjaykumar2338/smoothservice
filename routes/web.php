@@ -56,9 +56,8 @@ Route::domain('{username}.' . env('SESSION_DOMAIN'))->group(function () {
     Auth::routes();
 });
 
-Route::get('/', function () {
-    $users = \App\User::all();
-    return "Root domain route. Total users: " . $users->count();
+Route::get('/', function () {;
+    return "Root domain route. Total users: ";
 })->name('root');
 
 // For client login
