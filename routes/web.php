@@ -50,10 +50,8 @@ Route::get('/paypal/cancel/subscription/webhook', [LoginController::class, 'hand
 
 Route::domain('{username}.' . env('SESSION_DOMAIN'))->group(function () {
     Route::get('/', function ($username) {
-        return "Welcome to the subdomain: " . $username;
+        return "You are logged in as: " . $username;
     })->name('profile');
-
-    Auth::routes();
 });
 
 // For client login
