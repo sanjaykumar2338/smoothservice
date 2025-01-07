@@ -14,9 +14,24 @@ use Session;
 class LoginController extends Controller
 {
     // Show the login form
-    public function showLoginForm()
+    public function showLoginForm(Request $request)
     {
-        return view('auth.login');
+        // Extract the subdomain from the current request
+        $host = $request->getHost();
+        $subdomain = explode('.', $host)[0]; // Get the subdomain part
+
+        // Get the session domain from the environment
+        $sessionDomain = ltrim(env('SESSION_DOMAIN', '.smoothservice.net'), '.');
+
+        // Check if the subdomain exists in the User table
+        $user = \App\Models\User::where('workspace', $subdomain)->first();
+
+        if ($user) {
+            return view('auth.login'); // Show the login form
+        }
+
+        // Redirect to the default domain login page if subdomain doesn't exist
+        return redirect("https://{$sessionDomain}/register")->with('status','Workspace not found!');
     }
 
     public function showWorkspaceForm(Request $request)
@@ -25,16 +40,19 @@ class LoginController extends Controller
         $host = $request->getHost();
         $subdomain = explode('.', $host)[0]; // Get the subdomain part
 
+        // Get the session domain from the environment
+        $sessionDomain = ltrim(env('SESSION_DOMAIN', '.smoothservice.net'), '.');
+
         // Check if the subdomain exists in the User table
         $user = \App\Models\User::where('workspace', $subdomain)->first();
 
         if ($user) {
-            // Redirect to the login page if the subdomain exists
-            return redirect()->route('login');
+            // Redirect to the login page for the subdomain
+            return redirect("https://{$subdomain}.{$sessionDomain}/login");
         }
 
-        // If the subdomain doesn't exist, show the workspace form
-        return view('auth.workspace')->with('status', 'No admin session found.');
+        // Redirect to the default domain if subdomain doesn't exist
+        return redirect("https://{$sessionDomain}/register")->with('status','Workspace not found!');
     }
 
     public function logout()
