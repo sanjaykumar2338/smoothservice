@@ -57,7 +57,7 @@
 
     <p class="text-center">
         <span>Don't have an account?</span>
-        <a href="{{ route('register') }}">
+        <a href="{{ route('workspace') }}">
             <span>Sign up now</span>
         </a>
     </p>
