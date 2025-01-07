@@ -40,22 +40,19 @@ class LoginController extends Controller
         // Check if 'remember' checkbox is checked
         $remember = $request->filled('remember');
 
-        // Define the base redirect URL
-        $redirectUrl = 'https://clients.smoothservice.net';
-
-        // Attempt login for web users
+        // Attempt login for web users with remember functionality
         if (Auth::guard('web')->attempt($credentials, $remember)) {
-            return redirect($redirectUrl)->with('status', 'Test string: Web user login successful');
+            return redirect()->intended(route('dashboard'));
         }
 
-        // Attempt login for team members
+        // Attempt login for team members with remember functionality
         if (Auth::guard('team')->attempt($credentials, $remember)) {
-            return redirect($redirectUrl)->with('status', 'Test string: Team member login successful');
+            return redirect()->intended(route('order.list')); // Team member dashboard
         }
 
-        // Attempt login for clients
+        // Attempt login for clients with remember functionality
         if (Auth::guard('client')->attempt($credentials, $remember)) {
-            return redirect($redirectUrl)->with('status', 'Test string: Client login successful');
+            return redirect()->intended(route('portal.dashboard'));
         }
 
         // If credentials don't match, redirect back with an error
