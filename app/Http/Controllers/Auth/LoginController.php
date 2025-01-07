@@ -19,6 +19,11 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
+    public function showWorkspaceForm()
+    {
+        return view('auth.workspace');
+    }
+
     public function logout()
     {
         Auth::logout();
@@ -117,6 +122,29 @@ class LoginController extends Controller
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->withInput($request->only('email'));
+    }
+
+    public function validateWorkspace(Request $request)
+    {
+        // Validate the workspace input
+        $request->validate([
+            'workspace' => 'required|string',
+        ]);
+
+        // Check if the workspace exists in the User table
+        $workspace = $request->input('workspace');
+        $user = \App\Models\User::where('workspace', $workspace)->first();
+
+        if ($user) {
+            // Redirect to the subdomain if the workspace exists
+            $sessionDomain = env('SESSION_DOMAIN', '.smoothservice.net');
+            return redirect()->intended("https://{$workspace}{$sessionDomain}");
+        }
+
+        // If the workspace doesn't exist, return with an error
+        return back()->withErrors([
+            'workspace' => 'Workspace does not exist.',
+        ])->withInput($request->only('workspace'));
     }
 
     public function register(){
