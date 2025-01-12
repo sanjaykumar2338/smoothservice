@@ -20,7 +20,7 @@ return [
 
     'driver' => env('SESSION_DRIVER', 'database'),
 
-    'domain' => env('SESSION_DOMAIN'),
+    'domain' => env('SESSION_DOMAIN', null),
 
     /*
     |--------------------------------------------------------------------------
@@ -159,6 +159,8 @@ return [
     */
 
     'domain' => env('SESSION_DOMAIN'),
+
+    'secure' => false,
 
     /*
     |--------------------------------------------------------------------------

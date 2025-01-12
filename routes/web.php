@@ -51,7 +51,6 @@ Route::middleware(CheckSubdomain::class)->group(function () {
 });
 
 Route::get('/paypal/cancel/subscription/webhook', [LoginController::class, 'handleWebhook'])->name('portal.paypal.cancel.subscription.webhook');
-
 Route::domain('{username}.' . env('SESSION_DOMAIN'))->group(function () {
     Route::get('/profile', function ($username) {
         return "You are logged in as: " . $username;

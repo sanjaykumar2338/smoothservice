@@ -21,6 +21,10 @@ class CheckSubdomain
         $host = $request->getHost();
         $subdomain = explode('.', $host)[0];
 
+        if ($host == env('LOCAL_DOMAIN', '127.0.0.1')) {
+            return $next($request);
+        }
+
         // Get the session domain from the environment
         $sessionDomain = ltrim(env('SESSION_DOMAIN', 'smoothservice.net'), '.');
 
