@@ -19,15 +19,20 @@ class LoginController extends Controller
         // Extract the host from the current request
         $host = $request->getHost();
 
+        // Normalize the host with and without https://
+        $httpsHost = "https://{$host}";
+        $plainHost = $host;
+
         // Check if the host matches the local domain
         if ($host == env('LOCAL_DOMAIN')) {
             return view('auth.login');
         }
 
         // Check if the host exists in the CompanySetting model and is verified
-        $companySetting = \App\Models\CompanySetting::where('custom_domain', $host)
-            ->where('domain_verified', 1)
-            ->first();
+        $companySetting = \App\Models\CompanySetting::where(function ($query) use ($httpsHost, $plainHost) {
+            $query->where('custom_domain', $httpsHost)
+                ->orWhere('custom_domain', $plainHost);
+        })->where('domain_verified', 1)->first();
 
         if ($companySetting) {
             // Redirect to the login page for the custom domain
@@ -51,11 +56,16 @@ class LoginController extends Controller
         return redirect("https://{$sessionDomain}/register")->with('status', 'Workspace not found!');
     }
 
+
     // Show the workspace form
     public function showWorkspaceForm(Request $request)
     {
         // Extract the host from the current request
         $host = $request->getHost();
+
+        // Normalize the host with and without https://
+        $httpsHost = "https://{$host}";
+        $plainHost = $host;
 
         // Check if the host matches the local domain
         if ($host == env('LOCAL_DOMAIN')) {
@@ -63,9 +73,10 @@ class LoginController extends Controller
         }
 
         // Check if the host exists in the CompanySetting model and is verified
-        $companySetting = \App\Models\CompanySetting::where('custom_domain', $host)
-            ->where('domain_verified', 1)
-            ->first();
+        $companySetting = \App\Models\CompanySetting::where(function ($query) use ($httpsHost, $plainHost) {
+            $query->where('custom_domain', $httpsHost)
+                ->orWhere('custom_domain', $plainHost);
+        })->where('domain_verified', 1)->first();
 
         if ($companySetting) {
             // Redirect to the workspace page for the custom domain
