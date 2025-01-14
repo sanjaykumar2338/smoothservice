@@ -26,7 +26,7 @@ class LoginController extends Controller
 
         // Check if the host exists in the CompanySetting model and is verified
         $companySetting = \App\Models\CompanySetting::where('custom_domain', $host)
-            ->where('verified', 1)
+            ->where('domain_verified', 1)
             ->first();
 
         if ($companySetting) {
@@ -64,7 +64,7 @@ class LoginController extends Controller
 
         // Check if the host exists in the CompanySetting model and is verified
         $companySetting = \App\Models\CompanySetting::where('custom_domain', $host)
-            ->where('verified', 1)
+            ->where('domain_verified', 1)
             ->first();
 
         if ($companySetting) {
