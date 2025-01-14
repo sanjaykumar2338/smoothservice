@@ -83,4 +83,16 @@ if (!function_exists('getAuthenticatedUser')) {
     }
 }
 
+if (!function_exists('companySetting')) {
+    function companySetting()
+    {
+        $companySettings = \App\Models\CompanySetting::where('user_id', auth()->id())->first();
+        if($companySettings){
+            return $companySettings;
+        }
+
+        return null;
+    }
+}
+
 

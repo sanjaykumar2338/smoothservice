@@ -17,6 +17,7 @@ class CompanySetting extends Model
         'user_id',
         'company_name',
         'custom_domain',
+        'domain_verified',
         'timezone',
         'sidebar_color',
         'accent_color',

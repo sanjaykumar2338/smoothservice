@@ -27,6 +27,7 @@ use App\Http\Middleware\CheckSubdomain;
 use App\Http\Middleware\ClientMiddleware;
 use App\Http\Middleware\CheckTeamMembers;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Http\Request;
 
 //for cleint
 use App\Http\Controllers\MainClient\MainClientController;
@@ -352,3 +353,63 @@ Route::get('/clear-cache', function () {
         return response()->json(['error' => 'Failed to clear caches. Error: ' . $e->getMessage()], 500);
     }
 })->name('clear.cache');
+
+Route::get('/verify-domain', function (Request $request) {
+    $input = $request->input('domain'); // Get the input (could be full URL or domain)
+    $requiredIp = '18.209.182.185'; // Your server IP
+
+    if (empty($input)) {
+        return response()->json(['success' => false, 'message' => 'No domain provided.']);
+    }
+
+    // Parse the domain from a full URL if needed
+    $domain = parse_url($input, PHP_URL_HOST) ?: $input;
+
+    // Ensure it's a valid subdomain
+    if (count(explode('.', $domain)) <= 2) {
+        return response()->json(['success' => false, 'message' => 'Please provide a subdomain (e.g., sub.domain.com).']);
+    }
+
+    // Step 1: Resolve the DNS records of the domain
+    $dnsRecords = dns_get_record($domain, DNS_A | DNS_AAAA); // Get A and AAAA records
+    if (empty($dnsRecords)) {
+        return response()->json(['success' => false, 'message' => 'Unable to resolve the domain.']);
+    }
+
+    // Check if the resolved records contain the required IP
+    foreach ($dnsRecords as $record) {
+        if (isset($record['ip']) && $record['ip'] === $requiredIp) {
+            // Optional: HTTP Request Validation
+            try {
+                $httpResponse = @file_get_contents("http://$domain");
+                if ($httpResponse === false) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The domain is not properly pointing to the website.',
+                        'resolvedIps' => array_column($dnsRecords, 'ip'),
+                    ]);
+                }
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unable to validate the domain via HTTP.',
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            // If HTTP validation passes
+            return response()->json([
+                'success' => true,
+                'message' => 'Domain is correctly configured and reachable.',
+                'resolvedIps' => array_column($dnsRecords, 'ip'),
+            ]);
+        }
+    }
+
+    // If no matching IP is found
+    return response()->json([
+        'success' => false,
+        'message' => 'The domain does not point to the required IP.',
+        'resolvedIps' => array_column($dnsRecords, 'ip'),
+    ]);
+});

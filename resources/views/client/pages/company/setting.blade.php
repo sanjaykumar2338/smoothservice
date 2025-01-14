@@ -37,7 +37,21 @@
                 <!-- Custom Domain -->
                 <div class="mb-3">
                     <label class="form-label" for="custom_domain">Custom Domain</label>
-                    <input type="text" class="form-control" id="custom_domain" name="custom_domain" placeholder="e.g. yourcompany.com" value="{{ $companySettings->custom_domain ?? old('custom_domain') }}">
+                    <input type="text" 
+                        class="form-control" 
+                        id="custom_domain" 
+                        name="custom_domain" 
+                        placeholder="e.g. sub.domain.com" 
+                        value="{{ $companySettings->custom_domain ?? old('custom_domain') }}"
+                        {{ isset($companySettings->domain_verified) && $companySettings->domain_verified ? 'disabled' : '' }}>
+                    <small class="form-text text-muted">
+                        Please add the following IP address to your DNS settings as an `A Record`: 
+                        <code>18.209.182.185</code>
+                    </small>
+                    <button type="button" class="btn btn-primary mt-2" id="verify_domain" {{ isset($companySettings->domain_verified) && $companySettings->domain_verified ? 'disabled' : '' }}>Verify</button>
+                    <button type="button" class="btn btn-danger mt-2" id="remove_verification" {{ isset($companySettings->domain_verified) && $companySettings->domain_verified ? '' : 'disabled' }}>Remove</button>
+                    <div id="verification_result" class="mt-2"></div>
+                    <input type="hidden" id="domain_verified" name="domain_verified" value="{{ $companySettings->domain_verified ?? 0 }}">
                 </div>
 
                 <!-- Timezone -->
@@ -106,5 +120,66 @@
         </div>
     </form>
 </div>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function (e) {
+        const domainInput = document.getElementById('custom_domain');
+
+        if (domainInput.disabled) {
+            domainInput.disabled = false; // Enable the input field temporarily
+            setTimeout(() => {
+                domainInput.disabled = true; // Re-disable the input field after submission
+            }, 0);
+        }
+    });
+
+    document.getElementById('verify_domain').addEventListener('click', function () {
+        const domainInput = document.getElementById('custom_domain');
+        const verificationResult = document.getElementById('verification_result');
+        const removeButton = document.getElementById('remove_verification');
+        const verifyButton = document.getElementById('verify_domain');
+        const domainVerified = document.getElementById('domain_verified');
+
+        if (!domainInput.value.trim()) {
+            verificationResult.innerHTML = '<span style="color: red;">Please enter a domain to verify.</span>';
+            return;
+        }
+
+        // Call your server to verify the domain
+        fetch(`/verify-domain?domain=${encodeURIComponent(domainInput.value.trim())}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    verificationResult.innerHTML = '<span style="color: green;">Domain verified successfully!</span>';
+                    domainInput.disabled = true; // Disable the input field
+                    verifyButton.disabled = true; // Disable the verify button
+                    removeButton.disabled = false; // Enable the remove button
+                    domainVerified.value = 1; // Set verified to true
+                } else {
+                    verificationResult.innerHTML = `<span style="color: red;">Verification failed: ${data.message}</span>`;
+                }
+            })
+            .catch(err => {
+                verificationResult.innerHTML = `<span style="color: red;">Error: Unable to verify the domain. Please try again.</span>`;
+            });
+    });
+
+    document.getElementById('remove_verification').addEventListener('click', function () {
+        const domainInput = document.getElementById('custom_domain');
+        const verificationResult = document.getElementById('verification_result');
+        const removeButton = document.getElementById('remove_verification');
+        const verifyButton = document.getElementById('verify_domain');
+        const domainVerified = document.getElementById('domain_verified');
+
+        // Clear the domain field and reset verification status
+        domainInput.disabled = false; // Enable the input field
+        domainInput.value = '';
+        domainVerified.value = 0; // Set verified to false
+        verifyButton.disabled = false; // Enable the verify button
+        removeButton.disabled = true; // Disable the remove button
+
+        verificationResult.innerHTML = '<span style="color: red;">Domain verification removed.</span>';
+    });
+</script>
 
 @endsection

@@ -1,6 +1,8 @@
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
    <div class="app-brand demo">
       <a href="{{route('dashboard')}}" class="app-brand-link">
+
+         {{companySetting()->sidebar_logo}}
          <span class="app-brand-logo demo">
             <svg width="26px" height="26px" viewBox="0 0 26 26" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                <title>icon</title>
@@ -30,6 +32,8 @@
             </svg>
          </span>
          <span class="app-brand-text demo menu-text fs-4">{{env('APP_NAME')}}</span>
+
+
       </a>
       <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
       <i class="bx menu-toggle-icon d-none d-xl-block fs-4 align-middle"></i>

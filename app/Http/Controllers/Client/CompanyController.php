@@ -25,6 +25,7 @@ class CompanyController extends Controller
         $validatedData = $request->validate([
             'company_name' => 'required|string|max:255',
             'custom_domain' => 'nullable|string|max:255',
+            'domain_verified'=>'',
             'timezone' => 'required|string',
             'sidebar_color' => 'nullable|string|max:7',
             'accent_color' => 'nullable|string|max:7',

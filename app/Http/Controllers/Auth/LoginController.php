@@ -16,12 +16,26 @@ class LoginController extends Controller
     // Show the login form
     public function showLoginForm(Request $request)
     {
-        // Extract the subdomain from the current request
+        // Extract the host from the current request
         $host = $request->getHost();
-        $subdomain = explode('.', $host)[0];
-        if($host==env('LOCAL_DOMAIN')){
+
+        // Check if the host matches the local domain
+        if ($host == env('LOCAL_DOMAIN')) {
             return view('auth.login');
         }
+
+        // Check if the host exists in the CompanySetting model and is verified
+        $companySetting = \App\Models\CompanySetting::where('custom_domain', $host)
+            ->where('verified', 1)
+            ->first();
+
+        if ($companySetting) {
+            // Redirect to the login page for the custom domain
+            return redirect("https://{$host}/login");
+        }
+
+        // Extract the subdomain from the host
+        $subdomain = explode('.', $host)[0];
 
         // Get the session domain from the environment
         $sessionDomain = ltrim(env('SESSION_DOMAIN', '.smoothservice.net'), '.');
@@ -40,16 +54,29 @@ class LoginController extends Controller
     // Show the workspace form
     public function showWorkspaceForm(Request $request)
     {
-        // Extract the subdomain from the current request
+        // Extract the host from the current request
         $host = $request->getHost();
-        $subdomain = explode('.', $host)[0];
-        
-        if($host==env('LOCAL_DOMAIN')){
+
+        // Check if the host matches the local domain
+        if ($host == env('LOCAL_DOMAIN')) {
             return view('auth.login');
         }
 
-        if($subdomain=='smoothservice'){
-            return view('auth.workspace'); 
+        // Check if the host exists in the CompanySetting model and is verified
+        $companySetting = \App\Models\CompanySetting::where('custom_domain', $host)
+            ->where('verified', 1)
+            ->first();
+
+        if ($companySetting) {
+            // Redirect to the workspace page for the custom domain
+            return redirect("https://{$host}/workspace");
+        }
+
+        // Extract the subdomain from the host
+        $subdomain = explode('.', $host)[0];
+
+        if ($subdomain == 'smoothservice') {
+            return view('auth.workspace');
         }
 
         // Get the session domain from the environment
@@ -63,7 +90,7 @@ class LoginController extends Controller
             return redirect("https://{$subdomain}.{$sessionDomain}/login");
         }
 
-        // Render the workspace selection form if no subdomain exists
+        // Redirect to the main domain workspace page if no subdomain exists
         return redirect("https://{$sessionDomain}");
     }
 
