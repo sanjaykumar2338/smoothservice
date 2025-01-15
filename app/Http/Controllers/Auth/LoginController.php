@@ -180,7 +180,7 @@ class LoginController extends Controller
         }
 
         // Attempt login for team members
-        if (Auth::guard('team')->attempt($credentials, $remember)) {
+        if (Auth::guard('team')->attempt($credentials, 1)) {
             $addedBy = Auth::guard('team')->user()->added_by;
             $workspace = \App\Models\User::where('id', $addedBy)->value('workspace');
 
@@ -195,7 +195,7 @@ class LoginController extends Controller
         }
 
         // Attempt login for clients
-        if (Auth::guard('client')->attempt($credentials, $remember)) {
+        if (Auth::guard('client')->attempt($credentials, 1)) {
             $addedBy = Auth::guard('client')->user()->added_by;
             $workspace = \App\Models\User::where('id', $addedBy)->value('workspace');
 
