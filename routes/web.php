@@ -37,7 +37,7 @@ use App\Http\Controllers\MainClient\MainClientController;
 use App\Http\Controllers\MainClient\PaypalController;
 
 //Route for login , register
-Route::middleware([CheckCustomDomain::class])->group(function () {
+Route::middleware(['web', CheckCustomDomain::class])->group(function () {
     Route::get('/', [LoginController::class, 'showWorkspaceForm'])->name('workspace');
     Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('login', [LoginController::class, 'login']);
