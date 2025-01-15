@@ -110,7 +110,7 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
 });
 
 // For user login
-Route::middleware([CheckWebOrTeam::class, CheckCustomDomain::class])->group(function () {
+Route::middleware([CheckCustomDomain::class, CheckWebOrTeam::class])->group(function () {
     Route::get('dashboard', [ClientController::class, 'dashboard'])->name('dashboard');
     
     // Service routes
