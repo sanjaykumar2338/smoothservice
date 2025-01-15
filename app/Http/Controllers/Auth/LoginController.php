@@ -16,7 +16,6 @@ class LoginController extends Controller
     // Show the login form
     public function showLoginForm(Request $request)
     {
-        echo "test"; die;
         // Extract the host from the current request
         $host = $request->getHost();
 
