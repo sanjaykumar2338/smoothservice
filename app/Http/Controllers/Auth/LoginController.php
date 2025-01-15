@@ -166,7 +166,7 @@ class LoginController extends Controller
         $sessionDomain = env('SESSION_DOMAIN', '.smoothservice.net');
 
         // Attempt login for web users
-        if (Auth::guard('web')->attempt($credentials, $remember)) {
+        if (Auth::guard('web')->attempt($credentials)) {
             $workspace = Auth::guard('web')->user()->workspace;
             
             if (!$isLocal) {
