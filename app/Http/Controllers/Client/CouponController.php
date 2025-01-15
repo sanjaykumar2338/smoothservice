@@ -74,19 +74,21 @@ class CouponController extends Controller
         ]);
 
         // Save coupon services
-        foreach ($validatedData['applies_to'] as $index => $serviceIds) {
-            // Ensure $serviceIds is an array
-            if (!is_array($serviceIds)) {
-                $serviceIds = [$serviceIds];
-            }
+        if($validatedData['applies_to']){
+            foreach ($validatedData['applies_to'] as $index => $serviceIds) {
+                // Ensure $serviceIds is an array
+                if (!is_array($serviceIds)) {
+                    $serviceIds = [$serviceIds];
+                }
 
-            // Each index in applies_to could have multiple services selected
-            foreach ($serviceIds as $serviceId) {
-                CouponService::create([
-                    'coupon_id' => $coupon->id,
-                    'service_id' => $serviceId,
-                    'discount' => $validatedData['discount'][$index] ?? 0, // Apply the corresponding discount
-                ]);
+                // Each index in applies_to could have multiple services selected
+                foreach ($serviceIds as $serviceId) {
+                    CouponService::create([
+                        'coupon_id' => $coupon->id,
+                        'service_id' => $serviceId,
+                        'discount' => $validatedData['discount'][$index] ?? 0, // Apply the corresponding discount
+                    ]);
+                }
             }
         }
 
@@ -156,17 +158,19 @@ class CouponController extends Controller
         CouponService::where('coupon_id', $coupon->id)->delete();
 
         // Insert new services and discounts
-        foreach ($validatedData['applies_to'] as $index => $serviceIds) {
-            if (!is_array($serviceIds)) {
-                $serviceIds = [$serviceIds];
-            }
+        if($validatedData['applies_to']){
+            foreach ($validatedData['applies_to'] as $index => $serviceIds) {
+                if (!is_array($serviceIds)) {
+                    $serviceIds = [$serviceIds];
+                }
 
-            foreach ($serviceIds as $serviceId) {
-                CouponService::create([
-                    'coupon_id' => $coupon->id,
-                    'service_id' => $serviceId,
-                    'discount' => $validatedData['discount'][$index] ?? 0,
-                ]);
+                foreach ($serviceIds as $serviceId) {
+                    CouponService::create([
+                        'coupon_id' => $coupon->id,
+                        'service_id' => $serviceId,
+                        'discount' => $validatedData['discount'][$index] ?? 0,
+                    ]);
+                }
             }
         }
 
