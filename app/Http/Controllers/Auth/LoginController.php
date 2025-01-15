@@ -169,7 +169,6 @@ class LoginController extends Controller
         if (Auth::guard('web')->attempt($credentials, $remember)) {
             $workspace = Auth::guard('web')->user()->workspace;
             
-        echo "test"; die;
             if (!$isLocal) {
                 // Redirect to their subdomain or fallback to default route
                 if ($workspace) {
