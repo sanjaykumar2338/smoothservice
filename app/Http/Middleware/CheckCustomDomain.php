@@ -10,7 +10,6 @@ class CheckCustomDomain
 {
     public function handle(Request $request, Closure $next)
     {
-        echo "test"; die;
         $host = $request->getHost();
         $normalizedHost = rtrim($host, '/');
 

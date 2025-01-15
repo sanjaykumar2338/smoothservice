@@ -17,8 +17,6 @@ class CheckSubdomain
      */
     public function handle(Request $request, Closure $next)
     {
-
-        echo "test mmmm"; die;
         // Extract the subdomain from the host
         $host = $request->getHost();
         $subdomain = explode('.', $host)[0];
