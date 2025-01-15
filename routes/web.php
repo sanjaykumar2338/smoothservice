@@ -44,6 +44,8 @@ Route::middleware([CheckCustomDomain::class])->group(function () {
 });
 
 Route::middleware(CheckSubdomain::class)->group(function () {
+    Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('login', [LoginController::class, 'login']);
     Route::get('register', [LoginController::class, 'register'])->name('register');
     Route::post('register', [LoginController::class, 'create_account'])->name('register');
     Route::get('forget', [LoginController::class, 'forget'])->name('forget');
@@ -108,7 +110,7 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
 });
 
 // For user login
-Route::middleware([CheckCustomDomain::class, CheckWebOrTeam::class])->group(function () {
+Route::middleware([CheckCustomDomain::class, CheckWebOrTeam::class, CheckSubdomain::class])->group(function () {
     Route::get('dashboard', [ClientController::class, 'dashboard'])->name('dashboard');
     
     // Service routes
