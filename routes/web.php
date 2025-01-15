@@ -37,13 +37,15 @@ use App\Http\Controllers\MainClient\MainClientController;
 use App\Http\Controllers\MainClient\PaypalController;
 
 //Route for login , register
-Route::middleware(['web', CheckCustomDomain::class])->group(function () {
+Route::middleware([CheckCustomDomain::class])->group(function () {
     Route::get('/', [LoginController::class, 'showWorkspaceForm'])->name('workspace');
     Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('login', [LoginController::class, 'login']);
 });
 
 Route::middleware(CheckSubdomain::class)->group(function () {
+    Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('login', [LoginController::class, 'login']);
     Route::get('register', [LoginController::class, 'register'])->name('register');
     Route::post('register', [LoginController::class, 'create_account'])->name('register');
     Route::get('forget', [LoginController::class, 'forget'])->name('forget');
