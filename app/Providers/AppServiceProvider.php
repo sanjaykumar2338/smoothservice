@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Support\Facades\Config;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,15 +22,13 @@ class AppServiceProvider extends ServiceProvider
     {
         Relation::morphMap([
             'client' => 'App\Models\Client',
-            'user' => 'App\Models\User',
+            'user' => 'App\Models\User', // Add other sender types here
         ]);
-    
+
         $requestHost = request()->getHost();
         $appHost = parse_url(config('app.url'), PHP_URL_HOST);
-    
-        $isDefaultDomain = filter_var($requestHost, FILTER_VALIDATE_IP) || $requestHost === $appHost;
-    
-        $baseDomain = implode('.', array_slice(explode('.', $requestHost), -2));
-        Config::set('session.domain', $isDefaultDomain ? null : '.' . $baseDomain);
-    }    
+
+        // Dynamically set SESSION_DOMAIN
+        config(['session.domain' => (filter_var($requestHost, FILTER_VALIDATE_IP) || $requestHost === $appHost) ? null : $requestHost]);
+    }
 }
