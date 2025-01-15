@@ -158,14 +158,7 @@ return [
     |
     */
 
-    'domain' => function () {
-        $host = parse_url(config('app.url'), PHP_URL_HOST); // Extract the host from the app's URL in .env
-        $requestHost = request()->getHost(); // Get the current request's host
-
-        return (filter_var($requestHost, FILTER_VALIDATE_IP) || $requestHost === $host) 
-            ? null  // For IP-based or default domain, don't set a session domain
-            : $requestHost; // For custom domains, set the session domain to the request host
-    },
+    'domain' => env('SESSION_DOMAIN', null),
 
     'secure' => false,
 

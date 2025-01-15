@@ -24,5 +24,11 @@ class AppServiceProvider extends ServiceProvider
             'client' => 'App\Models\Client',
             'user' => 'App\Models\User', // Add other sender types here
         ]);
+
+        $requestHost = request()->getHost();
+        $appHost = parse_url(config('app.url'), PHP_URL_HOST);
+
+        // Dynamically set SESSION_DOMAIN
+        config(['session.domain' => (filter_var($requestHost, FILTER_VALIDATE_IP) || $requestHost === $appHost) ? null : $requestHost]);
     }
 }
