@@ -74,40 +74,21 @@ class CouponController extends Controller
         ]);
 
         // Save coupon services
-        if ($validatedData['applies_to']) {
-            foreach ($validatedData['applies_to'] as $index => $serviceIds) {
-                // Ensure $serviceIds is an array
-                if (!is_array($serviceIds)) {
-                    $serviceIds = [$serviceIds];
-                }
-        
-                // Debugging: Check serviceIds content
-                if (empty($serviceIds)) {
-                    \Log::error("Service IDs are empty for index {$index}");
-                    continue; // Skip processing if no service IDs are provided
-                }
-        
-                // Debugging: Check discount alignment
-                if (!isset($validatedData['discount'][$index])) {
-                    \Log::error("Discount is not set for index {$index}");
-                }
-        
-                // Each index in applies_to could have multiple services selected
-                foreach ($serviceIds as $serviceId) {
-                    if (!$serviceId) {
-                        \Log::error("Service ID is null for index {$index}");
-                        continue; // Skip if serviceId is null
-                    }
-        
-                    // Insert into database
-                    CouponService::create([
-                        'coupon_id' => $coupon->id,
-                        'service_id' => $serviceId,
-                        'discount' => $validatedData['discount'][$index] ?? 0, // Apply the corresponding discount
-                    ]);
-                }
+        foreach ($validatedData['applies_to'] as $index => $serviceIds) {
+            // Ensure $serviceIds is an array
+            if (!is_array($serviceIds)) {
+                $serviceIds = [$serviceIds];
             }
-        }        
+
+            // Each index in applies_to could have multiple services selected
+            foreach ($serviceIds as $serviceId) {
+                CouponService::create([
+                    'coupon_id' => $coupon->id,
+                    'service_id' => $serviceId,
+                    'discount' => $validatedData['discount'][$index] ?? 0, // Apply the corresponding discount
+                ]);
+            }
+        }
 
         return redirect()->route('coupon.list')->with('success', 'Coupon added successfully.');
     }
@@ -175,40 +156,19 @@ class CouponController extends Controller
         CouponService::where('coupon_id', $coupon->id)->delete();
 
         // Insert new services and discounts
-        if ($validatedData['applies_to']) {
-            foreach ($validatedData['applies_to'] as $index => $serviceIds) {
-                // Ensure $serviceIds is an array
-                if (!is_array($serviceIds)) {
-                    $serviceIds = [$serviceIds];
-                }
-        
-                // Debugging: Check serviceIds content
-                if (empty($serviceIds)) {
-                    \Log::error("Service IDs are empty for index {$index}");
-                    continue; // Skip processing if no service IDs are provided
-                }
-        
-                // Debugging: Check discount alignment
-                if (!isset($validatedData['discount'][$index])) {
-                    \Log::error("Discount is not set for index {$index}");
-                }
-        
-                // Each index in applies_to could have multiple services selected
-                foreach ($serviceIds as $serviceId) {
-                    if (!$serviceId) {
-                        \Log::error("Service ID is null for index {$index}");
-                        continue; // Skip if serviceId is null
-                    }
-        
-                    // Insert into database
-                    CouponService::create([
-                        'coupon_id' => $coupon->id,
-                        'service_id' => $serviceId,
-                        'discount' => $validatedData['discount'][$index] ?? 0, // Apply the corresponding discount
-                    ]);
-                }
+        foreach ($validatedData['applies_to'] as $index => $serviceIds) {
+            if (!is_array($serviceIds)) {
+                $serviceIds = [$serviceIds];
             }
-        }        
+
+            foreach ($serviceIds as $serviceId) {
+                CouponService::create([
+                    'coupon_id' => $coupon->id,
+                    'service_id' => $serviceId,
+                    'discount' => $validatedData['discount'][$index] ?? 0,
+                ]);
+            }
+        }
 
         return redirect()->route('coupon.list')->with('success', 'Coupon updated successfully.');
     }

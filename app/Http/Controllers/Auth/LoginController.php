@@ -19,9 +19,8 @@ class LoginController extends Controller
         // Extract the host from the current request
         $host = $request->getHost();
 
-        // Normalize the host with and without https://
-        $httpsHost = "https://{$host}";
-        $plainHost = $host;
+        // Normalize the host
+        $normalizedHost = rtrim("https://{$host}", '/'); // Ensure no trailing slash
 
         // Check if the host matches the local domain
         if ($host == env('LOCAL_DOMAIN')) {
@@ -29,14 +28,14 @@ class LoginController extends Controller
         }
 
         // Check if the host exists in the CompanySetting model and is verified
-        $companySetting = \App\Models\CompanySetting::where(function ($query) use ($httpsHost, $plainHost) {
-            $query->where('custom_domain', $httpsHost)
-                ->orWhere('custom_domain', $plainHost);
+        $companySetting = \App\Models\CompanySetting::where(function ($query) use ($normalizedHost) {
+            $query->whereRaw("TRIM(TRAILING '/' FROM custom_domain) = ?", [$normalizedHost])
+                ->orWhereRaw("TRIM(TRAILING '/' FROM custom_domain) = ?", [rtrim($normalizedHost, '/')]);
         })->where('domain_verified', 1)->first();
 
         if ($companySetting) {
             // Redirect to the login page for the custom domain
-            return redirect("https://{$host}/login");
+            return view('auth.login');
         }
 
         // Extract the subdomain from the host
@@ -63,19 +62,23 @@ class LoginController extends Controller
         // Extract the host from the current request
         $host = $request->getHost();
 
+        // Normalize the host
+        $normalizedHost = rtrim("https://{$host}", '/'); // Ensure no trailing slash
+
         // Check if the host matches the local domain
         if ($host == env('LOCAL_DOMAIN')) {
             return view('auth.login');
         }
 
         // Check if the host exists in the CompanySetting model and is verified
-        $companySetting = \App\Models\CompanySetting::where('custom_domain', $host)
-            ->where('domain_verified', 1)
-            ->first();
+        $companySetting = \App\Models\CompanySetting::where(function ($query) use ($normalizedHost) {
+            $query->whereRaw("TRIM(TRAILING '/' FROM custom_domain) = ?", [$normalizedHost])
+                ->orWhereRaw("TRIM(TRAILING '/' FROM custom_domain) = ?", [rtrim($normalizedHost, '/')]);
+        })->where('domain_verified', 1)->first();
 
         if ($companySetting) {
             // Redirect to the workspace page for the custom domain
-            return redirect("https://{$host}/workspace");
+            return view('auth.login');
         }
 
         // Extract the subdomain from the host
