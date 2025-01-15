@@ -28,11 +28,11 @@ class AppServiceProvider extends ServiceProvider
         $requestHost = request()->getHost();
         $appHost = parse_url(config('app.url'), PHP_URL_HOST);
     
-        // Dynamically set SESSION_DOMAIN
         $sessionDomain = (filter_var($requestHost, FILTER_VALIDATE_IP) || $requestHost === $appHost)
             ? null
             : '.' . ltrim($requestHost, '.');
     
+        Log::info("SESSION_DOMAIN: {$sessionDomain}");
         config(['session.domain' => $sessionDomain]);
     }    
 }
