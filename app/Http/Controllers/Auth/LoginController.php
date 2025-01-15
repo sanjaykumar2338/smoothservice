@@ -168,10 +168,11 @@ class LoginController extends Controller
         // Attempt login for web users
         if (Auth::guard('web')->attempt($credentials, $remember)) {
             $workspace = Auth::guard('web')->user()->workspace;
-            echo "test"; die;
+            
             if (!$isLocal) {
                 // Redirect to their subdomain or fallback to default route
                 if ($workspace) {
+                    echo "https://{$workspace}{$sessionDomain}/dashboard"; die;
                     return redirect()->intended("https://{$workspace}{$sessionDomain}/dashboard");
                 }
             }
