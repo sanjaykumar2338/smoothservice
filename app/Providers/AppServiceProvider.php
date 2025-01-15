@@ -22,16 +22,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Relation::morphMap([
             'client' => 'App\Models\Client',
-            'user' => 'App\Models\User',
+            'user' => 'App\Models\User', // Add other sender types here
         ]);
-    
-        $requestHost = request()->getHost();
-        $appHost = parse_url(config('app.url'), PHP_URL_HOST);
-    
-        $sessionDomain = (filter_var($requestHost, FILTER_VALIDATE_IP) || $requestHost === $appHost)
-            ? null
-            : '.' . ltrim($requestHost, '.');
-    
-        config(['session.domain' => $sessionDomain]);
-    }    
+    }
 }

@@ -22,13 +22,10 @@ use App\Http\Controllers\Client\TicketController;
 use App\Http\Controllers\Client\TicketTagController;
 use App\Http\Controllers\Client\BillingController;
 use App\Http\Controllers\Client\IntegrationsController;
-
 use App\Http\Middleware\CheckWebOrTeam;
 use App\Http\Middleware\CheckSubdomain;
 use App\Http\Middleware\ClientMiddleware;
 use App\Http\Middleware\CheckTeamMembers;
-use App\Http\Middleware\CheckCustomDomain;
-
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Http\Request;
 
@@ -37,12 +34,7 @@ use App\Http\Controllers\MainClient\MainClientController;
 use App\Http\Controllers\MainClient\PaypalController;
 
 //Route for login , register
-Route::middleware([CheckCustomDomain::class])->group(function () {
-    Route::get('/', [LoginController::class, 'showWorkspaceForm'])->name('workspace');
-    Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('login', [LoginController::class, 'login']);
-});
-
+Route::get('/', [LoginController::class, 'showWorkspaceForm'])->name('workspace');
 Route::middleware(CheckSubdomain::class)->group(function () {
     Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('login', [LoginController::class, 'login']);
