@@ -32,7 +32,6 @@ class AppServiceProvider extends ServiceProvider
             ? null
             : '.' . ltrim($requestHost, '.');
     
-        \Log::info("SESSION_DOMAIN: {$sessionDomain}");
         config(['session.domain' => $sessionDomain]);
     }    
 }
