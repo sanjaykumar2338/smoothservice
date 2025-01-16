@@ -63,6 +63,8 @@
     <script src="{{asset('/assets/vendor/libs/tagify/tagify.js')}}"></script>
   </head>
 
+  @include('client.custom_settings')
+
   <body>
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-content-navbar">

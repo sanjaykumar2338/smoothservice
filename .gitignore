@@ -5,6 +5,7 @@
 /public/storage
 /storage/*.key
 /storage/logs/laravel.log
+storage/logs/laravel.log
 /vendor/composer/installed.php
 /vendor
 .env

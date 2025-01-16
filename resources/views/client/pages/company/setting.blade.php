@@ -69,7 +69,7 @@
                 <!-- Sidebar Color -->
                 <div class="mb-3">
                     <label class="form-label" for="sidebar_color">Sidebar Color</label>
-                    <input type="color" class="form-control form-control-color" id="sidebar_color" name="sidebar_color" value="{{ $companySettings->sidebar_color ?? '#002750' }}">
+                    <input type="color" class="form-control form-control-color" id="sidebar_color" name="sidebar_color" value="{{ $companySettings->sidebar_color ?? '#f3f4f4' }}">
                 </div>
 
                 <!-- Accent Color -->
@@ -179,6 +179,40 @@
         removeButton.disabled = true; // Disable the remove button
 
         verificationResult.innerHTML = '<span style="color: red;">Domain verification removed.</span>';
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Get the input field and the theme elements
+        const sidebarColorInput = document.getElementById("sidebar_color");
+        const themeElements = document.querySelectorAll(".bg-menu-theme");
+        const themeInnerActiveElements = document.querySelectorAll(".bg-menu-theme .menu-inner > .menu-item.active");
+        const menuInnerShadowElements = document.querySelectorAll(".bg-menu-theme .menu-inner-shadow");
+
+        // Function to update the theme color with !important
+        function updateThemeColor(color) {
+            // Update color for `.bg-menu-theme`
+            themeElements.forEach(element => {
+                element.style.setProperty('background-color', color, 'important');
+            });
+
+            // Update color for `.bg-menu-theme .menu-inner > .menu-item.active`
+            themeInnerActiveElements.forEach(element => {
+                element.style.setProperty('background-color', color, 'important');
+            });
+
+            // Remove background for `.bg-menu-theme .menu-inner-shadow`
+            menuInnerShadowElements.forEach(element => {
+                element.style.setProperty('background', 'none', 'important');
+            });
+        }
+
+        // Set the initial color from the input value
+        updateThemeColor(sidebarColorInput.value);
+
+        // Listen for changes in the color input
+        sidebarColorInput.addEventListener("input", function () {
+            updateThemeColor(sidebarColorInput.value);
+        });
     });
 </script>
 

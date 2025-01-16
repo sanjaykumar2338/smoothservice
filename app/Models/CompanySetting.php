@@ -36,4 +36,10 @@ class CompanySetting extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public static function getSidebarColorForUser($userId)
+    {
+        $setting = self::where('user_id', $userId)->first();
+        return $setting->sidebar_color ?? null;
+    }
 }

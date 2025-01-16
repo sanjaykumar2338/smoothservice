@@ -1,0 +1,19 @@
+@php
+    $sidebarColor = App\Models\CompanySetting::getSidebarColorForUser(auth()->id());
+@endphp
+
+@if ($sidebarColor)
+    <style>
+        .bg-menu-theme {
+            background-color: {{ $sidebarColor }} !important;
+        }
+
+        .bg-menu-theme .menu-inner-shadow {
+            background: none !important;
+        }
+
+        .bg-menu-theme .menu-inner > .menu-item.active {
+            background-color: {{ $sidebarColor }} !important;
+        }
+    </style>
+@endif
