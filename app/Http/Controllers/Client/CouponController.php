@@ -98,11 +98,13 @@ class CouponController extends Controller
                     }
         
                     // Insert into database
-                    CouponService::create([
-                        'coupon_id' => $coupon->id,
-                        'service_id' => $serviceId,
-                        'discount' => $validatedData['discount'][$index] ?? 0, // Apply the corresponding discount
-                    ]);
+                    if($serviceId){
+                        CouponService::create([
+                            'coupon_id' => $coupon->id,
+                            'service_id' => $serviceId,
+                            'discount' => $validatedData['discount'][$index] ?? 0, // Apply the corresponding discount
+                        ]);
+                    }
                 }
             }
         }        
@@ -199,11 +201,13 @@ class CouponController extends Controller
                     }
         
                     // Insert into database
-                    CouponService::create([
-                        'coupon_id' => $coupon->id,
-                        'service_id' => $serviceId,
-                        'discount' => $validatedData['discount'][$index] ?? 0, // Apply the corresponding discount
-                    ]);
+                    if($serviceId){
+                        CouponService::create([
+                            'coupon_id' => $coupon->id,
+                            'service_id' => $serviceId,
+                            'discount' => $validatedData['discount'][$index] ?? 0, // Apply the corresponding discount
+                        ]);
+                    }
                 }
             }
         }        
