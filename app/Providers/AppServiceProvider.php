@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
@@ -20,21 +19,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Morph map configuration
         Relation::morphMap([
             'client' => 'App\Models\Client',
             'user' => 'App\Models\User',
         ]);
 
-        // Get the current request host
-        $requestHost = request()->getHost();
-        $appHost = parse_url(config('app.url'), PHP_URL_HOST);
+        // Get the current request host and the application's main domain
+        $requestHost = request()->getHost(); // Current host (e.g., force.smoothservice.net)
+        $appHost = parse_url(config('app.url'), PHP_URL_HOST); // Main domain (e.g., smoothservice.net)
 
         // Determine the session domain dynamically
         $sessionDomain = (filter_var($requestHost, FILTER_VALIDATE_IP) || $requestHost === $appHost)
-            ? null
-            : '.' . ltrim($requestHost, '.');
+            ? null // Do not set a domain for IPs or the main domain
+            : '.' . ltrim($appHost, '.'); // Use the main domain with a leading dot for subdomains
 
-        // Set the session domain configuration
+        // Dynamically configure the session domain
         config(['session.domain' => $sessionDomain]);
     }
 }
