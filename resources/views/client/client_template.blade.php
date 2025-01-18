@@ -16,12 +16,19 @@
     <title>{{env('APP_NAME')}}</title>
 
     <meta name="description" content="" />
-
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{asset('/assets/img/favicon/favicon.ico')}}" />
+    @php
+        $company_settings = App\Models\CompanySetting::where('user_id', auth()->id())->first();
+    @endphp
+
+    @if($company_settings && $company_settings->favicon && file_exists(public_path('storage/' . $company_settings->favicon)))
+        <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . $company_settings->favicon) }}" />
+    @else
+        <link rel="icon" type="image/x-icon" href="{{ asset('/assets/img/favicon/favicon.ico') }}" />
+    @endif
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

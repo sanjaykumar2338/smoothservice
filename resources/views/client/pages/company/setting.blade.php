@@ -9,6 +9,22 @@
         text-decoration: none;
         color: #dc3545;
     }
+
+    .form-label span.text-muted {
+        display: block;
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+
+    img {
+        transition: transform 0.2s ease;
+    }
+
+    img:hover {
+        transform: scale(1.05);
+    }
+
 </style>
 
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -86,28 +102,49 @@
 
                 <!-- Image Upload Sections -->
 
+                @php
+                    $logoDescriptions = [
+                        'logo' => 'Shown in the login screen. Transparent PNG recommended, 480px wide.',
+                        'favicon' => 'Shown in browser tabs and collapsed sidebar. 144×144px PNG recommended.',
+                        'application_icon' => 'Mobile app icon. Shown on the home screen. 1024×1024px PNG recommended.',
+                        'sidebar_logo' => 'Shown in the sidebar. Transparent PNG recommended, 480px wide.',
+                    ];
+                @endphp
+
                 @foreach ([
                     'logo' => 'Logo',
                     'favicon' => 'Favicon',
                     'application_icon' => 'Application Icon',
                     'sidebar_logo' => 'Sidebar Logo'
                 ] as $field => $label)
-                <div class="mb-3">
-                    <label class="form-label" for="{{ $field }}">Upload {{ $label }}</label>
-                    <input type="file" class="form-control" id="{{ $field }}" name="{{ $field }}">
-                    @if (isset($companySettings->$field) && $companySettings->$field)
-                        <div class="mt-2">
-                            <p>Current {{ $label }}:</p>
-                            <a href="{{ asset('storage/' . $companySettings->$field) }}" target="_blank">
-                                <img src="{{ asset('storage/' . $companySettings->$field) }}" alt="{{ $label }}" style="width: {{ $field === 'favicon' ? '32px' : '100px' }}; height: auto;">
-                            </a>
-                            <a href="{{ route('company.image.remove', ['type' => $field]) }}" style="display: inline;">
-                                <i class="fas fa-trash-alt"></i> Remove {{ $label }}
-                            </a>
-                        </div>
-                    @endif
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ $field }}">
+                            Upload {{ $label }} 
+                            @if (isset($logoDescriptions[$field]))
+                                : {{ $logoDescriptions[$field] }}
+                            @endif
+                        </label>
+                        <input type="file" class="form-control" id="{{ $field }}" name="{{ $field }}">
+
+                        @if (isset($companySettings->$field) && $companySettings->$field)
+                            <div class="mt-2 d-flex align-items-center">
+                                <div>
+                                    <p class="mb-1" style="font-size: large;">Current {{ $label }}:</p>
+                                    <a href="{{ asset('storage/' . $companySettings->$field) }}" target="_blank">
+                                        <img src="{{ asset('storage/' . $companySettings->$field) }}" alt="{{ $label }}"
+                                            style="width: {{ $field === 'favicon' ? '32px' : '100px' }}; height: auto; border: 1px solid #ddd; border-radius: 4px;">
+                                    </a>
+                                </div>
+                                <div class="ms-3">
+                                    <a href="{{ route('company.image.remove', ['type' => $field]) }}" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash-alt"></i> Remove {{ $label }}
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
                 @endforeach
+
 
                 <!-- SPP Linkback -->
                 <div class="mb-3 form-check form-switch">
@@ -182,36 +219,46 @@
     });
 
     document.addEventListener("DOMContentLoaded", function () {
-        // Get the input field and the theme elements
+        // Get the input fields and theme elements
         const sidebarColorInput = document.getElementById("sidebar_color");
+        const accentColorInput = document.getElementById("accent_color");
+        
         const themeElements = document.querySelectorAll(".bg-menu-theme");
         const themeInnerActiveElements = document.querySelectorAll(".bg-menu-theme .menu-inner > .menu-item.active");
         const menuInnerShadowElements = document.querySelectorAll(".bg-menu-theme .menu-inner-shadow");
 
-        // Function to update the theme color with !important
-        function updateThemeColor(color) {
-            // Update color for `.bg-menu-theme`
-            themeElements.forEach(element => {
-                element.style.setProperty('background-color', color, 'important');
-            });
+        // Get buttons or other elements you want to change color
+        const buttonElements = document.querySelectorAll(".btn"); // Modify according to your button classes
 
-            // Update color for `.bg-menu-theme .menu-inner > .menu-item.active`
-            themeInnerActiveElements.forEach(element => {
-                element.style.setProperty('background-color', color, 'important');
-            });
-
-            // Remove background for `.bg-menu-theme .menu-inner-shadow`
-            menuInnerShadowElements.forEach(element => {
-                element.style.setProperty('background', 'none', 'important');
+        // Function to update the theme colors with !important
+        function updateThemeColor(color, elements, property = 'background-color') {
+            elements.forEach(element => {
+                element.style.setProperty(property, color, 'important');
             });
         }
 
-        // Set the initial color from the input value
-        updateThemeColor(sidebarColorInput.value);
+        // Function to update button color
+        function updateButtonColor(color) {
+            updateThemeColor(color, buttonElements, 'background-color');
+        }
 
-        // Listen for changes in the color input
+        // Set the initial colors from the input values
+        updateThemeColor(sidebarColorInput.value, themeElements);
+        updateThemeColor(sidebarColorInput.value, themeInnerActiveElements);
+        updateThemeColor(sidebarColorInput.value, menuInnerShadowElements, 'background');
+
+        updateButtonColor(accentColorInput.value);
+
+        // Listen for changes in the sidebar color input
         sidebarColorInput.addEventListener("input", function () {
-            updateThemeColor(sidebarColorInput.value);
+            updateThemeColor(sidebarColorInput.value, themeElements);
+            updateThemeColor(sidebarColorInput.value, themeInnerActiveElements);
+            updateThemeColor(sidebarColorInput.value, menuInnerShadowElements, 'background');
+        });
+
+        // Listen for changes in the accent color input
+        accentColorInput.addEventListener("input", function () {
+            updateButtonColor(accentColorInput.value);
         });
     });
 </script>

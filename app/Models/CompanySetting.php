@@ -42,4 +42,10 @@ class CompanySetting extends Model
         $setting = self::where('user_id', $userId)->first();
         return $setting->sidebar_color ?? null;
     }
+
+    public static function getAccentColorUser($userId)
+    {
+        $setting = self::where('user_id', $userId)->first();
+        return $setting->accent_color ?? null;
+    }
 }
