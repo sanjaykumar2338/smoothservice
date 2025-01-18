@@ -24,6 +24,7 @@ use App\Http\Controllers\Client\BillingController;
 use App\Http\Controllers\Client\IntegrationsController;
 use App\Http\Middleware\CheckWebOrTeam;
 use App\Http\Middleware\CheckSubdomain;
+use App\Http\Middleware\DynamicSessionDomain;
 use App\Http\Middleware\ClientMiddleware;
 use App\Http\Middleware\CheckTeamMembers;
 use Illuminate\Support\Facades\Artisan;
@@ -35,7 +36,7 @@ use App\Http\Controllers\MainClient\PaypalController;
 
 //Route for login , register
 Route::get('/', [LoginController::class, 'showWorkspaceForm'])->name('workspace');
-Route::middleware(CheckSubdomain::class)->group(function () {
+Route::middleware([CheckSubdomain::class, DynamicSessionDomain::class])->group(function () {
     Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('login', [LoginController::class, 'login']);
     Route::get('register', [LoginController::class, 'register'])->name('register');
@@ -59,7 +60,7 @@ Route::domain('{username}.' . env('SESSION_DOMAIN'))->group(function () {
 });
 
 // For client login
-Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () {
+Route::prefix('portal')->middleware([ClientMiddleware::class, DynamicSessionDomain::class])->group(function () {
     Route::get('dashboard', [MainClientController::class, 'dashboard'])->name('portal.dashboard');
     Route::get('orders', [MainClientController::class, 'orders'])->name('portal.orders');
     Route::get('/orders/{id}', [MainClientController::class, 'show'])->name('portal.orders.show');
@@ -102,7 +103,7 @@ Route::prefix('portal')->middleware(ClientMiddleware::class)->group(function () 
 });
 
 // For user login
-Route::middleware(CheckWebOrTeam::class)->group(function () {
+Route::middleware([CheckWebOrTeam::class, DynamicSessionDomain::class])->group(function () {
     Route::get('dashboard', [ClientController::class, 'dashboard'])->name('dashboard');
     
     // Service routes

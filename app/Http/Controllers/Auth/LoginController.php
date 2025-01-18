@@ -89,7 +89,7 @@ class LoginController extends Controller
         }
 
         // Get the session domain from the environment
-        $sessionDomain = ltrim(env('SESSION_DOMAIN', '.smoothservice.net'), '.');
+        $sessionDomain = ltrim(env('SESSION_DOMAIN'))!="" ? env('SESSION_DOMAIN') : 'smoothservice.net';
 
         // Check if the subdomain exists in the User table
         $user = \App\Models\User::where('workspace', $subdomain)->first();
@@ -229,7 +229,7 @@ class LoginController extends Controller
 
         if ($user) {
             // Redirect to the login page of the validated workspace
-            $sessionDomain = env('SESSION_DOMAIN', '.smoothservice.net');
+            $sessionDomain = ltrim(env('SESSION_DOMAIN'))!="" ? env('SESSION_DOMAIN') : '.smoothservice.net';
             return redirect()->intended("https://{$workspace}{$sessionDomain}/login");
         }
 

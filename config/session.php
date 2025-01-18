@@ -20,7 +20,7 @@ return [
 
     'driver' => env('SESSION_DRIVER', 'database'),
 
-    'domain' => env('SESSION_DOMAIN', null),
+    'domain' => null,
 
     /*
     |--------------------------------------------------------------------------
