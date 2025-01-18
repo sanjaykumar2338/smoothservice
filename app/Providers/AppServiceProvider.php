@@ -37,4 +37,4 @@ class AppServiceProvider extends ServiceProvider
         // Set the session domain configuration
         config(['session.domain' => $sessionDomain]);
     }
-}
+} 
