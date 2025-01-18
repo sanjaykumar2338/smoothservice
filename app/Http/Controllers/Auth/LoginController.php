@@ -168,6 +168,7 @@ class LoginController extends Controller
         // Attempt login for web users
         if (Auth::guard('web')->attempt($credentials, 1)) {
             $workspace = Auth::guard('web')->user()->workspace;
+            $request->session()->regenerate();
             
             if (!$isLocal) {
                 // Redirect to their subdomain or fallback to default route
@@ -183,6 +184,7 @@ class LoginController extends Controller
         if (Auth::guard('team')->attempt($credentials, 1)) {
             $addedBy = Auth::guard('team')->user()->added_by;
             $workspace = \App\Models\User::where('id', $addedBy)->value('workspace');
+            $request->session()->regenerate();
 
             if (!$isLocal) {
                 // Redirect to their subdomain or fallback to default route
@@ -198,6 +200,7 @@ class LoginController extends Controller
         if (Auth::guard('client')->attempt($credentials, 1)) {
             $addedBy = Auth::guard('client')->user()->added_by;
             $workspace = \App\Models\User::where('id', $addedBy)->value('workspace');
+            $request->session()->regenerate();
 
             if (!$isLocal) {
                 // Redirect to their subdomain or fallback to default route
