@@ -78,7 +78,7 @@ class LoginController extends Controller
 
         if ($companySetting) {
             // Redirect to the workspace page for the custom domain
-            return view('auth.login');
+            return view('auth.login')->with('companySetting',$companySetting);
         }
 
         // Extract the subdomain from the host
