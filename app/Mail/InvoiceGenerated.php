@@ -12,14 +12,16 @@ class InvoiceGenerated extends Mailable
 
     public $invoice;
     public $client;
+    public $companyName;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($invoice, $client)
+    public function __construct($invoice, $client, $companyName = null)
     {
         $this->invoice = $invoice;
         $this->client = $client;
+        $this->companyName = $companyName ?? env('APP_NAME');
     }
 
     /**

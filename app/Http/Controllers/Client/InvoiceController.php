@@ -104,6 +104,7 @@ class InvoiceController extends Controller
         $invoice_no = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
 
         // Create the invoice record
+        $user_id = getUserID();
         $invoice = Invoice::create([
             'client_id' => $request->client_id,
             'order_id' => $request->order_id,
@@ -115,7 +116,7 @@ class InvoiceController extends Controller
             'billing_date' => $billingDate,
             'currency' => $currency,
             'total' => 0,
-            'added_by' => auth()->id(),
+            'added_by' => $user_id,
             'public_key' => \Str::random(32),
             'invoice_no' => $invoice_no,
         ]);
@@ -169,8 +170,10 @@ class InvoiceController extends Controller
 
         if ($sendEmail) {
             $client = Client::findOrFail($request->client_id);
-            Mail::to($client->email)->send(new \App\Mail\InvoiceGenerated($invoice, $client));
-        }
+            $companySetting = \App\Models\CompanySetting::where('user_id', getUserID())->first();
+            $companyName = $companySetting->company_name ?? env('APP_NAME');
+            Mail::to($client->email)->send(new \App\Mail\InvoiceGenerated($invoice, $client, $companyName));
+        }        
 
         return redirect()->route('invoices.list')->with('success', 'Invoice created successfully');
     }

@@ -10,7 +10,10 @@
     <p>Dear {{ $client->first_name }},</p>
     <p>Your invoice #{{ $invoice->invoice_no }} has been successfully created.</p>
     <p>Total Amount: ${{ number_format($invoice->total, 2) }}</p>
-    <p>Please log in to your account to review the invoice and proceed with payment.</p>
+    <p>Please log in to your account on 
+        <strong>{{ $companyName }}</strong> 
+        to review the invoice and proceed with payment.
+    </p>
     <p>Thank you for your business!</p>
 </body>
 </html>
