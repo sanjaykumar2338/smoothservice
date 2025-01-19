@@ -129,9 +129,9 @@
 
             </div>
             <!-- /Logo -->
-            <h4 class="mb-2">Welcome to {{env('APP_NAME')}}! 👋</h4>
-            
-
+            <h4 class="mb-2">
+                Welcome to {{ isset($companySetting) && $companySetting->company_name ? $companySetting->company_name : env('APP_NAME') }}! 👋
+            </h4>
             @yield('content')
           
             <p class="text-center">
