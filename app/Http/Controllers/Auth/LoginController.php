@@ -163,17 +163,19 @@ class LoginController extends Controller
         $isLocal = env('APP_ENV') === 'local' || $request->getHost() === env('LOCAL_DOMAIN');
 
         // Get the session domain from .env
-        $sessionDomain = env('SESSION_DOMAIN', '.smoothservice.net');
+        $sessionDomain = ltrim(env('SESSION_DOMAIN'))!="" ? env('SESSION_DOMAIN') : '.smoothservice.net';
 
         // Attempt login for web users
         if (Auth::guard('web')->attempt($credentials, 1)) {
+            
             $workspace = Auth::guard('web')->user()->workspace;
-            //$request->session()->regenerate();
+            $request->session()->regenerate();
 
             if (!$isLocal) {
                 // Redirect to their subdomain or fallback to default route
                 if ($workspace) {
-                    return redirect()->intended("https://{$workspace}{$sessionDomain}/dashboard");
+                    // return redirect()->intended("https://{$workspace}{$sessionDomain}/dashboard");
+                    return redirect()->intended(route('dashboard')); // Fallback to main site
                 }
             }
 
@@ -189,7 +191,8 @@ class LoginController extends Controller
             if (!$isLocal) {
                 // Redirect to their subdomain or fallback to default route
                 if ($workspace) {
-                    return redirect()->intended("https://{$workspace}{$sessionDomain}/order-list");
+                    return redirect()->intended(route('order.list')); 
+                    //return redirect()->intended("https://{$workspace}{$sessionDomain}/order-list");
                 }
             }
 
@@ -205,7 +208,8 @@ class LoginController extends Controller
             if (!$isLocal) {
                 // Redirect to their subdomain or fallback to default route
                 if ($workspace) {
-                    return redirect()->intended("https://{$workspace}{$sessionDomain}/portal-dashboard");
+                    return redirect()->intended(route('order.list')); 
+                    //return redirect()->intended("https://{$workspace}{$sessionDomain}/portal-dashboard");
                 }
             }
 
@@ -217,7 +221,6 @@ class LoginController extends Controller
             'email' => 'The provided credentials do not match our records.',
         ])->withInput($request->only('email'));
     }
-
 
     public function validateWorkspace(Request $request)
     {

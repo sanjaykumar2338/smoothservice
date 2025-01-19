@@ -1,51 +1,55 @@
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
    <div class="app-brand demo">
+      
       @php
          $company_settings = App\Models\CompanySetting::where('user_id', auth()->id())->first();
+         $sidebar_logo_exists = $company_settings && $company_settings->sidebar_logo && file_exists(public_path('storage/' . $company_settings->sidebar_logo));
+         $favicon_exists = $company_settings && $company_settings->favicon && file_exists(public_path('storage/' . $company_settings->favicon));
       @endphp
 
       <a href="{{ route('dashboard') }}" class="app-brand-link">
          <style>
             .sidebar-logo {
-                  display: block;
-                  margin: 0 auto;
-                  max-width: 100%;
-                  height: 54%; /* Default height */
-                  width: 150px; /* Default width */
-                  transition: all 0.3s ease;
+               display: block;
+               margin: 0 auto;
+               max-width: 100%;
+               height: 54%; /* Default height */
+               width: 150px; /* Default width */
+               transition: all 0.3s ease;
             }
 
             .app-brand-link {
-                  display: flex;             /* Flexbox layout for centering */
-                  flex-direction: column;    /* Ensures vertical stacking */
-                  align-items: center;       /* Horizontal centering */
-                  justify-content: center;   /* Vertical centering */
-                  height: 120px;             /* Set a height for the logo container */
-                  padding: 10px;             /* Add some padding for better spacing */
-                  text-align: center;        /* Centers any fallback text */
+               display: flex;             /* Flexbox layout for centering */
+               flex-direction: column;    /* Ensures vertical stacking */
+               align-items: center;       /* Horizontal centering */
+               justify-content: center;   /* Vertical centering */
+               height: 120px;             /* Set a height for the logo container */
+               padding: 10px;             /* Add some padding for better spacing */
+               text-align: center;        /* Centers any fallback text */
             }
 
             /* Adjustments for collapsed menu */
             html.layout-menu-collapsed .sidebar-logo {
-                  height: 32px; /* Shrink to favicon size */
-                  width: 32px;
+               height: 32px; /* Shrink to favicon size */
+               width: 32px;
             }
 
             html.layout-menu-collapsed .app-brand-link {
-                  height: 80px; /* Adjust height for collapsed menu */
+               height: 80px; /* Adjust height for collapsed menu */
             }
          </style>
 
-         @if($company_settings)
+         @if($sidebar_logo_exists)
             <!-- Sidebar Logo -->
             <img src="{{ asset('storage/' . $company_settings->sidebar_logo) }}" 
-                  data-collapsed-src="{{ asset('storage/' . $company_settings->favicon) }}" 
-                  class="sidebar-logo" alt="Sidebar Logo" id="sidebarLogo">
+               data-collapsed-src="{{ $favicon_exists ? asset('storage/' . $company_settings->favicon) : '' }}" 
+               class="sidebar-logo" alt="Sidebar Logo" id="sidebarLogo">
+         @elseif($company_settings && $company_settings->company_name)
+            <span class="app-brand-text demo menu-text fs-4">{{ $company_settings->company_name }}</span>
          @else
             <span class="app-brand-text demo menu-text fs-4">{{ env('APP_NAME') }}</span>
          @endif
       </a>
-
 
       <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
       <i class="bx menu-toggle-icon d-none d-xl-block fs-4 align-middle"></i>
