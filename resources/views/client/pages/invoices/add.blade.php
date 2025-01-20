@@ -89,7 +89,7 @@
                                     <option value="">-- No Service --</option>
                                     @foreach($services as $service)
                                         @if($service->service_type == 'recurring')
-                                            @if(!isset($order))
+                                            @if($order=="")
                                                 @if($service->trial_for!="")
                                                     <option data-type="recurringwithtrail" data-price="{{$service->trial_price}}" value="{{ $service->id }}">
                                                         {{ $service->service_name }} {{$service->trial_currency}} {{$service->trial_price}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, {{ $service->recurring_service_currency }} 

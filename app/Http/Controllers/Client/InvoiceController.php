@@ -53,6 +53,7 @@ class InvoiceController extends Controller
             }
         }
 
+        //echo "<pre>"; print_r($services_all); die;
         return view('client.pages.invoices.add', compact('clients', 'services', 'client_id', 'order'));
     }
 
