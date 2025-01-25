@@ -284,55 +284,39 @@ class MainClientController extends Controller
 
         foreach ($invoice->items as $item) {
             $service = $item->service;
-        
+
             // Determine the first service type (month, day, year, or week)
-            if (!$firstServiceType && isset($service) && $service->service_type == 'recurring') {
+            if (!$firstServiceType && $service->service_type == 'recurring') {
                 $firstServiceType = $service->recurring_service_currency_value_two_type ?? '';
             }
-        
-            if (!empty($service) && empty($service->is_deleted)) {
-                if (!empty($service->trial_for)) {
-                    // Trial-based services
-                    $trialServices[] = [
-                        'name' => $service->service_name ?? $item->item_name,
-                        'trialPrice' => ($service->trial_price - $item->discount),
-                        'trialDuration' => $service->trial_for . ' ' . ($service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period),
-                        'nextPrice' => ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment,
-                        'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type),
-                    ];
-        
-                    $nextPaymentRecurring += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
-                    $intervalTotal[] = $service->trial_for;
-                } else {
-                    // Non-trial services
-                    $price = ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
-        
-                    $nonTrialServices[] = [
-                        'name' => $service->service_name ?? $item->item_name,
-                        'price' => $service->recurring_service_currency_value,
-                        'quantity' => $item->quantity,
-                        'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type),
-                    ];
-        
-                    $nextPaymentRecurring += $price;
-                    $totalDiscount += $item->discount;
-                    $intervalTotal[] = $service->recurring_service_currency_value_two;
-                }
-            } else {
-                // Handle missing or deleted service gracefully
-                $price = 0; // Default value if service is null or deleted
-        
-                $nonTrialServices[] = [
-                    'name' => $item->item_name,
-                    'price' => 0, // No price if service is missing
-                    'quantity' => $item->quantity,
-                    'interval' => 'N/A', // Interval not available
+
+            if (!empty($service->trial_for)) {
+                // Trial-based services
+                $trialServices[] = [
+                    'name' => $service->service_name ?? $item->item_name,
+                    'trialPrice' => ($service->trial_price - $item->discount),
+                    'trialDuration' => $service->trial_for . ' ' . ($service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period),
+                    'nextPrice' => ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment,
+                    'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type)
                 ];
-        
-                // Log the missing service for debugging
-                //Log::warning("Service not found or deleted for item ID: {$item->id}");
+
+                $nextPaymentRecurring += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                $intervalTotal[] = $service->trial_for;
+            } else {
+                // Non-trial services
+                $price = ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                $nonTrialServices[] = [
+                    'name' => $service->service_name ?? $item->item_name,
+                    'price' => $service->recurring_service_currency_value,
+                    'quantity' => $item->quantity,
+                    'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type)
+                ];
+
+                $nextPaymentRecurring += $price;
+                $totalDiscount += $item->discount;
+                $intervalTotal[] = $service->recurring_service_currency_value_two;
             }
-        }        
+        }
 
         // Calculate totals
         $nextTotalWithoutTrial = array_sum(array_column($nonTrialServices, 'price')) * $item->quantity;
