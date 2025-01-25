@@ -304,7 +304,15 @@ class MainClientController extends Controller
                 $intervalTotal[] = $service->trial_for;
             } else {
                 // Non-trial services
-                $price = ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                if (!empty($item->service)) {
+                    $service = $item->service;
+                    $price = ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                } else {
+                    // Handle missing service gracefully, or log the issue for debugging
+                    $price = 0; // Default value if service is null
+                    //Log::warning("Service not found for item ID: {$item->id}");
+                }
+                
                 $nonTrialServices[] = [
                     'name' => $service->service_name ?? $item->item_name,
                     'price' => $service->recurring_service_currency_value,
