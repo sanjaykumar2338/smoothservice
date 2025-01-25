@@ -272,8 +272,70 @@ class MainClientController extends Controller
         $users = User::all();
         $teamMembers = TeamMember::where('added_by', auth()->id())->get();
 
+        // Initialize variables
+        $nextPaymentRecurring = 0;
+        $totalDiscount = 0;
+        $intervalTotal = [];
+        $trialServices = [];
+        $nonTrialServices = [];
+        $upfrontPayment = $invoice->upfront_payment_amount > 0 ? $invoice->upfront_payment_amount : 0;
+        $currency = $invoice->currency;
+        $firstServiceType = null;
+
+        foreach ($invoice->items as $item) {
+            $service = $item->service;
+
+            // Determine the first service type (month, day, year, or week)
+            if (!$firstServiceType && $service->service_type == 'recurring') {
+                $firstServiceType = $service->recurring_service_currency_value_two_type ?? '';
+            }
+
+            if (!empty($service->trial_for)) {
+                // Trial-based services
+                $trialServices[] = [
+                    'name' => $service->service_name ?? $item->item_name,
+                    'trialPrice' => ($service->trial_price - $item->discount),
+                    'trialDuration' => $service->trial_for . ' ' . ($service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period),
+                    'nextPrice' => ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment,
+                    'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type)
+                ];
+
+                $nextPaymentRecurring += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                $intervalTotal[] = $service->trial_for;
+            } else {
+                // Non-trial services
+                $price = ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                $nonTrialServices[] = [
+                    'name' => $service->service_name ?? $item->item_name,
+                    'price' => $service->recurring_service_currency_value,
+                    'quantity' => $item->quantity,
+                    'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type)
+                ];
+
+                $nextPaymentRecurring += $price;
+                $totalDiscount += $item->discount;
+                $intervalTotal[] = $service->recurring_service_currency_value_two;
+            }
+        }
+
+        // Calculate totals
+        $nextTotalWithoutTrial = array_sum(array_column($nonTrialServices, 'price')) * $item->quantity;
+
+        // Summary data
+        $main_data = [
+            'currency' => $currency,
+            'trialServices' => $trialServices,
+            'nonTrialServices' => $nonTrialServices,
+            'nextPaymentRecurring' => $nextPaymentRecurring,
+            'totalDiscount' => $totalDiscount,
+            'upfrontPayment' => $upfrontPayment,
+            'firstServiceType' => $firstServiceType
+        ];
+
+        //echo "<pre>"; print_r($main_data); die;
+
         // Pass the invoice data to the view
-        return view('c_main.c_pages.c_invoice.c_show', compact('invoice', 'services', 'users', 'teamMembers'));
+        return view('c_main.c_pages.c_invoice.c_show', compact('invoice', 'services', 'users', 'teamMembers', 'main_data'));
     }
 
     public function invoice_payment($id)
@@ -293,8 +355,108 @@ class MainClientController extends Controller
         $teamMembers = TeamMember::where('added_by', auth()->id())->get();
         $addedByUser = User::findOrFail($invoice->added_by);
 
+        // Initialize variables
+        $nextPaymentRecurring = 0;
+        $totalDiscount = 0;
+        $intervalTotal = [];
+        $trialServices = [];
+        $nonTrialServices = [];
+        $upfrontPayment = $invoice->upfront_payment_amount > 0 ? $invoice->upfront_payment_amount : 0;
+        $currency = $invoice->currency;
+        $firstServiceType = null;
+
+        foreach ($invoice->items as $item) {
+            $service = $item->service;
+
+            // Determine the first service type (month, day, year, or week)
+            if (!$firstServiceType && $service->service_type == 'recurring') {
+                $firstServiceType = $service->recurring_service_currency_value_two_type ?? '';
+            }
+
+            if (!empty($service->trial_for)) {
+                // Trial-based services
+                $trialServices[] = [
+                    'name' => $service->service_name ?? $item->item_name,
+                    'trialPrice' => ($service->trial_price - $item->discount),
+                    'trialDuration' => $service->trial_for . ' ' . ($service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period),
+                    'nextPrice' => ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment,
+                    'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type)
+                ];
+
+                $nextPaymentRecurring += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                $intervalTotal[] = $service->trial_for;
+            } else {
+                // Non-trial services
+                $price = ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                $nonTrialServices[] = [
+                    'name' => $service->service_name ?? $item->item_name,
+                    'price' => $service->recurring_service_currency_value,
+                    'quantity' => $item->quantity,
+                    'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type)
+                ];
+
+                $nextPaymentRecurring += $price;
+                $totalDiscount += $item->discount;
+                $intervalTotal[] = $service->recurring_service_currency_value_two;
+            }
+        }
+
+        // Calculate totals
+        $nextTotalWithoutTrial = array_sum(array_column($nonTrialServices, 'price')) * $item->quantity;
+
+        // Summary data
+        $main_data = [
+            'currency' => $currency,
+            'trialServices' => $trialServices,
+            'nonTrialServices' => $nonTrialServices,
+            'nextPaymentRecurring' => $nextPaymentRecurring,
+            'totalDiscount' => $totalDiscount,
+            'upfrontPayment' => $upfrontPayment,
+            'firstServiceType' => $firstServiceType
+        ];
+
+        $summary = [
+        'total' => 0,
+        'trial_amount' => 0,
+        'next_payment_recurring' => 0,
+        'total_discount' => 0,
+        'payment_type' => 'fixed', // Default to 'fixed'
+        'interval' => 1, // Default interval is 1
+        'interval_type' => 'month', // Default interval type
+    ];
+
+    foreach ($invoice->items as $key => $item) {
+        $service = $item->service;
+
+        // Calculate totals and discounts
+        $itemTotal = ($item->price * $item->quantity) - ($item->discount * $item->quantity);
+        $summary['total'] += $itemTotal;
+        $summary['total_discount'] += $item->discount * $item->quantity;
+
+        // Trial-based services
+        if (!empty($service->trial_for)) {
+            $trialPrice = $service->trial_price - $item->discount;
+            $summary['trial_amount'] += $trialPrice;
+            $summary['next_payment_recurring'] += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment * $item->quantity;
+            $summary['payment_type'] = 'recurring';
+            $summary['interval'] = $service->recurring_service_currency_value_two ?? 1;
+            $summary['interval_type'] = strtolower($service->recurring_service_currency_value_two_type ?? 'month');
+        } elseif ($service->service_type == 'recurring') {
+            // Recurring services without trial
+            $summary['next_payment_recurring'] += ($service->recurring_service_currency_value * $item->quantity) - $item->discount * $item->quantity;
+            $summary['payment_type'] = 'recurring';
+            $summary['interval'] = $service->recurring_service_currency_value_two ?? 1;
+            $summary['interval_type'] = strtolower($service->recurring_service_currency_value_two_type ?? 'month');
+        }
+    }
+
+    // Adjust totals based on upfront payments
+    if ($invoice->upfront_payment_amount > 0) {
+        $summary['total'] -= $invoice->upfront_payment_amount;
+    }
+
         // Pass the invoice data to the view
-        return view('c_main.c_pages.c_invoice.c_payment', compact('invoice', 'services', 'users', 'teamMembers', 'addedByUser'));
+        return view('c_main.c_pages.c_invoice.c_payment', compact('invoice', 'services', 'users', 'teamMembers', 'addedByUser', 'main_data'));
     }
 
     public function invoice_payment_paypal($id)
@@ -314,8 +476,68 @@ class MainClientController extends Controller
         $teamMembers = TeamMember::where('added_by', auth()->id())->get();
         $addedByUser = User::findOrFail($invoice->added_by);
 
+        // Initialize variables
+        $nextPaymentRecurring = 0;
+        $totalDiscount = 0;
+        $intervalTotal = [];
+        $trialServices = [];
+        $nonTrialServices = [];
+        $upfrontPayment = $invoice->upfront_payment_amount > 0 ? $invoice->upfront_payment_amount : 0;
+        $currency = $invoice->currency;
+        $firstServiceType = null;
+
+        foreach ($invoice->items as $item) {
+            $service = $item->service;
+
+            // Determine the first service type (month, day, year, or week)
+            if (!$firstServiceType && $service->service_type == 'recurring') {
+                $firstServiceType = $service->recurring_service_currency_value_two_type ?? '';
+            }
+
+            if (!empty($service->trial_for)) {
+                // Trial-based services
+                $trialServices[] = [
+                    'name' => $service->service_name ?? $item->item_name,
+                    'trialPrice' => ($service->trial_price - $item->discount),
+                    'trialDuration' => $service->trial_for . ' ' . ($service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period),
+                    'nextPrice' => ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment,
+                    'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type)
+                ];
+
+                $nextPaymentRecurring += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                $intervalTotal[] = $service->trial_for;
+            } else {
+                // Non-trial services
+                $price = ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                $nonTrialServices[] = [
+                    'name' => $service->service_name ?? $item->item_name,
+                    'price' => $service->recurring_service_currency_value,
+                    'quantity' => $item->quantity,
+                    'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type)
+                ];
+
+                $nextPaymentRecurring += $price;
+                $totalDiscount += $item->discount;
+                $intervalTotal[] = $service->recurring_service_currency_value_two;
+            }
+        }
+
+        // Calculate totals
+        $nextTotalWithoutTrial = array_sum(array_column($nonTrialServices, 'price')) * $item->quantity;
+
+        // Summary data
+        $main_data = [
+            'currency' => $currency,
+            'trialServices' => $trialServices,
+            'nonTrialServices' => $nonTrialServices,
+            'nextPaymentRecurring' => $nextPaymentRecurring,
+            'totalDiscount' => $totalDiscount,
+            'upfrontPayment' => $upfrontPayment,
+            'firstServiceType' => $firstServiceType
+        ];
+
         // Pass the invoice data to the view
-        return view('c_main.c_pages.c_invoice.c_paypal_payment', compact('invoice', 'services', 'users', 'teamMembers', 'addedByUser'));
+        return view('c_main.c_pages.c_invoice.c_paypal_payment', compact('invoice', 'services', 'users', 'teamMembers', 'addedByUser', 'main_data'));
     }
 
     //this is the original method for stripe payment
@@ -435,13 +657,16 @@ class MainClientController extends Controller
                 ['stripe_account' => $addedByUser->stripe_connect_account_id]
             );
 
+            $summary = invoiceSummary($invoice);
+            //echo "<pre>"; print_r($summary); die;
+
             $price = $stripe->prices->create(
                 [
-                    'unit_amount' => $request->input('recurring_payment') * 100,
+                    'unit_amount' => $summary['next_payment_recurring'] * 100,
                     'currency' => 'usd',
                     'recurring' => [
-                        'interval' => $request->input('interval', 'month'),
-                        'interval_count' => $request->input('num_interval', 1),
+                        'interval' => $summary['interval_type'],
+                        'interval_count' => $summary['interval'],
                     ],
                     'product' => $product->id,
                 ],
@@ -461,8 +686,8 @@ class MainClientController extends Controller
             $inv = $this->payPalService->getPaymentType($invoice->id);
 
             // Determine interval settings for Stripe
-            $intervalUnit = strtolower($inv['interval_text']); // 'month', 'week', etc.
-            $intervalCount = (int)$inv['interval']; // 1, 2, etc.
+            $intervalUnit = strtolower($summary['interval_type']); // 'month', 'week', etc.
+            $intervalCount = (int)$summary['interval']; // 1, 2, etc.
 
             // Prepare subscription data
             $subscriptionData = [
@@ -478,27 +703,26 @@ class MainClientController extends Controller
                 'metadata' => [
                     'invoice_id' => $invoice->invoice_no,
                     'payment_type' => $inv['payment_type'], // 'recurring'
-                    'interval_text' => $inv['interval_text'], // 'month', 'week'
-                    'interval' => $inv['interval'], // '1', '2'
-                    'total_amount' => $inv['total_amount'], // Total amount for reference
-                    'recurring_payment' => $inv['recurring_payment'], // Recurring charge
+                    'interval_text' => $summary['interval_type'], // 'month', 'week'
+                    'interval' => $summary['interval'], // '1', '2'
+                    'total_amount' => $summary['total'], // Total amount for reference
+                    'recurring_payment' => $summary['next_payment_recurring'], // Recurring charge
                 ],
             ];
 
             // Add upfront charge if total_amount > 0
-            if ($inv['total_amount'] > 0) {
+            if ($summary['total'] > 0) {
                 $subscriptionData['add_invoice_items'] = [
                     [
                         'price_data' => [
                             'currency' => 'usd', // Replace with your currency
-                            'product' => $product->id, // Reference a product
-                            'unit_amount' => $inv['total_amount'] * 100, // Stripe expects amount in cents
+                            'product' => $product->id, // Reference the product ID
+                            'unit_amount' => $summary['total'] * 100, // Stripe expects amount in cents
                         ],
-                        'quantity' => 1,
-                        'description' => 'Upfront payment for subscription invoice no #'.$invoice->invoice_no, // Add description here
+                        'quantity' => 1, // Specify the quantity
                     ]
                 ];
-            }            
+            }
 
             // Create the subscription
             $subscription = $stripe->subscriptions->create(
@@ -511,9 +735,9 @@ class MainClientController extends Controller
             $ins = InvoiceSubscription::create([
                 'invoice_id' => $invoice->id,
                 'subscription_id' => $subscription->id,
-                'amount' => $request->input('recurring_payment'),
+                'amount' => $summary['total'] ? $summary['total'] : $summary['next_payment_recurring'],
                 'currency' => 'usd',
-                'intervel' => $request->input('interval', 'month'),
+                'intervel' => $summary['interval_type'],
                 'starts_at' => now(),
                 'ends_at' => now()->addMonths($request->input('interval_count', 1)),
             ]);
@@ -635,9 +859,11 @@ class MainClientController extends Controller
                 ['stripe_account' => $addedByUser->stripe_connect_account_id]
             );
 
+            $summary = invoiceSummary($invoice);
+
             // Create a PaymentIntent
             $paymentIntent = $stripe->paymentIntents->create([
-                'amount' => $invoice->total * 100, // Amount in cents
+                'amount' => $summary['total'] * 100, // Amount in cents
                 'currency' => 'usd',
                 'customer' => $stripeCustomer->id,
                 'payment_method' => $paymentMethodId,

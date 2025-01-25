@@ -140,6 +140,9 @@ class PaypalController extends Controller
 
         $accessToken = json_decode($response->getBody(), true)['access_token'];
 
+        $summary = invoiceSummary($invoice);
+        //echo "<pre>"; print_r($summary); die;
+
         // Create Payment Order
         $orderData = [
             'intent' => 'CAPTURE',
@@ -147,7 +150,7 @@ class PaypalController extends Controller
                 [
                     'amount' => [
                         'currency_code' => 'USD',
-                        'value' => $invoice_info['total_amount']
+                        'value' => $summary['total']
                     ],
                     'payee' => [
                         'merchant_id' => $addedByUser->paypal_connect_account_id,

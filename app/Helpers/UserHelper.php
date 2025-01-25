@@ -95,4 +95,55 @@ if (!function_exists('companySetting')) {
     }
 }
 
+if (!function_exists('invoiceSummary')) {
+    function invoiceSummary($invoice){
+        $summary = [
+            'total' => 0,
+            'trial_amount' => 0,
+            'next_payment_recurring' => 0,
+            'total_discount' => 0,
+            'payment_type' => 'fixed', // Default to fixed
+            'interval' => 1, // Default interval
+            'interval_type' => 'month', // Default interval type
+        ];
+    
+        foreach ($invoice->items as $key => $item) {
+            $service = $item->service;
+    
+            // Set interval and interval_type from the first service
+            if ($key === 0 && $service->service_type === 'recurring') {
+                $summary['interval'] = $service->recurring_service_currency_value_two;
+                $summary['interval_type'] = strtolower($service->recurring_service_currency_value_two_type);
+                $summary['payment_type'] = 'recurring'; // Update payment type to recurring
+            }
+    
+            // Calculate trial amount if trial is available
+            if (!empty($service->trial_for)) {
+                $trial_price = $service->trial_price - $item->discount;
+                $summary['trial_amount'] += $trial_price * $item->quantity;
+    
+                // Add recurring payment after the trial
+                $next_price = $service->recurring_service_currency_value - $item->discountsnextpayment;
+                $summary['next_payment_recurring'] += $next_price * $item->quantity;
+            } elseif ($service->service_type === 'recurring') {
+                // Add recurring payments for non-trial services
+                $price = $service->recurring_service_currency_value - $item->discount;
+                $summary['next_payment_recurring'] += $price * $item->quantity;
+            } else {
+                // For fixed payments, just calculate the total
+                $summary['payment_type'] = 'fixed';
+            }
+    
+            // Calculate total and discounts
+            $summary['total'] += ($item->price * $item->quantity) - ($item->discount * $item->quantity);
+            $summary['total_discount'] += $item->discount * $item->quantity;
+        }
+    
+        // Adjust for upfront payment
+        if ($invoice->upfront_payment_amount > 0) {
+            $summary['total'] -= $invoice->upfront_payment_amount;
+        }
 
+        return $summary;
+    }
+}

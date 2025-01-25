@@ -45,55 +45,45 @@ class PayPalService
     {
         $accessToken = $this->getAccessToken();
 
-        // Extract trial values from the invoice
-        $trialCurrency = 'USD';
-        //$trialCurrency = $invoice->trial_currency ?? 'USD';
-        $trialPrice = $invoice->trial_price ?? 0; // Default to 0 for a free trial
-        $trialFor = $invoice->trial_for ?? 1; // Default to 1 cycle
-        $trialPeriod = $invoice->trial_period ?? 'MONTH'; // Default to 'MONTH'
+        // Extract recurring values from the invoice summary
+        $summary = invoiceSummary($invoice);
+
+        $setupFee = $summary['total']; // Use total amount as setup fee
+        $recurringAmount = $summary['next_payment_recurring'];
+        $interval = $summary['interval'];
+        $intervalType = strtolower($summary['interval_type']); // Normalize case
+
+        // Normalize intervalType to PayPal-compatible format
+        $paypalIntervalMap = [
+            'day' => 'DAY',
+            'week' => 'WEEK',
+            'month' => 'MONTH',
+            'year' => 'YEAR',
+        ];
+
+        $paypalIntervalType = $paypalIntervalMap[$intervalType] ?? 'MONTH'; // Default to MONTH if undefined
         $billingCycles = [];
 
-        $inv = Invoice::find($invoice_id);
-        $paymentinfo = $this->getPaymentType($invoice_id);
-
-        // Add trial billing cycle if applicable
-        if ($paymentinfo['total_amount']) {
+        // Add regular recurring billing cycle
+        if ($recurringAmount > 0) {
             $billingCycles[] = [
                 'frequency' => [
-                    'interval_unit' => strtoupper($paymentinfo['interval_text']), // Trial period (e.g., MONTH, WEEK)
-                    'interval_count' => strtoupper($paymentinfo['interval']), // Duration of the trial
+                    'interval_unit' => strtoupper($paypalIntervalType), // e.g., MONTH, WEEK, YEAR, DAY
+                    'interval_count' => $interval,                     // e.g., every 3 months
                 ],
-                'tenure_type' => 'TRIAL', // Set tenure type to 'TRIAL'
-                'sequence' => 1, // Sequence for the trial
-                'total_cycles' => 1, // Number of trial cycles
+                'tenure_type' => 'REGULAR', // Mark this as a regular cycle
+                'sequence' => 1,            // First in sequence
+                'total_cycles' => 12,       // Number of recurring cycles (e.g., 12 for a year)
                 'pricing_scheme' => [
                     'fixed_price' => [
-                        'value' => number_format($paymentinfo['total_amount'], 2, '.', ''), // Trial price
-                        'currency_code' => 'USD', // Trial currency
+                        'value' => number_format($recurringAmount, 2, '.', ''), // Use recurring amount
+                        'currency_code' => 'USD',                              // Currency for recurring payments
                     ],
                 ],
             ];
         }
 
-        // Add regular billing cycle
-        $billingCycles[] = [
-            'frequency' => [
-                'interval_unit' => 'MONTH',
-                'interval_count' => 1,
-            ],
-            'tenure_type' => 'REGULAR', // Set tenure type to 'REGULAR'
-            'sequence' => $trialFor > 0 ? 2 : 1, // Sequence after the trial
-            'total_cycles' => 12, // Total number of regular cycles
-            'pricing_scheme' => [
-                'fixed_price' => [
-                    'value' => number_format($recurring_payment, 2, '.', ''), // Recurring price
-                    'currency_code' => 'USD', // Recurring currency
-                ],
-            ],
-        ];
-
-        //echo "<pre>"; print_r($billingCycles); die;
-
+        // Prepare the plan data with setup fee
         $planData = [
             'product_id' => $productId,
             'name' => $planName,
@@ -103,7 +93,7 @@ class PayPalService
             'payment_preferences' => [
                 'auto_bill_outstanding' => true,
                 'setup_fee' => [
-                    'value' => '0',
+                    'value' => number_format($setupFee, 2, '.', ''), // Use summary total as setup fee
                     'currency_code' => 'USD',
                 ],
                 'setup_fee_failure_action' => 'CONTINUE',
@@ -113,15 +103,9 @@ class PayPalService
                 'percentage' => '0',
                 'inclusive' => false,
             ],
-            'payment_preferences' => [
-                'payee_preference' => [
-                    'payee' => [
-                        'merchant_id' => $paypal_connect_account_id, // Route payments to the specific merchant
-                    ],
-                ],
-            ],
         ];
 
+        // Make API request to create the subscription plan
         $response = $this->client->post("{$this->baseUrl}/v1/billing/plans", [
             'headers' => [
                 'Authorization' => "Bearer $accessToken",
@@ -134,7 +118,7 @@ class PayPalService
         $data = json_decode($response->getBody(), true);
         $planId = $data['id'];
 
-        // Create Subscription
+        // Create the subscription
         $subscriptionData = [
             'plan_id' => $planId,
             'application_context' => [
@@ -145,10 +129,10 @@ class PayPalService
             ],
             'subscriber' => [
                 'name' => [
-                    'given_name' => $client->first_name, // First name
-                    'surname' => $client->last_name, // Last name
+                    'given_name' => $client->first_name,
+                    'surname' => $client->last_name,
                 ],
-                'email_address' => $client->email, // Email
+                'email_address' => $client->email,
             ],
         ];
 

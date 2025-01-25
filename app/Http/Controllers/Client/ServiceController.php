@@ -20,8 +20,7 @@ class ServiceController extends Controller
                 ->orWhere('description', 'like', '%' . $request->search . '%');
         }
 
-        $services = $query->orderBy('id','desc')->where('user_id',getUserID())->paginate(10);
-
+        $services = $query->orderBy('id','desc')->where('is_deleted', 0)->where('user_id',getUserID())->paginate(10);
         return view('client.pages.service.index', compact('services'));
     }
 
@@ -235,7 +234,7 @@ class ServiceController extends Controller
             return redirect()->route('service.intakeform.list')->with('error', 'Intake form not found!');
         }
         
-        $service->delete();
+        $service->update(['is_deleted' => 1]);
         return redirect()->route('service.list')->with('success', 'Service deleted successfully.');
     }
 

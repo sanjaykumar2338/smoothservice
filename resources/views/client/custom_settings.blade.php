@@ -21,7 +21,7 @@
 
 @if ($accent_color)
     <style>
-        .btn, .bg-primary{
+        .btn-primary{
             background-color: {{ $accent_color }} !important;
         }
 

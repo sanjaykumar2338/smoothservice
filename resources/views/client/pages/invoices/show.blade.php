@@ -126,89 +126,141 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($invoice->items as $item)
-                    <tr>
-                        <!-- Item Name -->
-                        <td class="text-start">
-                            {{ $item->service->service_name ?? $item->item_name }}<br>
-                            
-                            @php $service = $item->service @endphp
-                            @if(!empty($item->service->trial_for))
-                                <span class="form-label">
-                                    ${{$service->trial_price - $item->discount}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, then
-                                    ${{ $item->service->recurring_service_currency_value - $item->discountsnextpayment}}/{{ $service->recurring_service_currency_value_two }} 
-                                    {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
-                                </span>
+                @php 
+                            $next_payment_recurring = 0; 
+                            $total_discount = 0;
+                            $total = 0;
+                        @endphp
+
+                        @foreach($invoice->items as $item)
+                        <tr>
+                            <!-- Item Name -->
+                            <td class="text-start">
+                                {{ $item->service->service_name ?? $item->item_name }}<br>
+
+                                @php $service = $item->service @endphp
+                                @if(!empty($item->service->trial_for))
+                                    <span class="form-label">
+                                        ${{$service->trial_price - $item->discount}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, then
+                                        ${{ $item->service->recurring_service_currency_value - $item->discountsnextpayment}}/{{ $service->recurring_service_currency_value_two }} 
+                                        {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
+                                    </span>
+
+                                    @php 
+                                        $next_payment_recurring += ($item->service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment; 
+                                        $total += ($item->price * $item->quantity - $item->discount * $item->quantity);
+                                    @endphp
+
+                                @elseif($item->service->service_type=='recurring')
+                                        ${{ $item->service->recurring_service_currency_value - $item->discount}}/{{ $item->service->recurring_service_currency_value_two }} 
+                                        {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
+
+                                        @php 
+                                            $next_payment_recurring += ($item->service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                                            $total += ($item->price * $item->quantity - $item->discount * $item->quantity);
+                                        @endphp
+                                @else
+                                    @php $total += ($item->price * $item->quantity - $item->discount * $item->quantity); @endphp
+                                @endif
+                            </td>
+
+                            <!-- Price -->
+
+                            @if($item->service->service_type!="onetime")
+                                @if($item->discount)
+                                    <td class="text-start"><del>{{ $invoice->currency }} {{ number_format($item->price, 2) }}</del><br>{{ $invoice->currency }} {{ number_format($item->price - $item->discount, 2) }}</td>
+                                @else
+                                    <td class="text-start">{{ $invoice->currency }} {{ number_format($item->price, 2) }}</td>
+                                @endif
                             @else
-                                @if($item->service->service_type=='recurring')
-                                    ${{ $item->service->recurring_service_currency_value - $item->discount}}/{{ $item->service->recurring_service_currency_value_two }} 
-                                    {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
+                                @if($item->discount)
+                                    <td class="text-start"><del>{{ $invoice->currency }} {{ number_format($item->price, 2) }}</del><br>{{ $invoice->currency }} {{ number_format($item->price - $item->discount, 2) }}</td>
+                                @else
+                                    <td class="text-start">{{ $invoice->currency }} {{ number_format($item->price, 2) }}</td>
                                 @endif
                             @endif
-                        </td>
 
-                        <!-- Price -->
-                        <td class="text-start">{{ $invoice->currency }} {{ number_format($item->price, 2) }}</td>
+                            <!-- Quantity -->
+                            <td class="text-start">× {{ $item->quantity }}</td>
 
-                        <!-- Quantity -->
-                        <td class="text-start">× {{ $item->quantity }}</td>
+                            <!-- Item Total -->
+                            <td class="text-end">
+                                @if($item->service->service_type!="onetime")
+                                    {{ $invoice->currency }} {{ number_format($item->price * $item->quantity - $item->discount * $item->quantity, 2) }}
+                                @else
+                                    {{ $invoice->currency }} {{ number_format($item->price * $item->quantity - $item->discount, 2) }}
+                                @endif
+                            </td>
 
-                        <!-- Item Total -->
-                        <td class="text-end">
-                            @if($item->service->service_type!="onetime")
-                                {{ $invoice->currency }} {{ number_format($item->price * $item->quantity - $item->discount, 2) }}
-                            @else
-                                {{ $invoice->currency }} {{ number_format($item->price * $item->quantity - $item->discount, 2) }}
-                            @endif
-                        </td>
+                            <!-- Item Total in CAD -->
+                            <td class="text-end">
+                                ${{ number_format($item->price * $item->quantity - $item->discount * $item->quantity, 2) }}
+                            </td>
+                        </tr>
+                        @endforeach
 
-                        <!-- Item Total in CAD -->
-                        <td class="text-end">
-                            ${{ number_format($item->price * $item->quantity - $item->discount, 2) }}
-                        </td>
-                    </tr>
-                    @endforeach
-
-                    <!-- Upfront Payment Row -->
-                    @if($invoice->upfront_payment_amount > 0)
-                    <tr>
-                        <td class="text-start"><strong>Upfront Payment</strong></td>
-                        <td class="text-start">
-                            -{{ $invoice->currency }} {{ number_format($invoice->upfront_payment_amount, 2) }}
-                        </td>
-                        <td class="text-start">×1</td>
-                        <td class="text-end"> -{{ $invoice->currency }} {{ number_format($invoice->upfront_payment_amount, 2) }}</td>
-                        <td class="text-end text-danger">
-                            -${{ number_format($invoice->upfront_payment_amount, 2) }}
-                        </td>
-                    </tr>
-                    @endif
+                        <!-- Upfront Payment Row -->
+                        @if($invoice->upfront_payment_amount > 0)
+                        <tr>
+                            <td class="text-start"><strong>Upfront Payment</strong></td>
+                            <td class="text-start">
+                                -{{ $invoice->currency }} {{ number_format($invoice->upfront_payment_amount, 2) }}
+                            </td>
+                            <td class="text-start">×1</td>
+                            <td class="text-end"> -{{ $invoice->currency }} {{ number_format($invoice->upfront_payment_amount, 2) }}</td>
+                            <td class="text-end text-danger">
+                                -${{ number_format($invoice->upfront_payment_amount, 2) }}
+                            </td>
+                        </tr>
+                        @endif
                 </tbody>
                 <tfoot>
-                    <!-- Subtotal -->
-                    <tr>
-                        <td colspan="2"></td>
-                        <td class="text-end"><strong>Subtotal</strong></td>
-                        <td class="text-end">
-                            {{ $invoice->currency }} 
-                            {{ number_format($invoice->total - $invoice->upfront_payment_amount, 2) }}
-                        </td>
-                        <td class="text-end">
-                            ${{ number_format($invoice->total - $invoice->upfront_payment_amount, 2) }}
-                        </td>
-                    </tr>
+                <tr>
+                            <td colspan="2"></td>
+                            <td class="text-end"><strong>Subtotal</strong></td>
 
-                    <!-- Payment Due -->
-                    <tr>
-                        <td colspan="2"></td>
-                        <td class="text-end"><strong>Payment Due</strong></td>
-                        <td class="text-end">
-                            <strong>{{ $invoice->currency }} {{ number_format($invoice->total - $invoice->upfront_payment_amount, 2) }}</strong>
-                        </td>
-                        <td class="text-end">
-                            <strong>CAD ${{ number_format($invoice->total - $invoice->upfront_payment_amount, 2) }}</strong>
-                        </td>
-                    </tr>
+                            @if($item->service->service_type!="onetime")
+                                <td class="text-end">
+                                    {{ $invoice->currency }} 
+                                    {{ number_format($total, 2) }}
+                                </td>
+
+                                <td class="text-end">
+                                    ${{ number_format($total, 2) }}
+                                </td>
+                            @else
+                                <td class="text-end">
+                                    {{ $invoice->currency }} 
+                                    {{ number_format($total - $invoice->upfront_payment_amount, 2) }}
+                                </td>
+
+                                <td class="text-end">
+                                    ${{ number_format($total - $invoice->upfront_payment_amount, 2) }}
+                                </td>
+                            @endif
+                        </tr>
+
+                        <!-- Payment Due -->
+                        <tr>
+                            <td colspan="2"></td>
+                            <td class="text-end"><strong>Payment Due</strong></td>
+
+                            @if($item->service->service_type!="onetime")
+                                <td class="text-end">
+                                    <strong>{{ $invoice->currency }} {{ number_format($total, 2) }}</strong>
+                                </td>
+                                <td class="text-end">
+                                    <strong>CAD ${{ number_format($total, 2) }}</strong>
+                                </td>
+                            @else
+                                <td class="text-end">
+                                    <strong>{{ $invoice->currency }} {{ number_format($total - $invoice->upfront_payment_amount, 2) }}</strong>
+                                </td>
+                                <td class="text-end">
+                                    <strong>CAD ${{ number_format($total - $invoice->upfront_payment_amount, 2) }}</strong>
+                                </td>
+                            @endif
+                        </tr>
                 </tfoot>
             </table>
             </div>
