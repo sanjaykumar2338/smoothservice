@@ -286,7 +286,7 @@ class MainClientController extends Controller
             $service = $item->service;
 
             // Determine the first service type (month, day, year, or week)
-            if (!$firstServiceType && $service->service_type == 'recurring') {
+            if (!$firstServiceType && (isset($service->service_type) && $service->service_type == 'recurring')) {
                 $firstServiceType = $service->recurring_service_currency_value_two_type ?? '';
             }
 
