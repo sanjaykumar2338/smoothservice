@@ -330,7 +330,7 @@ class MainClientController extends Controller
                 ];
         
                 // Log the missing service for debugging
-                Log::warning("Service not found or deleted for item ID: {$item->id}");
+                //Log::warning("Service not found or deleted for item ID: {$item->id}");
             }
         }        
 
