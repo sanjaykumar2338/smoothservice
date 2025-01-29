@@ -123,7 +123,20 @@
       </li>
 
       <!-- Services -->
-      <li class="menu-item @php echo in_array(request()->route()->getName(), ['service.list', 'service.add', 'service.edit', 'service.intakeform.list', 'service.intakeform.add', 'service.intakeform.edit', 'team.list', 'team.add', 'team.edit']) ? 'open' : ''@endphp">
+      <li class="menu-item @php echo in_array(request()->route()->getName(), [
+            'service.list', 
+            'service.add', 
+            'service.edit', 
+            'service.intakeform.list', 
+            'service.intakeform.add', 
+            'service.intakeform.edit', 
+            'team.list', 
+            'team.add', 
+            'team.edit', 
+            'landingpage.list', 
+            'landingpage.add', 
+            'landingpage.edit'
+         ]) ? 'open' : '' @endphp">
          <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-briefcase"></i>
             <div data-i18n="Services">Services</div>
@@ -144,9 +157,9 @@
                   <div data-i18n="Team Members">Team Members</div>
                </a>
             </li>
-            <li class="menu-item">
-               <a href="#" class="menu-link">
-                  <div data-i18n="Landing pages">Landing pages</div>
+            <li class="menu-item {{in_array(request()->route()->getName(), ['landingpage.list', 'landingpage.add', 'landingpage.edit']) ? 'active' : ''}}">
+               <a href="{{route('landingpage.list')}}" class="menu-link">
+                  <div data-i18n="Landing Pages">Landing Pages</div>
                </a>
             </li>
          </ul>

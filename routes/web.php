@@ -22,6 +22,8 @@ use App\Http\Controllers\Client\TicketController;
 use App\Http\Controllers\Client\TicketTagController;
 use App\Http\Controllers\Client\BillingController;
 use App\Http\Controllers\Client\IntegrationsController;
+use App\Http\Controllers\Client\LandingPageController;
+
 use App\Http\Middleware\CheckWebOrTeam;
 use App\Http\Middleware\CheckSubdomain;
 use App\Http\Middleware\DynamicSessionDomain;
@@ -269,6 +271,14 @@ Route::middleware([CheckWebOrTeam::class, DynamicSessionDomain::class])->group(f
     Route::get('/coupons/edit/{coupon}', [CouponController::class, 'edit'])->name('coupon.edit');
     Route::put('/coupons/update/{coupon}', [CouponController::class, 'update'])->name('coupon.update');
     Route::delete('/coupons/remove/{coupon}', [CouponController::class, 'destroy'])->name('coupon.destroy');
+
+    //for landing pages
+    Route::get('/landingpage', [LandingPageController::class, 'index'])->name('landingpage.list');
+    Route::get('/landingpage/add', [LandingPageController::class, 'create'])->name('landingpage.add');
+    Route::post('/landingpage/save', [LandingPageController::class, 'store'])->name('landingpage.store');
+    Route::get('/landingpage/edit/{landingpage}', [LandingPageController::class, 'edit'])->name('landingpage.edit');
+    Route::put('/landingpage/update/{landingpage}', [LandingPageController::class, 'update'])->name('landingpage.update');
+    Route::delete('/landingpage/remove/{landingpage}', [LandingPageController::class, 'destroy'])->name('landingpage.destroy');
 
     // Routes for Tickets
     Route::get('/tickets/{client?}', [TicketController::class, 'index'])->name('ticket.list');
