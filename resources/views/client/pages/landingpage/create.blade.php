@@ -87,6 +87,14 @@
     }
 </style>
 
+<link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://malsup.github.io/jquery.blockUI.js"></script>
+<script src="https://unpkg.com/grapesjs"></script>
+<script src="https://unpkg.com/grapesjs-preset-webpage@1.0.2"></script>
+<script src="https://unpkg.com/grapesjs-plugin-forms@2.0.5"></script>
+<script src="https://unpkg.com/grapesjs-blocks-basic@1.0.1"></script>
+
 <div class="container-xxl flex-grow-1 container-p-y" id="app">
     <h4 class="py-3 breadcrumb-wrapper mb-4">
         <span class="text-muted fw-light">Landing Pages /</span> Add Landing Page
@@ -156,12 +164,35 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                        <a href="{{ route('landingpage.list') }}" class="btn btn-secondary">Cancel</a>
+                      
+                            
+                      
+                        
                     </form>
+
+                    <div id="gjs" style=""></div>
+                    <br>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a href="{{ route('landingpage.list') }}" class="btn btn-secondary">Cancel</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<script>
+    var editor = grapesjs.init({
+      container : '#gjs',
+      plugins: ['grapesjs-preset-webpage','grapesjs-plugin-forms','gjs-blocks-basic'],
+      pluginsOpts: {
+        'grapesjs-preset-webpage': {
+        },
+        'grapesjs-plugin-forms': {
+        },
+        "gjs-blocks-basic": {
+        
+        },     
+    }
+    });
+</script>
+
 @endsection
