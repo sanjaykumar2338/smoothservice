@@ -19,7 +19,7 @@ class LandingPageController extends Controller
     // Show the form for creating a new landing page
     public function create()
     {
-        return view('client.pages.landingpage.create');
+        return view('client.pages.landingpage.grapejs');
     }
 
     // Store a newly created landing page in storage
