@@ -65,6 +65,7 @@
                             <td>{{ $landingPage->show_coupon_field ? 'Yes' : 'No' }}</td>
                             @if(checkPermission('add_edit_delete_landing_pages'))
                             <td>
+                                <a href="{{ route('landingpage.design', $landingPage->slug) }}" class="btn btn-sm btn-primary" target="_blank">Design Page</a>
                                 <a href="{{ route('landingpage.edit', $landingPage->id) }}" class="btn btn-sm btn-primary">Edit</a>
                                 <form action="{{ route('landingpage.destroy', $landingPage->id) }}" method="POST" style="display:inline-block;">
                                     @csrf

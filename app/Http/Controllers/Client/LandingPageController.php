@@ -16,10 +16,19 @@ class LandingPageController extends Controller
         return view('client.pages.landingpage.index', compact('landingPages'));
     }
 
+    public function design(Request $request, $slug){
+        $landingPage = LandingPage::where('slug',$slug)->first();
+        if(!$landingPage){
+            abort(404);
+        }
+
+        return view('client.pages.landingpage.design');
+    }
+
     // Show the form for creating a new landing page
     public function create()
     {
-        return view('client.pages.landingpage.grapejs');
+        return view('client.pages.landingpage.create');
     }
 
     // Store a newly created landing page in storage
@@ -27,15 +36,18 @@ class LandingPageController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|max:255',
-            'description' => 'required',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'description' => '',
+            'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        $imagePath = $request->file('image')->store('landing_pages', 'public');
+        $imagePath = '';
+        if($request->file('image')){
+            $imagePath = $request->file('image')->store('landing_pages', 'public');
+        }
 
         // Generate the slug based on the title
         $slug = \Str::slug($request->title, '-');
@@ -52,6 +64,7 @@ class LandingPageController extends Controller
             'user_id' => auth()->id(),
         ]);
 
+        return redirect()->route('landingpage.design', $slug);
         return redirect()->route('landingpage.list')->with('success', 'Landing page created successfully.');
     }
 

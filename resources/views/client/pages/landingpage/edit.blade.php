@@ -44,13 +44,13 @@
                         </div>
 
                         <!-- Description -->
-                        <div class="mb-3">
+                        <div class="mb-3" style="display:none;">
                             <label class="form-label" for="description">Description</label>
                             <textarea class="form-control" id="description" name="description" placeholder="Enter description" rows="4" required>{{ old('description', $landingPage->description) }}</textarea>
                         </div>
 
                        <!-- Image -->
-                        <div class="mb-3">
+                        <div class="mb-3" style="display:none;">
                             <label class="form-label" for="image">Upload Image</label>
 
                             <!-- Show current image if exists -->
@@ -73,7 +73,7 @@
 
 
                         <!-- Fields -->
-                        <div class="mb-3">
+                        <div class="mb-3" style="display:none;">
                             <label class="form-label" for="fields">Additional Fields (Optional)</label>
                             <textarea class="form-control" id="fields" name="fields" placeholder="Enter additional fields as JSON">{{ old('fields', $landingPage->fields) }}</textarea>
                         </div>

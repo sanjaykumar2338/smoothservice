@@ -274,6 +274,7 @@ Route::middleware([CheckWebOrTeam::class, DynamicSessionDomain::class])->group(f
 
     //for landing pages
     Route::get('/landingpage', [LandingPageController::class, 'index'])->name('landingpage.list');
+    Route::get('/landingpage/design/{slug}', [LandingPageController::class, 'design'])->name('landingpage.design');
     Route::get('/landingpage/add', [LandingPageController::class, 'create'])->name('landingpage.add');
     Route::post('/landingpage/save', [LandingPageController::class, 'store'])->name('landingpage.store');
     Route::get('/landingpage/edit/{landingpage}', [LandingPageController::class, 'edit'])->name('landingpage.edit');

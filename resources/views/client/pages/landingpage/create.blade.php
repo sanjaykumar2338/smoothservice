@@ -116,19 +116,19 @@
                         </div>
 
                         <!-- Description -->
-                        <div class="mb-3">
+                        <div class="mb-3" style="display:none;">
                             <label class="form-label" for="description">Description</label>
-                            <textarea class="form-control" id="description" name="description" placeholder="Enter description" rows="4" required></textarea>
+                            <textarea class="form-control" id="description" name="description" placeholder="Enter description" rows="4"></textarea>
                         </div>
 
                         <!-- Image -->
-                        <div class="mb-3">
+                        <div class="mb-3" style="display:none;">
                             <label class="form-label" for="image">Upload Image</label>
-                            <input class="form-control" type="file" id="image" name="image" accept="image/*" required>
+                            <input class="form-control" type="file" id="image" name="image" accept="image/*">
                         </div>
 
                         <!-- Fields -->
-                        <div class="mb-3">
+                        <div class="mb-3" style="display:none;">
                             <label class="form-label" for="fields">Additional Fields (Optional)</label>
                             <textarea class="form-control" id="fields" name="fields" placeholder="Enter additional fields as JSON"></textarea>
                         </div>
@@ -164,35 +164,13 @@
                             </div>
                         </div>
 
-                      
-                            
-                      
                         
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <a href="{{ route('landingpage.list') }}" class="btn btn-secondary">Cancel</a>  
                     </form>
-
-                    <div id="gjs" style=""></div>
-                    <br>
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                    <a href="{{ route('landingpage.list') }}" class="btn btn-secondary">Cancel</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<script>
-    var editor = grapesjs.init({
-      container : '#gjs',
-      plugins: ['grapesjs-preset-webpage','grapesjs-plugin-forms','gjs-blocks-basic'],
-      pluginsOpts: {
-        'grapesjs-preset-webpage': {
-        },
-        'grapesjs-plugin-forms': {
-        },
-        "gjs-blocks-basic": {
-        
-        },     
-    }
-    });
-</script>
-
 @endsection
