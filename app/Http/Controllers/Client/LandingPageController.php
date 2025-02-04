@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\LandingPage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Service;
 
 class LandingPageController extends Controller
 {
@@ -22,7 +23,11 @@ class LandingPageController extends Controller
             abort(404);
         }
 
-        return view('client.pages.landingpage.design');
+        $teamMemberId = getUserID();
+        $services = Service::where('user_id',$teamMemberId)->orderBy('created_at','desc')->where('is_deleted',0)->get();
+        //echo "<pre>"; print_r($services); die;
+
+        return view('client.pages.landingpage.design')->with('services',$services)->with('order','');
     }
 
     // Show the form for creating a new landing page
