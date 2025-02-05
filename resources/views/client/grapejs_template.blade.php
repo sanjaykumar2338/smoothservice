@@ -237,6 +237,9 @@
           'email-optin': 'Opt-in for emails',
         };
 
+        // Determine the input type based on the field
+        const inputType = field === 'password' ? 'password' : field === 'email' ? 'email' : 'text';
+
         createBlock(
           `client-${field}`,
           'fa fa-user', // Replace with appropriate icons if required
@@ -245,7 +248,7 @@
           `
             <div class="form-group">
               <label for="${field}" class="form-label">${labels[field]}:</label>
-              <input type="text" class="form-control" id="${field}" placeholder="${placeholders[field]}" name="${field}">
+              <input type="${inputType}" class="form-control" id="${field}" placeholder="${placeholders[field]}" name="${field}">
             </div>
           `
         );
@@ -292,12 +295,19 @@
             open: true,
           },
           content: `
-            <div class="p-3 border rounded bg-light">
-              <h3 style="font-size: 18px; font-weight: bold;">${label}</h3>
+            <div class="form-group">
               ${
-                type === 'textarea'
-                  ? `<textarea class="form-control" rows="4" placeholder="Enter ${label.toLowerCase()}"></textarea>`
-                  : `<input type="${type}" class="form-control" placeholder="Enter ${label.toLowerCase()}">`
+                type === 'checkbox'
+                  ? `
+                    <div class="form-check">
+                      <input id="${id}" type="checkbox" class="form-check-input">
+                      <label for="${id}" class="form-check-label">${label}</label>
+                    </div>
+                  `
+                  : type === 'textarea'
+                  ? `<textarea id="${id}" class="form-control" rows="4" placeholder="Enter ${label.toLowerCase()}"></textarea>`
+                  : `<label for="${id}" class="form-label">${label}:</label>
+                    <input id="${id}" type="${type}" class="form-control" placeholder="Enter ${label.toLowerCase()}">`
               }
             </div>
           `,
@@ -319,6 +329,8 @@
       createProjectDataBlock('hidden', 'bi-eye-slash', 'Hidden', 'hidden');
       createProjectDataBlock('signature', 'bi-brush', 'Signature', 'text');
       createProjectDataBlock('calendly', 'bi-calendar3', 'Calendly', 'text');
+
+
 
       // Add a new category: Utilities
       const utilitiesCategory = {
