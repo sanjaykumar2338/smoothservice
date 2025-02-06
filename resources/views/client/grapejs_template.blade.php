@@ -61,23 +61,24 @@
   <script src="https://unpkg.com/grapesjs-plugin-forms@2.0.5"></script>
   <script src="https://unpkg.com/grapesjs-blocks-basic@1.0.1"></script>
   <script>
+      // Initialize GrapesJS editor
       var editor = grapesjs.init({
-          container: '#gjs',
-          width: 'auto',
-          canvas: {
-              styles: [
-                  'https://use.fontawesome.com/releases/v5.8.2/css/all.css', // FontAwesome icons
-                  'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap', // Google Fonts
-                  'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css', // Bootstrap CSS
-                  'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css', // MDBootstrap CSS
-              ],
-              scripts: [
-                  'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js', // jQuery
-                  'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js', // Popper.js
-                  'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js', // Bootstrap JS
-                  'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js', // MDBootstrap JS
-              ],
-          },
+        container: '#gjs',
+        width: 'auto',
+        canvas: {
+          styles: [
+            'https://use.fontawesome.com/releases/v5.8.2/css/all.css',
+            'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap',
+            'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css',
+            'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css',
+          ],
+          scripts: [
+            'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js',
+          ],
+        },
       });
 
       editor.on('load', () => {
@@ -399,13 +400,154 @@
         `
       );
 
-
-      document.addEventListener('DOMContentLoaded', function () {
-        const openBlocksButton = document.querySelector('.gjs-pn-btn.fa.fa-th-large');
-        if (openBlocksButton) {
-          openBlocksButton.click();
-        }
+      // Function to add blocks under "Others" category
+    const addOthersBlock = (id, icon, label, content) => {
+      editor.BlockManager.add(id, {
+        label: `
+          <div style="text-align: center;">
+            <i class="${icon}" style="font-size: 22px; display: block; margin-bottom: 5px;"></i>
+            <span style="font-size: 12px; font-weight: bold;">${label}</span>
+          </div>
+        `,
+        category: 'others',
+        content: content,
       });
+    };
+
+    // Add blocks
+    addOthersBlock(
+      'header-block',
+      'fas fa-heading',
+      'Header',
+      `
+        <header style="padding: 20px; background-color: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-size: 24px; font-weight: bold;">LOGO</div>
+          <nav>
+            <ul style="display: flex; list-style: none; gap: 15px; margin: 0; padding: 0;">
+              <li><a href="#" style="text-decoration: none; color: #333;">Home</a></li>
+              <li><a href="#" style="text-decoration: none; color: #333;">About</a></li>
+              <li><a href="#" style="text-decoration: none; color: #333;">Services</a></li>
+              <li><a href="#" style="text-decoration: none; color: #333;">Contact</a></li>
+            </ul>
+          </nav>
+        </header>
+      `
+    );
+
+    addOthersBlock(
+      'footer-block',
+      'fas fa-shoe-prints',
+      'Footer',
+      `
+        <footer style="padding: 40px; background-color: #333; color: #fff;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h3 style="margin: 0;">LOGO</h3>
+              <p style="margin: 0;">© 2025 All Rights Reserved</p>
+            </div>
+            <nav>
+              <ul style="display: flex; list-style: none; gap: 15px; margin: 0; padding: 0;">
+                <li><a href="#" style="text-decoration: none; color: #fff;">Privacy Policy</a></li>
+                <li><a href="#" style="text-decoration: none; color: #fff;">Terms of Service</a></li>
+              </ul>
+            </nav>
+          </div>
+        </footer>
+      `
+    );
+
+    addOthersBlock(
+      '1-column-block',
+      'fas fa-columns',
+      '1 Column Div',
+      `
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="flex: 1; padding: 10px; border: 1px solid #ddd; height: 150px; background-color: #f8f9fa;">Column 1</div>
+        </div>
+      `
+    );
+
+    addOthersBlock(
+      '2-column-block',
+      'fas fa-columns',
+      '2 Column Div',
+      `
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1; padding: 10px; border: 1px solid #ddd; height: 150px; background-color: #f8f9fa;">Column 1</div>
+          <div style="flex: 1; padding: 10px; border: 1px solid #ddd; height: 150px; background-color: #f8f9fa;">Column 2</div>
+        </div>
+      `
+    );
+
+    addOthersBlock(
+      '3-column-block',
+      'fas fa-columns',
+      '3 Column Div',
+      `
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1; padding: 10px; border: 1px solid #ddd; height: 150px; background-color: #f8f9fa;">Column 1</div>
+          <div style="flex: 1; padding: 10px; border: 1px solid #ddd; height: 150px; background-color: #f8f9fa;">Column 2</div>
+          <div style="flex: 1; padding: 10px; border: 1px solid #ddd; height: 150px; background-color: #f8f9fa;">Column 3</div>
+        </div>
+      `
+    );
+
+    addOthersBlock(
+      'form-block',
+      'fas fa-clipboard',
+      'Form',
+      `<form>
+        <div class="form-group">
+          <label for="exampleInputEmail1">Email address</label>
+          <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">
+        </div>
+        <div class="form-group">
+          <label for="exampleInputPassword1">Password</label>
+          <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>`
+    );
+
+    // Add blocks
+    addOthersBlock(
+      'audio-block',
+      'fas fa-music',
+      'Audio',
+      `<iframe
+          src="http://webaudioapi.com/samples/audio-tag/chrono.mp3"
+          style="width: 100%; height: 80px; border: none;"
+          allow="autoplay"
+          title="Audio Player">
+      </iframe>`
+    );
+
+    addOthersBlock(
+      'video-block',
+      'fas fa-video',
+      'Video',
+      `<iframe
+          src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+          style="width: 100%; height: 315px; border: none;"
+          allow="autoplay; fullscreen"
+          allowfullscreen
+          title="Video Player">
+      </iframe>`
+    );
+
+    addOthersBlock(
+      'image-block',
+      'fas fa-image',
+      'Image',
+      `<img src="https://fastly.picsum.photos/id/774/200/200.jpg?hmac=kHZuEL0Tzh_9wUk4BnU9zxodilE2mGBdAAor2hKpA_w" alt="Placeholder Image" style="width: 100%;">`
+    );
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const openBlocksButton = document.querySelector('.gjs-pn-btn.fa.fa-th-large');
+      if (openBlocksButton) {
+        openBlocksButton.click();
+      }
+    });
 
   </script>
 </html>
