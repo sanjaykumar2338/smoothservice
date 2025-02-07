@@ -46,6 +46,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet" />
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css"
+      rel="stylesheet"
+    />
   </head>
 
   @include('client.custom_settings')
@@ -60,30 +65,31 @@
   <script src="https://unpkg.com/grapesjs-preset-webpage@1.0.2"></script>
   <script src="https://unpkg.com/grapesjs-plugin-forms@2.0.5"></script>
   <script src="https://unpkg.com/grapesjs-blocks-basic@1.0.1"></script>
+
   <script>
       // Initialize GrapesJS editor
       var editor = grapesjs.init({
-        container: '#gjs',
-        width: 'auto',
-        canvas: {
-          styles: [
-            'https://use.fontawesome.com/releases/v5.8.2/css/all.css',
-            'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap',
-            'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css',
-            'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css',
-          ],
-          scripts: [
-            'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js',
-            'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js',
-            'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js',
-            'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js',
-          ],
-        },
+          container: '#gjs',
+          width: 'auto',
+          canvas: {
+              styles: [
+                  'https://use.fontawesome.com/releases/v5.8.2/css/all.css',
+                  'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap',
+                  'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css',
+                  'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css',
+              ],
+              scripts: [
+                  'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js',
+                  'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js',
+                  'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js',
+                  'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js',
+              ],
+          },
       });
 
       editor.on('load', () => {
           const components = editor.getComponents();
-          components.reset(); // Clears the added components but keeps the structure intact
+          components.reset();
       });
 
       // Initialize Block Manager
@@ -258,24 +264,21 @@
       // Billing Details Block
       createBlock(
         "payment",
-        "bi bi-credit-card",
+        "fa fa-credit-card", // Replace with any appropriate icon
         "Payment",
         { id: "billing-details", label: "Billing Details", open: true },
         `
-          <div class="p-3 border rounded bg-light">
-            <h3 style="font-size: 18px; font-weight: bold;">Payment</h3>
-            <div style="margin-top: 20px;">
-              <label class="form-label" style="font-size: 16px; font-weight: bold; display: block; margin-bottom: 5px;">
-                <i class="bi bi-credit-card" style="margin-right: 5px;"></i> Select Payment Method
-              </label>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="paymentMethod" id="paypal" value="paypal" checked>
-                <label class="form-check-label" for="paypal">PayPal</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="paymentMethod" id="credit-card" value="credit-card">
-                <label class="form-check-label" for="credit-card">Credit Card</label>
-              </div>
+          <div class="form-group">
+            <label class="form-label" style="font-size: 16px; font-weight: bold;">
+              <i class="fa fa-credit-card" style="margin-right: 5px;"></i> Select Payment Method:
+            </label>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="paymentMethod" id="paypal" value="paypal" checked>
+              <label class="form-check-label" for="paypal">PayPal</label>
+            </div>
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="radio" name="paymentMethod" id="stripe" value="stripe">
+              <label class="form-check-label" for="stripe">Stripe</label>
             </div>
           </div>
         `
@@ -283,43 +286,53 @@
 
       // Reusable function to create blocks
       const createProjectDataBlock = (id, icon, label, type = 'text') => {
-        blockManager.add(`project-data-${id}`, {
-          label: `
-            <div style="text-align: center;">
-              <i class="bi ${icon}" style="font-size: 22px; display: block; margin-bottom: 5px;"></i>
-              <span style="font-size: 12px; font-weight: bold;">${label}</span>
-            </div>
-          `,
-          category: {
-            id: 'project-data',
-            label: 'Project Data',
-            open: true,
-          },
-          content: `
-            <div class="form-group">
-              ${
-                type === 'checkbox'
-                  ? `
-                    <div class="form-check">
-                      <input id="${id}" type="checkbox" class="form-check-input">
-                      <label for="${id}" class="form-check-label">${label}</label>
-                    </div>
-                  `
-                  : type === 'textarea'
-                  ? `<textarea id="${id}" class="form-control" rows="4" placeholder="Enter ${label.toLowerCase()}"></textarea>`
-                  : `<label for="${id}" class="form-label">${label}:</label>
-                    <input id="${id}" type="${type}" class="form-control" placeholder="Enter ${label.toLowerCase()}">`
-              }
-            </div>
-          `,
-        });
+          blockManager.add(`project-data-${id}`, {
+              label: `
+                  <div style="text-align: center;">
+                      <i class="bi ${icon}" style="font-size: 22px; display: block; margin-bottom: 5px;"></i>
+                      <span style="font-size: 12px; font-weight: bold;">${label}</span>
+                  </div>
+              `,
+              category: {
+                  id: 'project-data',
+                  label: 'Project Data',
+                  open: true,
+              },
+              content: `
+                  <div class="form-group">
+                      ${
+                          type === 'checkbox'
+                              ? `
+                                  <div class="form-check">
+                                      <input type="checkbox" class="form-check-input">
+                                      <label class="form-check-label">${label}</label>
+                                  </div>
+                              `
+                              : type === 'textarea' && id === 'formatted-text'
+                              ? `
+                                  <label class="form-label">${label}:</label>
+                                  <textarea class="form-control" rows="4" placeholder="Enter ${label.toLowerCase()}"></textarea>
+                              `
+                              : type === 'textarea'
+                              ? `
+                                  <label class="form-label">${label}:</label>
+                                  <textarea class="form-control" rows="4" placeholder="Enter ${label.toLowerCase()}"></textarea>
+                              `
+                              : `
+                                  <label class="form-label">${label}:</label>
+                                  <input type="${type}" class="form-control" placeholder="Enter ${label.toLowerCase()}">
+                              `
+                      }
+                  </div>
+              `,
+          });
       };
 
       // Create blocks for Project Data
       createProjectDataBlock('order-title', 'bi-h-circle', 'Order Title');
       createProjectDataBlock('text', 'bi bi-file-text', 'Text');
       createProjectDataBlock('long-text', 'bi-textarea-t', 'Long Text', 'textarea');
-      createProjectDataBlock('formatted-text', 'bi-type-bold', 'Formatted Text', 'textarea');
+      createProjectDataBlock('formatted-text', 'bi-type-bold', 'Formatted Text', 'textarea'); // Quill editor
       createProjectDataBlock('date', 'bi-calendar', 'Date', 'date');
       createProjectDataBlock('checkbox', 'bi-check-square', 'Checkbox', 'checkbox');
       createProjectDataBlock('option-group', 'bi-ui-radios', 'Option Group', 'radio');
@@ -330,8 +343,6 @@
       createProjectDataBlock('hidden', 'bi-eye-slash', 'Hidden', 'hidden');
       createProjectDataBlock('signature', 'bi-brush', 'Signature', 'text');
       createProjectDataBlock('calendly', 'bi-calendar3', 'Calendly', 'text');
-
-
 
       // Add a new category: Utilities
       const utilitiesCategory = {
