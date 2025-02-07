@@ -284,65 +284,76 @@
         `
       );
 
-      // Reusable function to create blocks
-      const createProjectDataBlock = (id, icon, label, type = 'text') => {
-          blockManager.add(`project-data-${id}`, {
-              label: `
-                  <div style="text-align: center;">
-                      <i class="bi ${icon}" style="font-size: 22px; display: block; margin-bottom: 5px;"></i>
-                      <span style="font-size: 12px; font-weight: bold;">${label}</span>
+     // Reusable function to create blocks
+    const createProjectDataBlock = (id, icon, label, type = 'text', attributes = {}) => {
+      blockManager.add(`project-data-${id}`, {
+        label: `
+          <div style="text-align: center;">
+            <i class="bi ${icon}" style="font-size: 22px; display: block; margin-bottom: 5px;"></i>
+            <span style="font-size: 12px; font-weight: bold;">${label}</span>
+          </div>
+        `,
+        category: {
+          id: 'project-data',
+          label: 'Project Data',
+          open: true,
+        },
+        content: `
+          <div class="form-group">
+            ${
+              type === 'checkbox'
+                ? `
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input">
+                    <label class="form-check-label">${label}</label>
                   </div>
-              `,
-              category: {
-                  id: 'project-data',
-                  label: 'Project Data',
-                  open: true,
-              },
-              content: `
-                  <div class="form-group">
-                      ${
-                          type === 'checkbox'
-                              ? `
-                                  <div class="form-check">
-                                      <input type="checkbox" class="form-check-input">
-                                      <label class="form-check-label">${label}</label>
-                                  </div>
-                              `
-                              : type === 'textarea' && id === 'formatted-text'
-                              ? `
-                                  <label class="form-label">${label}:</label>
-                                  <textarea class="form-control" rows="4" placeholder="Enter ${label.toLowerCase()}"></textarea>
-                              `
-                              : type === 'textarea'
-                              ? `
-                                  <label class="form-label">${label}:</label>
-                                  <textarea class="form-control" rows="4" placeholder="Enter ${label.toLowerCase()}"></textarea>
-                              `
-                              : `
-                                  <label class="form-label">${label}:</label>
-                                  <input type="${type}" class="form-control" placeholder="Enter ${label.toLowerCase()}">
-                              `
-                      }
-                  </div>
-              `,
-          });
-      };
+                `
+                : type === 'textarea' && id === 'formatted-text'
+                ? `
+                  <label class="form-label">${label}:</label>
+                  <textarea class="form-control" rows="4" placeholder="Enter ${label.toLowerCase()}"></textarea>
+                `
+                : type === 'textarea'
+                ? `
+                  <label class="form-label">${label}:</label>
+                  <textarea class="form-control" rows="4" placeholder="Enter ${label.toLowerCase()}"></textarea>
+                `
+                : type === 'file'
+                ? `
+                  <label class="form-label">${label}:</label>
+                  <input 
+                    type="file" 
+                    class="form-control" 
+                    ${attributes.multiple ? 'multiple' : ''} 
+                    ${attributes.array ? `name="${id}[]"` : `name="${id}"`}
+                  >
+                `
+                : `
+                  <label class="form-label">${label}:</label>
+                  <input type="${type}" class="form-control" placeholder="Enter ${label.toLowerCase()}">
+                `
+            }
+          </div>
+        `,
+      });
+    };
 
-      // Create blocks for Project Data
-      createProjectDataBlock('order-title', 'bi-h-circle', 'Order Title');
-      createProjectDataBlock('text', 'bi bi-file-text', 'Text');
-      createProjectDataBlock('long-text', 'bi-textarea-t', 'Long Text', 'textarea');
-      createProjectDataBlock('formatted-text', 'bi-type-bold', 'Formatted Text', 'textarea'); // Quill editor
-      createProjectDataBlock('date', 'bi-calendar', 'Date', 'date');
-      createProjectDataBlock('checkbox', 'bi-check-square', 'Checkbox', 'checkbox');
-      createProjectDataBlock('option-group', 'bi-ui-radios', 'Option Group', 'radio');
-      createProjectDataBlock('dropdown', 'bi-chevron-down', 'Dropdown', 'select');
-      createProjectDataBlock('file', 'bi-file-earmark', 'File', 'file');
-      createProjectDataBlock('spreadsheet', 'bi-table', 'Spreadsheet', 'textarea');
-      createProjectDataBlock('secret-text', 'bi-key', 'Secret Text', 'password');
-      createProjectDataBlock('hidden', 'bi-eye-slash', 'Hidden', 'hidden');
-      createProjectDataBlock('signature', 'bi-brush', 'Signature', 'text');
-      createProjectDataBlock('calendly', 'bi-calendar3', 'Calendly', 'text');
+    // Create blocks for Project Data
+    createProjectDataBlock('order-title', 'bi-h-circle', 'Order Title');
+    createProjectDataBlock('text', 'bi bi-file-text', 'Text');
+    createProjectDataBlock('long-text', 'bi-textarea-t', 'Long Text', 'textarea');
+    createProjectDataBlock('formatted-text', 'bi-type-bold', 'Formatted Text', 'textarea'); // Quill editor
+    createProjectDataBlock('date', 'bi-calendar', 'Date', 'date');
+    createProjectDataBlock('checkbox', 'bi-check-square', 'Checkbox', 'checkbox');
+    createProjectDataBlock('option-group', 'bi-ui-radios', 'Option Group', 'radio');
+    createProjectDataBlock('dropdown', 'bi-chevron-down', 'Dropdown', 'select');
+    createProjectDataBlock('file', 'bi-file-earmark', 'File', 'file', { multiple: true, array: true }); // File block with multiple and array attributes
+    createProjectDataBlock('spreadsheet', 'bi-table', 'Spreadsheet', 'textarea');
+    createProjectDataBlock('secret-text', 'bi-key', 'Secret Text', 'password');
+    createProjectDataBlock('hidden', 'bi-eye-slash', 'Hidden', 'hidden');
+    createProjectDataBlock('signature', 'bi-brush', 'Signature', 'text');
+    createProjectDataBlock('calendly', 'bi-calendar3', 'Calendly', 'text');
+
 
       // Add a new category: Utilities
       const utilitiesCategory = {
