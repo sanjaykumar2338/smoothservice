@@ -342,7 +342,7 @@
     createProjectDataBlock('order-title', 'bi-h-circle', 'Order Title');
     createProjectDataBlock('text', 'bi bi-file-text', 'Text');
     createProjectDataBlock('long-text', 'bi-textarea-t', 'Long Text', 'textarea');
-    createProjectDataBlock('formatted-text', 'bi-type-bold', 'Formatted Text', 'textarea'); // Quill editor
+    //createProjectDataBlock('formatted-text', 'bi-type-bold', 'Formatted Text', 'textarea'); // Quill editor
     createProjectDataBlock('date', 'bi-calendar', 'Date', 'date');
     createProjectDataBlock('checkbox', 'bi-check-square', 'Checkbox', 'checkbox');
     createProjectDataBlock('option-group', 'bi-ui-radios', 'Option Group', 'radio');
