@@ -25,6 +25,10 @@ class LandingPage extends Model
         'created_at',
         'updated_at',
         'deleted_at',
+        'html',
+        'css',
+        'json_data',
+        'is_published',
     ];
 
     protected $casts = [

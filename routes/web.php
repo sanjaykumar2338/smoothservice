@@ -280,6 +280,8 @@ Route::middleware([CheckWebOrTeam::class, DynamicSessionDomain::class])->group(f
     Route::get('/landingpage/edit/{landingpage}', [LandingPageController::class, 'edit'])->name('landingpage.edit');
     Route::put('/landingpage/update/{landingpage}', [LandingPageController::class, 'update'])->name('landingpage.update');
     Route::delete('/landingpage/remove/{landingpage}', [LandingPageController::class, 'destroy'])->name('landingpage.destroy');
+    Route::post('/landing-page/save', [LandingPageController::class, 'save']);
+    Route::get('/landing-page/load/{slug}', [LandingPageController::class, 'load']);
 
     // Routes for Tickets
     Route::get('/tickets/{client?}', [TicketController::class, 'index'])->name('ticket.list');

@@ -27,7 +27,7 @@ class LandingPageController extends Controller
         $services = Service::where('user_id',$teamMemberId)->orderBy('created_at','desc')->where('is_deleted',0)->get();
         //echo "<pre>"; print_r($services); die;
 
-        return view('client.pages.landingpage.design')->with('services',$services)->with('order','');
+        return view('client.pages.landingpage.design')->with('services',$services)->with('order','')->with('slug',$slug);
     }
 
     // Show the form for creating a new landing page
@@ -138,5 +138,48 @@ class LandingPageController extends Controller
         $landingPage->update(['deleted_at' => now()]);
 
         return redirect()->route('landingpage.list')->with('success', 'Landing page deleted successfully.');
+    }
+
+    // Save function (API Endpoint)
+    public function save(Request $request)
+    {
+        $validatedData = $request->validate([
+            'slug' => 'required|string|exists:landing_pages,slug', // Ensure the slug exists
+            'html' => 'required',
+            'css' => 'required',
+            'json_data' => 'nullable|json',
+        ]);
+
+        // Find the landing page by slug
+        $page = LandingPage::where('slug', $validatedData['slug'])->first();
+
+        if (!$page) {
+            return response()->json(['status' => 'error', 'message' => 'Landing page not found'], 404);
+        }
+
+        // Update only GrapesJS fields
+        $page->update([
+            'html' => $validatedData['html'],
+            'css' => $validatedData['css'],
+            'json_data' => $validatedData['json_data'] ?? $page->json_data,
+        ]);
+
+        return response()->json(['status' => 'success', 'message' => 'Page updated successfully!', 'page' => $page]);
+    }
+
+    // Load function (API Endpoint)
+    public function load($slug)
+    {
+        $page = LandingPage::where('slug', $slug)->first();
+
+        if (!$page) {
+            return response()->json(['status' => 'error', 'message' => 'Page not found'], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'html' => $page->html,
+            'css' => $page->css
+        ]);
     }
 }

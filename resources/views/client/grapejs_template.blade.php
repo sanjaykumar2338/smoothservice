@@ -51,6 +51,8 @@
       href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css"
       rel="stylesheet"
     />
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
   </head>
 
   @include('client.custom_settings')
@@ -87,9 +89,64 @@
           },
       });
 
+      // Add a Save button to the top panel
+      editor.Panels.addButton('options', {
+          id: 'save-button',
+          className: 'fa fa-save',
+          command: 'save-content',
+          attributes: { title: 'Save' },
+      });
+
+      editor.Commands.add('save-content', {
+          run: function (editor) {
+              var html = editor.getHtml();
+              var css = editor.getCss();
+              var json_data = JSON.stringify(editor.getComponents());
+              var slug = '{{$slug}}';
+
+              fetch('/landing-page/save', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                  },
+                  body: JSON.stringify({
+                      html: html,
+                      css: css,
+                      json_data: json_data,
+                      is_published: false,
+                      slug: slug,
+                  })
+              })
+              .then(response => response.json())
+              .then(data => {
+                  if (data.status=='success') {
+                      alert('Content Saved Successfully!');
+                  } else {
+                      alert('Error saving content.');
+                  }
+              })
+              .catch(error => console.error('Error:', error));
+          }
+      });
+
+      // Function to load the saved page data
+      window.onload = function () {
+          var slug = '{{$slug}}';
+          fetch(`/landing-page/load/${slug}`)
+              .then(response => response.json())
+              .then(data => {
+                  if (data.status === 'success') {
+                      editor.setComponents(data.html);
+                      editor.setStyle(data.css);
+                  }
+              })
+              .catch(error => console.error('Error loading:', error));
+      };
+
       editor.on('load', () => {
           const components = editor.getComponents();
-          components.reset();
+          //components.reset();
       });
 
       // Initialize Block Manager
