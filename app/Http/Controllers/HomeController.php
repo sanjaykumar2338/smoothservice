@@ -35,6 +35,6 @@ class HomeController extends Controller
         }
 
         //echo "<pre>"; print_r($landingPage); die;
-        return view('client.grapejs_frontend')->with('landingPage', $landingPage)->with('slug', $landing_no);
+        return view('client.grapejs_frontend')->with('landingPage', $landingPage)->with('slug', $landingPage->slug);
     }
 }
