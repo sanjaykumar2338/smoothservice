@@ -48,6 +48,7 @@
                         <th>Visible</th>
                         <th>Show in Sidebar</th>
                         <th>Show Coupon Field</th>
+                        <th>Link</th>
                         @if(checkPermission('add_edit_delete_landing_pages'))
                             <th>Actions</th>
                         @endif
@@ -63,6 +64,13 @@
                             <td>{{ $landingPage->is_visible ? 'Yes' : 'No' }}</td>
                             <td>{{ $landingPage->show_in_sidebar ? 'Yes' : 'No' }}</td>
                             <td>{{ $landingPage->show_coupon_field ? 'Yes' : 'No' }}</td>
+                            
+                            <td>
+                                <a href="{{ url('/order/payment/' . $landingPage->landing_no) }}" target="_blank">
+                                    Preview Or Link
+                                </a>
+                            </td>
+
                             @if(checkPermission('add_edit_delete_landing_pages'))
                             <td>
                                 <a href="{{ route('landingpage.design', $landingPage->slug) }}" class="btn btn-sm btn-primary" target="_blank">Design Page</a>

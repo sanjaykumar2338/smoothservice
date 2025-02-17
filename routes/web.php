@@ -62,9 +62,7 @@ Route::domain('{username}.' . env('SESSION_DOMAIN'))->group(function () {
 });
 
 // For client login
-Route::get('orders/teat/123', function(){
-    echo "test123";
-});
+Route::get('order/payment/{slug}', [App\Http\Controllers\HomeController::class, 'order'])->name('order');
 
 Route::prefix('portal')->middleware([ClientMiddleware::class, DynamicSessionDomain::class])->group(function () {
     Route::get('dashboard', [MainClientController::class, 'dashboard'])->name('portal.dashboard');

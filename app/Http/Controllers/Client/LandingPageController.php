@@ -56,6 +56,7 @@ class LandingPageController extends Controller
 
         // Generate the slug based on the title
         $slug = \Str::slug($request->title, '-');
+        $landing_no = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
 
         LandingPage::create([
             'title' => $request->title,
@@ -67,6 +68,7 @@ class LandingPageController extends Controller
             'fields' => $request->fields,
             'image' => $imagePath,
             'user_id' => auth()->id(),
+            'landing_no' => $landing_no,
         ]);
 
         return redirect()->route('landingpage.design', $slug);

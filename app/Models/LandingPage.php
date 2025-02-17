@@ -29,6 +29,7 @@ class LandingPage extends Model
         'css',
         'json_data',
         'is_published',
+        'landing_no'
     ];
 
     protected $casts = [
