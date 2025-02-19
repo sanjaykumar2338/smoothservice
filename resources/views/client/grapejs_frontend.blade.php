@@ -1,125 +1,160 @@
 <!DOCTYPE html>
-<html
-  lang="en"
-  class="light-style"
-  dir="ltr"
-  data-theme="theme-default"
-  data-assets-path="/assets/"
-  data-template="vertical-menu-template"
->
-  <head>
+<html lang="en">
+<head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
-    />
-
-    <title>{{env('APP_NAME')}}</title>
-    <meta name="description" content="" />
-    <meta name="csrf-token" content="{{ csrf_token() }}" />
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
-      rel="stylesheet"
-    />
-
-    <!-- Bootstrap Icons -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-      crossorigin="anonymous"
-    />
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"
-    ></script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet" />
-
-    <link
-      href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css"
-      rel="stylesheet"
-    />
-
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ env('APP_NAME') }}</title>
+    
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <!-- GrapesJS -->
+    <link rel="stylesheet" href="https://unpkg.com/grapesjs/dist/css/grapes.min.css">
+    
     <style>
-        .gjs-pn-panels, .gjs-off-prv{
+        /* Full-screen container */
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #121212;
+        }
+
+        /* Layout Wrapper */
+        .editor-wrapper {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 30%;
+            background-color: #1a1a2e; /* Dark Theme */
+            padding: 20px;
+            color: white;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .sidebar h2 {
+            color: #ff4757;
+            margin-bottom: 30px;
+        }
+
+        .summary-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            width: 100%;
+            text-align: left;
+        }
+
+        /* GrapesJS Canvas */
+        .editor-container {
+            flex-grow: 1;
+            background: white;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        /* Hide GrapesJS UI Panels */
+        .gjs-pn-panels, .gjs-off-prv {
             display: none !important;
         }
+
+        /* Custom styling for loaded content */
+        #gjs {
+            border-radius: 8px;
+        }
     </style>
-  </head>
+</head>
 
-  <body>
-      <div id="gjs" style=""></div>
-  </body>
+<body>
+    <div class="editor-wrapper">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <h2>{{env('APP_NAME')}}</h2>
+            <div class="summary-box">
+                <h4>Summary</h4>
+                <p>Test Service 2 - <strong>$20.00</strong></p>
+                <hr>
+                <p><strong>Total:</strong> $20.00 CAD</p>
+            </div>
+        </div>
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script src="https://malsup.github.io/jquery.blockUI.js"></script>
-  <script src="https://unpkg.com/grapesjs"></script>
-  <script src="https://unpkg.com/grapesjs-preset-webpage@1.0.2"></script>
-  <script src="https://unpkg.com/grapesjs-plugin-forms@2.0.5"></script>
-  <script src="https://unpkg.com/grapesjs-blocks-basic@1.0.1"></script>
+        <!-- GrapesJS Editor (Form Area) -->
+        <div class="editor-container">
+            <div id="gjs"></div>
+        </div>
+    </div>
 
-  <script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/grapesjs"></script>
+
+    <script>
         var editor = grapesjs.init({
-        container: '#gjs',
-        width: 'auto',
-        fromElement: false,
-        storageManager: false, // Disable storage
-        panels: { defaults: [] }, // Hide all UI panels
-        blockManager: null, // Hide block manager
-        styleManager: null, // Hide styles
-        layerManager: null, // Hide layers
-        selectorManager: null, // Hide selectors
-        traitManager: null, // Hide traits
-        deviceManager: null, // Hide device manager
-        canvas: {
-            styles: [
-                'https://use.fontawesome.com/releases/v5.8.2/css/all.css',
-                'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap',
-                'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css',
-                'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css',
-            ],
-            scripts: [
-                'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js',
-            ],
-        },
-    });
+            container: '#gjs',
+            width: 'auto',
+            height: '100%',
+            canvas: {
+                styles: [
+                    'https://fonts.googleapis.com/css?family=IBM+Plex+Sans:300,400,500,600,700',
+                    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css'
+                ],
+                scripts: [
+                    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js'
+                ]
+            }
+        });
 
-    // Load saved data and switch to preview mode
-    editor.on('load', function () {
-        editor.Commands.run('preview'); // Enable preview mode automatically
-        console.log('GrapesJS loaded in preview mode');
-    });
+        // Fetch content dynamically
+        window.onload = function () {
+            var slug = '{{$slug}}';
+            fetch(`/landing-page/load/${slug}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        editor.setComponents(data.html);
+                        editor.setStyle(data.css);
+                    }
+                })
+                .catch(error => console.error('Error loading:', error));
+        };
+        
+        editor.on('load', () => editor.runCommand('preview'));
 
-    // Function to load saved page content
-    window.onload = function () {
-        var slug = '{{$slug}}';
-        fetch(`/landing-page/load/${slug}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    editor.setComponents(data.html);
-                    editor.setStyle(data.css);
-                }
-            })
-            .catch(error => console.error('Error loading:', error));
-    };
+        document.addEventListener('DOMContentLoaded', function () {
+          // Function to track checked checkboxes
+          function getCheckedServices() {
+              let checkedServices = [];
+              
+              // Get all checked checkboxes inside the GrapesJS editor
+              const checkboxes = editor.Canvas.getDocument().querySelectorAll('input[type="checkbox"]:checked');
+              
+              checkboxes.forEach((checkbox) => {
+                  checkedServices.push(checkbox.id); // Push checkbox ID to array
+              });
 
+              console.log("Selected Service IDs:", checkedServices);
+              return checkedServices;
+          }
+
+          // Attach event listener to dynamically detect checkbox changes
+          editor.on('load', function () {
+              const iframeDocument = editor.Canvas.getDocument();
+
+              iframeDocument.addEventListener('change', function (event) {
+                  if (event.target.type === 'checkbox') {
+                      getCheckedServices(); // Call function when checkbox state changes
+                  }
+              });
+          });
+      });
     </script>
+</body>
 </html>
