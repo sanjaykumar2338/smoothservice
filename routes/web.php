@@ -54,6 +54,10 @@ Route::middleware([CheckSubdomain::class, DynamicSessionDomain::class])->group(f
     Route::get('/switch-back', [LoginController::class, 'switchBackToAdmin'])->name('switch_back');
 });
 
+Route::post('/services-summary', function (Request $request) {
+    return servicesSummary($request);
+});
+
 Route::get('/paypal/cancel/subscription/webhook', [LoginController::class, 'handleWebhook'])->name('portal.paypal.cancel.subscription.webhook');
 Route::domain('{username}.' . env('SESSION_DOMAIN'))->group(function () {
     Route::get('/profile', function ($username) {

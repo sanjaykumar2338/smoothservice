@@ -1,4 +1,6 @@
 <?php
+use Illuminate\Http\Request;
+use App\Models\Service;
 
 if (!function_exists('getUserType')) {
     /**
@@ -143,6 +145,62 @@ if (!function_exists('invoiceSummary')) {
         if ($invoice->upfront_payment_amount > 0) {
             $summary['total'] -= $invoice->upfront_payment_amount;
         }
+
+        return $summary;
+    }
+}
+
+if (!function_exists('servicesSummary')) {
+    function servicesSummary(Request $request){
+        $summary = [
+            'total' => 0,
+            'trial_amount' => 0,
+            'next_payment_recurring' => 0,
+            'total_discount' => 0,
+            'payment_type' => 'fixed', // Default to fixed
+            'interval' => 1, // Default interval
+            'interval_type' => 'month', // Default interval type
+        ];
+        
+        $services = $request->services;
+        foreach ($services as $key=>$service) {
+            $service = Service::find($service);
+    
+            // Set interval and interval_type from the first service
+            if ($key === 0 && $service->service_type === 'recurring') {
+                $summary['interval'] = $service->recurring_service_currency_value_two;
+                $summary['interval_type'] = strtolower($service->recurring_service_currency_value_two_type);
+                $summary['payment_type'] = 'recurring'; // Update payment type to recurring
+            }
+    
+            // Calculate trial amount if trial is available
+            $fixed_price = 0;
+            if (!empty($service->trial_for)) {
+                $trial_price = $service->trial_price - 0;
+                $summary['trial_amount'] += $trial_price * 1;
+    
+                // Add recurring payment after the trial
+                $next_price = $service->recurring_service_currency_value;
+                $summary['next_payment_recurring'] += $next_price * 1;
+            } elseif ($service->service_type === 'recurring') {
+                // Add recurring payments for non-trial services
+                $price = $service->recurring_service_currency_value;
+                $summary['next_payment_recurring'] += $price * 1;
+            } else {
+                // For fixed payments, just calculate the total
+                $fixed_price = $service->one_time_service_currency_value;
+                $summary['payment_type'] = 'fixed';
+            }
+    
+            // Calculate total and discounts
+            $summary['total'] += ($fixed_price * 1) - 0;
+            $summary['total_discount'] = 0;
+        }
+    
+        // Adjust for upfront payment
+        //if ($invoice->upfront_payment_amount > 0) {
+        //    $summary['total'] -= $invoice->upfront_payment_amount;
+        //}
 
         return $summary;
     }

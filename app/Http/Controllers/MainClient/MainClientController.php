@@ -286,7 +286,7 @@ class MainClientController extends Controller
             $service = $item->service;
 
             // Determine the first service type (month, day, year, or week)
-            if (!$firstServiceType && $service->service_type == 'recurring') {
+            if (!$firstServiceType && $service?->service_type == 'recurring') {
                 $firstServiceType = $service->recurring_service_currency_value_two_type ?? '';
             }
 
@@ -416,45 +416,46 @@ class MainClientController extends Controller
         ];
 
         $summary = [
-        'total' => 0,
-        'trial_amount' => 0,
-        'next_payment_recurring' => 0,
-        'total_discount' => 0,
-        'payment_type' => 'fixed', // Default to 'fixed'
-        'interval' => 1, // Default interval is 1
-        'interval_type' => 'month', // Default interval type
-    ];
+            'total' => 0,
+            'trial_amount' => 0,
+            'next_payment_recurring' => 0,
+            'total_discount' => 0,
+            'payment_type' => 'fixed', // Default to 'fixed'
+            'interval' => 1, // Default interval is 1
+            'interval_type' => 'month', // Default interval type
+        ];
 
-    foreach ($invoice->items as $key => $item) {
-        $service = $item->service;
+        foreach ($invoice->items as $key => $item) {
+            $service = $item->service;
 
-        // Calculate totals and discounts
-        $itemTotal = ($item->price * $item->quantity) - ($item->discount * $item->quantity);
-        $summary['total'] += $itemTotal;
-        $summary['total_discount'] += $item->discount * $item->quantity;
+            // Calculate totals and discounts
+            $itemTotal = ($item->price * $item->quantity) - ($item->discount * $item->quantity);
+            $summary['total'] += $itemTotal;
+            $summary['total_discount'] += $item->discount * $item->quantity;
 
-        // Trial-based services
-        if (!empty($service->trial_for)) {
-            $trialPrice = $service->trial_price - $item->discount;
-            $summary['trial_amount'] += $trialPrice;
-            $summary['next_payment_recurring'] += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment * $item->quantity;
-            $summary['payment_type'] = 'recurring';
-            $summary['interval'] = $service->recurring_service_currency_value_two ?? 1;
-            $summary['interval_type'] = strtolower($service->recurring_service_currency_value_two_type ?? 'month');
-        } elseif ($service->service_type == 'recurring') {
-            // Recurring services without trial
-            $summary['next_payment_recurring'] += ($service->recurring_service_currency_value * $item->quantity) - $item->discount * $item->quantity;
-            $summary['payment_type'] = 'recurring';
-            $summary['interval'] = $service->recurring_service_currency_value_two ?? 1;
-            $summary['interval_type'] = strtolower($service->recurring_service_currency_value_two_type ?? 'month');
+            // Trial-based services
+            if (!empty($service->trial_for)) {
+                $trialPrice = $service->trial_price - $item->discount;
+                $summary['trial_amount'] += $trialPrice;
+                $summary['next_payment_recurring'] += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment * $item->quantity;
+                $summary['payment_type'] = 'recurring';
+                $summary['interval'] = $service->recurring_service_currency_value_two ?? 1;
+                $summary['interval_type'] = strtolower($service->recurring_service_currency_value_two_type ?? 'month');
+            } elseif ($service->service_type == 'recurring') {
+                // Recurring services without trial
+                $summary['next_payment_recurring'] += ($service->recurring_service_currency_value * $item->quantity) - $item->discount * $item->quantity;
+                $summary['payment_type'] = 'recurring';
+                $summary['interval'] = $service->recurring_service_currency_value_two ?? 1;
+                $summary['interval_type'] = strtolower($service->recurring_service_currency_value_two_type ?? 'month');
+            }
         }
-    }
 
-    // Adjust totals based on upfront payments
-    if ($invoice->upfront_payment_amount > 0) {
-        $summary['total'] -= $invoice->upfront_payment_amount;
-    }
+        // Adjust totals based on upfront payments
+        if ($invoice->upfront_payment_amount > 0) {
+            $summary['total'] -= $invoice->upfront_payment_amount;
+        }
 
+        //echo "<pre>"; print_r($main_data); die;
         // Pass the invoice data to the view
         return view('c_main.c_pages.c_invoice.c_payment', compact('invoice', 'services', 'users', 'teamMembers', 'addedByUser', 'main_data'));
     }
