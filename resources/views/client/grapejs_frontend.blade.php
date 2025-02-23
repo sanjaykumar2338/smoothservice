@@ -329,7 +329,6 @@
             editor.on('load', function () {
                 updatePaymentMethod();
                 addCompletePurchaseButton();
-                handleServiceSelection();
             });
 
             // Detect changes when user selects a different payment method
