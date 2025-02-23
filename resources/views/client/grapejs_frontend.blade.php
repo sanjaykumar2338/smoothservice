@@ -308,8 +308,6 @@
                     });
                 });
 
-                console.log(paypalRadio.parentNode);
-
                 // Check if at least one payment method exists
                 if (paypalRadio || stripeRadio) {
                     // Find the most parent div with data-gjs-type="default"
