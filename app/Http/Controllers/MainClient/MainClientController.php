@@ -39,6 +39,7 @@ use Carbon\Carbon;
 use DB;
 use GuzzleHttp\Client as GClient;
 use App\Services\PayPalService;
+use App\Models\UserFund;
 
 class MainClientController extends Controller
 {
@@ -304,17 +305,21 @@ class MainClientController extends Controller
                 $intervalTotal[] = $service->trial_for;
             } else {
                 // Non-trial services
-                $price = ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
-                $nonTrialServices[] = [
-                    'name' => $service->service_name ?? $item->item_name,
-                    'price' => $service->recurring_service_currency_value,
-                    'quantity' => $item->quantity,
-                    'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type)
-                ];
+                //echo "<pre>"; print_r($service); die;
 
-                $nextPaymentRecurring += $price;
-                $totalDiscount += $item->discount;
-                $intervalTotal[] = $service->recurring_service_currency_value_two;
+                if ($item->service) {
+                    $price = ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                    $nonTrialServices[] = [
+                        'name' => $service->service_name ?? $item->item_name,
+                        'price' => $service->recurring_service_currency_value,
+                        'quantity' => $item->quantity,
+                        'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type)
+                    ];
+
+                    $nextPaymentRecurring += $price;
+                    $totalDiscount += $item->discount;
+                    $intervalTotal[] = $service->recurring_service_currency_value_two;
+                }
             }
         }
 
@@ -1353,6 +1358,140 @@ class MainClientController extends Controller
         } catch (\Exception $e) {
             // Handle any errors that occur during the cancellation process
             return redirect()->back()->with('error', 'An error occurred while cancelling the subscription: ' . $e->getMessage());
+        }
+    }
+
+    public function addFund(Request $request){
+        return view('c_main.c_pages.c_fund');
+    }
+
+    public function processPaymentFundAdd(Request $request)
+    {
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        try {
+            $amount = (int) ($request->amount * 100); // Convert to cents
+
+            $intent = PaymentIntent::create([
+                'amount' => $amount,
+                'currency' => 'usd',
+                'payment_method' => $request->payment_method,
+                'confirm' => true, // This automatically confirms the payment
+                'return_url' => route('portal.fund.success'),
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                    'allow_redirects' => 'never' // Prevent redirect-based payments
+                ],
+            ]);
+
+            // Store PaymentIntent details in DB
+            $transaction = new UserFund();
+            $transaction->user_id = getAuthenticatedUser()->id;
+            $transaction->stripe_payment_intent = $intent->id;
+            $transaction->amount = $request->amount;
+            $transaction->currency = 'usd';
+            $transaction->status = $intent->status;
+            $transaction->save();
+
+            if ($intent->status === 'requires_action') {
+                return response()->json([
+                    'requires_action' => true,
+                    'client_secret' => $intent->client_secret,
+                ]);
+            } else {
+                // Update user's balance only when payment succeeds
+                if ($intent->status === 'succeeded') {
+                    $user = getAuthenticatedUser();
+                    $user->account_balance += $request->amount;
+                    $user->save();
+                }
+
+                return response()->json(['success' => true]);
+            }
+        } catch (ApiErrorException $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function paymentSuccess()
+    {
+        return view('funds.success'); // Create a success page
+    }
+
+    public function payWithBalance(Request $request, $invoiceId)
+    {
+        DB::beginTransaction();
+        try {
+            $user = getAuthenticatedUser();
+            $invoice = Invoice::findOrFail($invoiceId);
+            $client = Client::findOrFail($invoice->client_id);
+            $addedByUser = User::findOrFail($invoice->added_by);
+
+            // Validate JSON input
+            $request->validate([
+                'invoice_id' => 'required|integer',
+                'amount' => 'required|numeric|min:0.01',
+            ]);
+
+            $amountDue = (float) $request->amount; // Convert amount to float
+
+            // Check if the user has enough balance
+            if ($user->account_balance < $amountDue) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient balance.',
+                ], 400);
+            }
+
+            // Deduct balance
+            $user->account_balance -= $amountDue;
+            $user->save();
+
+            // Record the deduction in the user_funds table
+            UserFund::create([
+                'user_id' => $user->id,
+                'amount' => -$amountDue,
+                'currency' => 'usd',
+                'status' => 'paid',
+            ]);
+
+            // If invoice has a connected Stripe account, transfer funds
+            if ($invoice->connected_stripe_account_id) {
+                Stripe::setApiKey(env('STRIPE_SECRET'));
+
+                Transfer::create([
+                    'amount' => $amountDue * 100, // Convert to cents
+                    'currency' => 'usd',
+                    'destination' => $invoice->connected_stripe_account_id,
+                    'description' => "Balance Payment for Invoice #{$invoice->invoice_no}",
+                ]);
+            }
+
+            // Mark invoice as paid
+            $invoice->update([
+                'paid_at' => now(),
+                'payment_method' => 'balance',
+            ]);
+
+            // Send email notifications
+            Mail::to($addedByUser->email)->send(new \App\Mail\InvoicePaid($invoice, $client, $addedByUser));
+            Mail::to($client->email)->send(new \App\Mail\InvoicePaidConfirmation($invoice, $client));
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment successful. Invoice has been paid.',
+                'redirect_url' => route('portal.invoices.show', $invoice->id),
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage(),
+            ], 500);
         }
     }
 }

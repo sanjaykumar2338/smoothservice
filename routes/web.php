@@ -98,6 +98,13 @@ Route::prefix('portal')->middleware([ClientMiddleware::class, DynamicSessionDoma
     Route::get('/payment/return', [MainClientController::class, 'handleReturn'])->name('payment.return');
     Route::get('/paymentonetimecompleted/{id}', [MainClientController::class, 'paymentonetimecompleted'])->name('portal.paymentonetimecompleted');
     Route::get('/profile', [MainClientController::class, 'profile'])->name('portal.profile');
+    Route::get('/balance', [MainClientController::class, 'addFund'])->name('portal.balance');
+    Route::get('/fund/add', [MainClientController::class, 'addFund'])->name('portal.fund.add');
+    Route::post('/funds/process', [MainClientController::class, 'processPaymentFundAdd'])->name('portal.fund.process');
+    Route::get('/funds/success', [MainClientController::class, 'paymentSuccess'])->name('portal.fund.success');
+    Route::post('/invoice/{invoiceId}/pay-balance', [MainClientController::class, 'payWithBalance'])
+    ->name('portal.invoice.payment.balance');
+
 
     Route::get('/paypal/create-payment/{id}', [PaypalController::class, 'createOneTimePaymentPaypal'])->name('portal.paypal.create.payment');
     Route::get('/paypal/payment-success', [PaypalController::class, 'paypalOneTimePaymentSuccess'])->name('portal.paypal.payment.success');

@@ -327,7 +327,7 @@
 
             // Check the payment method when the page loads
             editor.on('load', function () {
-                updatePaymentMethod();
+                //updatePaymentMethod();
                 addCompletePurchaseButton();
             });
 

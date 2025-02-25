@@ -1,6 +1,34 @@
 <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
                
                 <ul class="navbar-nav flex-row align-items-center ms-auto">
+                  <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
+                    <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                      <i class="bx bx-sm"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
+                      <li>
+                        <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
+                          <span class="align-middle"><i class="bx bx-sun me-2"></i>Light</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
+                          <span class="align-middle"><i class="bx bx-moon me-2"></i>Dark</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
+                          <span class="align-middle"><i class="bx bx-desktop me-2"></i>System</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </li>
+
+                  <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
+                    <a class="nav-link" href="{{route('portal.balance')}}">
+                      ${{ number_format(getAuthenticatedUser()->account_balance, 2) }}
+                    </a>
+                  </li>
                   
                   <!-- Style Switcher -->
                   <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">

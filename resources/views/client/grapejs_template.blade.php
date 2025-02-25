@@ -318,28 +318,35 @@
         );
       });
 
-      // Billing Details Block
-      createBlock(
-        "payment",
-        "fa fa-credit-card", // Replace with any appropriate icon
-        "Payment",
-        { id: "billing-details", label: "Billing Details", open: true },
-        `
-          <div class="form-group">
-            <label class="form-label" style="font-size: 16px; font-weight: bold;">
-              <i class="fa fa-credit-card" style="margin-right: 5px;"></i> Select Payment Method:
+     // Billing Details Block
+    createBlock(
+      "payment",
+      "fa fa-credit-card", // Icon for Payment Block
+      "Payment",
+      { id: "billing-details", label: "Billing Details", open: true },
+      `
+        <div class="form-group" style="padding: 8px; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9;">
+          <label class="form-label" style="font-size: 16px; font-weight: bold; margin-bottom: 10px; display: block;">
+            <i class="fa fa-credit-card" style="margin-right: 8px;"></i> Payment Method:
+          </label>
+          
+          <div class="form-check d-flex align-items-center" style="padding: 10px; border: 1px solid #ccc; border-radius: 6px; background: white; margin-bottom: 8px;">
+            <input class="form-check-input" type="radio" name="paymentMethod" id="paypal" value="paypal" checked>
+            <label class="form-check-label d-flex align-items-center" for="paypal" style="margin-left: 10px;">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" width="80">
             </label>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="paymentMethod" id="paypal" value="paypal" checked>
-              <label class="form-check-label" for="paypal">PayPal</label>
-            </div>
-            <div class="form-check mt-2">
-              <input class="form-check-input" type="radio" name="paymentMethod" id="stripe" value="stripe">
-              <label class="form-check-label" for="stripe">Stripe</label>
-            </div>
           </div>
-        `
-      );
+
+          <div class="form-check d-flex align-items-center" style="padding: 10px; border: 1px solid #ccc; border-radius: 6px; background: white;">
+            <input class="form-check-input" type="radio" name="paymentMethod" id="stripe" value="stripe">
+            <label class="form-check-label d-flex align-items-center" for="stripe" style="margin-left: 10px;">
+              <img src="https://cdn.brandfetch.io/idxAg10C0L/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" alt="Stripe" width="80">
+            </label>
+          </div>
+        </div>
+      `
+    );
+
 
      // Reusable function to create blocks
     const createProjectDataBlock = (id, icon, label, type = 'text', attributes = {}) => {

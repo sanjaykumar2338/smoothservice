@@ -150,7 +150,7 @@
                                         $total += ($item->price * $item->quantity - $item->discount * $item->quantity);
                                     @endphp
 
-                                @elseif($item->service->service_type=='recurring')
+                                @elseif($item?->service?->service_type=='recurring')
                                         ${{ $item->service->recurring_service_currency_value - $item->discount}}/{{ $item->service->recurring_service_currency_value_two }} 
                                         {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
 
@@ -165,7 +165,7 @@
 
                             <!-- Price -->
 
-                            @if($item->service->service_type!="onetime")
+                            @if($item?->service?->service_type!="onetime")
                                 @if($item->discount)
                                     <td class="text-start"><del>{{ $invoice->currency }} {{ number_format($item->price, 2) }}</del><br>{{ $invoice->currency }} {{ number_format($item->price - $item->discount, 2) }}</td>
                                 @else
@@ -184,7 +184,7 @@
 
                             <!-- Item Total -->
                             <td class="text-end">
-                                @if($item->service->service_type!="onetime")
+                                @if($item?->service?->service_type!="onetime")
                                     {{ $invoice->currency }} {{ number_format($item->price * $item->quantity - $item->discount * $item->quantity, 2) }}
                                 @else
                                     {{ $invoice->currency }} {{ number_format($item->price * $item->quantity - $item->discount, 2) }}
@@ -219,7 +219,7 @@
                             <td colspan="2"></td>
                             <td class="text-end"><strong>Subtotal</strong></td>
 
-                            @if($item->service->service_type!="onetime")
+                            @if($item?->service?->service_type!="onetime")
                                 <td class="text-end">
                                     {{ $invoice->currency }} 
                                     {{ number_format($total, 2) }}
@@ -245,7 +245,7 @@
                             <td colspan="2"></td>
                             <td class="text-end"><strong>Payment Due</strong></td>
 
-                            @if($item->service->service_type!="onetime")
+                            @if($item?->service?->service_type!="onetime")
                                 <td class="text-end">
                                     <strong>{{ $invoice->currency }} {{ number_format($total, 2) }}</strong>
                                 </td>
@@ -278,6 +278,11 @@
                 </div>
             </div>
 
+            @php
+                $user = getAuthenticatedUser();
+                $canPayWithBalance = ($next_payment_recurring == 0) && ($total - $invoice->upfront_payment_amount <= $user->account_balance);
+            @endphp
+
             @if(!$invoice->paid_at)
                 <!-- Pay with Stripe -->
                 <div class="d-flex align-items-right" style="float: right; margin-right: 10px;">
@@ -288,13 +293,24 @@
                 </div>
 
                 <!-- Pay with PayPal -->
-                <div class="d-flex align-items-right" style="float: right;">
-                    <button style="margin-right: 8px;" class="btn btn-danger d-flex align-items-center" onclick="window.location.href='{{ route('portal.invoice.payment.paypal', $invoice->id) }}'">
+                <div class="d-flex align-items-right" style="float: right; margin-right: 10px;">
+                    <button class="btn btn-danger d-flex align-items-center" onclick="window.location.href='{{ route('portal.invoice.payment.paypal', $invoice->id) }}'">
                         <i class="bx bxl-paypal integration-icon me-2"></i>
                         Pay with PayPal
                     </button>
                 </div>
+
+                <!-- Pay with Account Balance (Only if eligible) -->
+                @if($canPayWithBalance)
+                    <div class="d-flex align-items-right" style="float: right;margin-right: 10px;">
+                        <button id="payWithBalance" class="btn btn-danger d-flex align-items-center" data-amount="{{ number_format($total - $invoice->upfront_payment_amount, 2) }}">
+                            <i class="bx bx-wallet integration-icon me-2"></i>
+                            Pay with Balance
+                        </button>
+                    </div>
+                @endif
             @endif
+
 
         </div>
     </div>
@@ -534,6 +550,52 @@
 
 </script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const payWithBalanceButton = document.getElementById('payWithBalance');
 
+        if (payWithBalanceButton) {
+            payWithBalanceButton.addEventListener('click', async function () {
+                payWithBalanceButton.disabled = true;
+                payWithBalanceButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
+                const totalAmount = payWithBalanceButton.getAttribute('data-amount'); // Get amount from button
+
+                try {
+                    const response = await fetch('{{ route("portal.invoice.payment.balance", $invoice->id) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        },
+                        body: JSON.stringify({
+                            invoice_id: "{{ $invoice->id }}",
+                            amount: totalAmount, // Send amount dynamically
+                        }),
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Show success alert
+                        alert(result.message || 'Payment successful.');
+
+                        // Redirect to invoice page
+                        window.location.href = '{{ route("portal.invoices.show", $invoice->id) }}';
+                    } else {
+                        // Show error alert
+                        alert(result.message || 'Payment failed.');
+                        payWithBalanceButton.disabled = false;
+                        payWithBalanceButton.innerHTML = 'Pay with Balance';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing your payment.');
+                    payWithBalanceButton.disabled = false;
+                    payWithBalanceButton.innerHTML = 'Pay with Balance';
+                }
+            });
+        }
+    });
+</script>
 @endsection

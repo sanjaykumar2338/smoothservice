@@ -75,9 +75,15 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label" for="password">Account balance</label>
-                            <input type="number" class="form-control" id="account_balance" name="account_balance" value="{{ old('account_balance', $client->account_balance) }}" placeholder="0.00" />
+                            <label class="form-label" for="account_balance">Account Balance</label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="padding-bottom: 4px;">$</span> <!-- Change "$" to your preferred currency symbol -->
+                                <input type="number" class="form-control" id="account_balance" name="account_balance" 
+                                    value="{{ old('account_balance', $client->account_balance) }}" 
+                                    placeholder="0.00" step="0.01">
+                            </div>
                         </div>
+
 
                         <div class="mb-3">
                             <label for="order_id" class="form-label">Status</label>
