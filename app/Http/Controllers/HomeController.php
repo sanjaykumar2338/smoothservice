@@ -157,7 +157,12 @@ class HomeController extends Controller
             $companySetting = \App\Models\CompanySetting::where('user_id', $user_id)->first();
             $companyName = $companySetting->company_name ?? env('APP_NAME');
             Mail::to($client->email)->send(new \App\Mail\InvoiceGenerated($invoice, $client, $companyName));
-        } 
+        }
+
+        if(!getUserID()){
+            Auth::guard('web')->logout();
+            Auth::guard('client')->login($client);
+        }
 
         // Client exists, return client ID
         return response()->json([
