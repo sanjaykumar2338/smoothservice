@@ -160,8 +160,8 @@ class HomeController extends Controller
         }
 
         if(!getUserID()){
-            Auth::guard('web')->logout();
-            Auth::guard('client')->login($client);
+            \Auth::guard('web')->logout();
+            \Auth::guard('client')->login($client);
         }
 
         // Client exists, return client ID
