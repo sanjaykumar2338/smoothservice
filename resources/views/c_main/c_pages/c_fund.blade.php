@@ -66,7 +66,12 @@
 <script src="https://js.stripe.com/v3/"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const stripe = Stripe('{{ env("STRIPE_KEY") }}');
+        const stripe = Stripe('{{ env("STRIPE_KEY") }}', {
+            stripeAccount: '{{ $accountId }}'
+        });
+
+        console.log("Stripe initialized with Account ID:", '{{ $accountId }}');
+
         const elements = stripe.elements();
         const card = elements.create('card', {
             hidePostalCode: true,
@@ -104,11 +109,12 @@
             }
 
             try {
+                // 1️⃣ **Create Payment Method**
                 const { paymentMethod, error } = await stripe.createPaymentMethod({
                     type: 'card',
                     card: card,
                     billing_details: {
-                        name: "{{ getAuthenticatedUser()->name }}",
+                        name: "{{ getAuthenticatedUser()->first_name }} {{ getAuthenticatedUser()->last_name }}",
                         email: "{{ getAuthenticatedUser()->email }}",
                     },
                 });
@@ -120,6 +126,7 @@
                     return;
                 }
 
+                // 2️⃣ **Send Payment Method to Backend**
                 const response = await fetch('{{ route("portal.fund.process") }}', {
                     method: 'POST',
                     headers: {
@@ -129,12 +136,15 @@
                     body: JSON.stringify({
                         payment_method: paymentMethod.id,
                         amount: amount,
+                        accountId: '{{ $accountId }}'
                     }),
                 });
 
                 const result = await response.json();
 
+                // 3️⃣ **Handle Payment Response**
                 if (result.requires_action) {
+                    // ✅ **Handle 3D Secure**
                     const { error: confirmError } = await stripe.confirmCardPayment(result.client_secret);
 
                     if (confirmError) {
@@ -142,10 +152,32 @@
                         button.disabled = false;
                         button.innerHTML = 'Add Funds';
                         return;
-                    } else {
+                    }
+
+                    // 4️⃣ **Verify Payment After Confirmation**
+                    const verifyResponse = await fetch('{{ route("portal.fund.verify") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        },
+                        body: JSON.stringify({
+                            payment_intent_id: result.payment_intent_id,
+                            accountId: '{{ $accountId }}' // ✅ Pass Stripe Connect ID
+                        }),
+                    });
+
+                    const verifyResult = await verifyResponse.json();
+
+                    if (verifyResult.success) {
                         window.location.href = '{{ route("portal.dashboard") }}' + '?success=' + encodeURIComponent('Funds added successfully!');
+                    } else {
+                        document.getElementById('card-errors').textContent = "Payment verification failed.";
+                        button.disabled = false;
+                        button.innerHTML = 'Add Funds';
                     }
                 } else if (result.success) {
+                    // ✅ **Balance Updated Case**
                     window.location.href = '{{ route("portal.dashboard") }}' + '?success=' + encodeURIComponent('Funds added successfully!');
                 } else {
                     document.getElementById('card-errors').textContent = result.message || 'Payment failed.';

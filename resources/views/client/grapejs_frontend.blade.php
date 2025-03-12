@@ -165,11 +165,11 @@
             });
 
             // Function to get selected services from both dropdown and checkboxes
+            var selectedServices = [];
             function getSelectedServicesAndUpdateSummary() {
                 const iframeDocument = editor.Canvas.getDocument();
-
-                let selectedServices = [];
-
+                selectedServices = [];
+                
                 // Get all checked checkboxes inside the GrapesJS editor
                 const checkboxes = iframeDocument.querySelectorAll('input[type="checkbox"]:checked');
                 checkboxes.forEach((checkbox) => {
@@ -339,6 +339,10 @@
             });
 
             function addCompletePurchaseButton() {
+                const iframeDocument = editor.Canvas.getDocument();
+                const paypalRadio = iframeDocument.querySelector('input[type="radio"][name="paymentMethod"][value="paypal"]');
+                const stripeRadio = iframeDocument.querySelector('input[type="radio"][name="paymentMethod"][value="stripe"]');
+
                 const editorContainer = document.querySelector('.editor-container');
 
                 // Create button element
@@ -351,13 +355,81 @@
 
                 // Add event listener for the button
                 completePurchaseButton.addEventListener('click', function () {
-                    alert('Processing Complete Purchase...');
-                    // Implement actual checkout logic here
+                    // Disable button and change text
+                    completePurchaseButton.disabled = true;
+                    completePurchaseButton.textContent = 'Processing...';
+
+                    let formData = {};
+                    let emailField = editor.Canvas.getDocument().querySelector('input[type="email"], input[name="email"]');
+                    const allInputs = editor.Canvas.getDocument().querySelectorAll('input, select, textarea');
+
+                    allInputs.forEach((input) => {
+                        if (input.type === "radio") {
+                            if (input.checked) {
+                                formData[input.name] = input.value; // Store only selected radio buttons
+                            }
+                        } else if (input.type === "checkbox") {
+                            formData[input.name] = input.checked ? input.value : null; // Store checked checkbox values
+                        } else {
+                            formData[input.name] = input.value; // Store text, email, select, textarea values
+                        }
+                    });
+
+                    if (!formData.email) {
+                        alert('Error: An email field is required to complete the purchase.');
+                        completePurchaseButton.textContent = 'Complete Purchase'; // Restore button text
+                        completePurchaseButton.disabled = false; // Re-enable button
+                        return;
+                    }
+
+                    formData['landing_page'] = '{{$slug}}';
+                    formData['selectedServices'] = selectedServices;
+
+                    console.log(selectedServices, formData);
+
+                    fetch('/order/landingpage', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify(formData)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Updated Summary:", data);
+
+                        if (data.invoice_id) {
+                            //window.location.href = `/order/landingpage/payment/${data.invoice_id}`;
+                            if(paypalRadio){
+                                window.location.href = `/portal/invoice/payment/paypal/${data.invoice_id}`;
+                            }else{
+                                window.location.href = `/portal/invoice/payment/${data.invoice_id}`;
+                            }
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching summary:', error);
+                        alert('Failed to process request. Please try again.');
+                    })
+                    .finally(() => {
+                        // Restore button text and re-enable after request completes
+                        completePurchaseButton.textContent = 'Complete Purchase';
+                        completePurchaseButton.disabled = false;
+                    });
                 });
 
                 // Append the button at the bottom of the editor container
                 editorContainer.appendChild(completePurchaseButton);
             }
+
         });
     </script>
 </body>

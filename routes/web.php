@@ -67,6 +67,8 @@ Route::domain('{username}.' . env('SESSION_DOMAIN'))->group(function () {
 
 // For client login
 Route::get('order/payment/{slug}', [App\Http\Controllers\HomeController::class, 'order'])->name('order');
+Route::post('order/landingpage', [App\Http\Controllers\HomeController::class, 'landingpagestore'])->name('landingpagestore');
+Route::get('order/landingpage/payment/{id}', [App\Http\Controllers\HomeController::class, 'landingpagepayment'])->name('landingpagepayment');
 
 Route::prefix('portal')->middleware([ClientMiddleware::class, DynamicSessionDomain::class])->group(function () {
     Route::get('dashboard', [MainClientController::class, 'dashboard'])->name('portal.dashboard');
@@ -101,6 +103,7 @@ Route::prefix('portal')->middleware([ClientMiddleware::class, DynamicSessionDoma
     Route::get('/balance', [MainClientController::class, 'addFund'])->name('portal.balance');
     Route::get('/fund/add', [MainClientController::class, 'addFund'])->name('portal.fund.add');
     Route::post('/funds/process', [MainClientController::class, 'processPaymentFundAdd'])->name('portal.fund.process');
+    Route::post('/funds/verify', [MainClientController::class, 'verifyPaymentStatus'])->name('portal.fund.verify');
     Route::get('/funds/success', [MainClientController::class, 'paymentSuccess'])->name('portal.fund.success');
     Route::post('/invoice/{invoiceId}/pay-balance', [MainClientController::class, 'payWithBalance'])
     ->name('portal.invoice.payment.balance');

@@ -1362,53 +1362,111 @@ class MainClientController extends Controller
     }
 
     public function addFund(Request $request){
-        return view('c_main.c_pages.c_fund');
+        $accountId = Client::where('clients.id', getAuthenticatedUser()->id)
+            ->join('users', 'users.id', '=', 'clients.added_by')
+            ->pluck('users.stripe_connect_account_id')
+            ->first();
+        
+        //echo $accountId; die;
+        if(!$accountId){
+            return redirect()->back()->with('error', 'user has not connected the stripe connect id' );
+        }
+
+        return view('c_main.c_pages.c_fund')->with('accountId', $accountId);
     }
 
     public function processPaymentFundAdd(Request $request)
     {
-        Stripe::setApiKey(env('STRIPE_SECRET'));
+        \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
 
         try {
             $amount = (int) ($request->amount * 100); // Convert to cents
+            $accountId = $request->accountId;
+            $user = getAuthenticatedUser();
 
-            $intent = PaymentIntent::create([
+            $intent = \Stripe\PaymentIntent::create([
                 'amount' => $amount,
                 'currency' => 'usd',
                 'payment_method' => $request->payment_method,
-                'confirm' => true, // This automatically confirms the payment
+                'confirm' => true,
+                'description' => "Funds added for services rendered by " . $user->first_name . ' ' . $user->last_name,
+                'shipping' => [
+                    'name' => $user->first_name . ' ' . $user->last_name,
+                    'address' => [
+                        'line1'       => $user->billing_address ?: 'N/A',
+                        'postal_code' => $user->postal_code ?: 'N/A',
+                        'city'        => $user->city ?: 'N/A',
+                        'state'       => $user->state ?: 'N/A',
+                        'country'     => $user->country ?: 'IN', // Default to India
+                    ],
+                ],
                 'return_url' => route('portal.fund.success'),
                 'automatic_payment_methods' => [
                     'enabled' => true,
-                    'allow_redirects' => 'never' // Prevent redirect-based payments
+                    'allow_redirects' => 'never'
                 ],
+            ], [
+                'stripe_account' => $accountId
             ]);
 
-            // Store PaymentIntent details in DB
+            // Store PaymentIntent in DB
             $transaction = new UserFund();
-            $transaction->user_id = getAuthenticatedUser()->id;
+            $transaction->user_id = $user->id;
             $transaction->stripe_payment_intent = $intent->id;
             $transaction->amount = $request->amount;
             $transaction->currency = 'usd';
             $transaction->status = $intent->status;
             $transaction->save();
 
+            // Handle Payment Status
             if ($intent->status === 'requires_action') {
                 return response()->json([
                     'requires_action' => true,
                     'client_secret' => $intent->client_secret,
+                    'payment_intent_id' => $intent->id, // Store PaymentIntent ID for verification
                 ]);
-            } else {
-                // Update user's balance only when payment succeeds
-                if ($intent->status === 'succeeded') {
-                    $user = getAuthenticatedUser();
-                    $user->account_balance += $request->amount;
-                    $user->save();
-                }
+            } elseif ($intent->status === 'succeeded') {
+                // ✅ **Update User Balance Immediately**
+                $user->account_balance += $request->amount;
+                $user->save();
 
-                return response()->json(['success' => true]);
+                return response()->json(['success' => true, 'balance_updated' => true]);
+            } else {
+                return response()->json(['error' => 'Unexpected payment status: ' . $intent->status], 400);
             }
-        } catch (ApiErrorException $e) {
+
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function verifyPaymentStatus(Request $request)
+    {
+        \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        try {
+            // Ensure we retrieve the PaymentIntent from the connected account
+            $paymentIntent = \Stripe\PaymentIntent::retrieve(
+                $request->payment_intent_id,
+                ['stripe_account' => $request->accountId] // ✅ Add this
+            );
+
+            if ($paymentIntent->status === 'succeeded') {
+                // ✅ **Update User Balance**
+                $user = getAuthenticatedUser();
+                $user->account_balance += UserFund::where('stripe_payment_intent', $paymentIntent->id)->value('amount');
+                $user->save();
+
+                // ✅ **Mark Transaction as Completed**
+                UserFund::where('stripe_payment_intent', $paymentIntent->id)
+                    ->update(['status' => 'succeeded']);
+
+                return response()->json(['success' => true, 'balance_updated' => true]);
+            } else {
+                return response()->json(['error' => 'Payment not successful'], 400);
+            }
+
+        } catch (\Stripe\Exception\ApiErrorException $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
@@ -1454,18 +1512,6 @@ class MainClientController extends Controller
                 'currency' => 'usd',
                 'status' => 'paid',
             ]);
-
-            // If invoice has a connected Stripe account, transfer funds
-            if ($invoice->connected_stripe_account_id) {
-                Stripe::setApiKey(env('STRIPE_SECRET'));
-
-                Transfer::create([
-                    'amount' => $amountDue * 100, // Convert to cents
-                    'currency' => 'usd',
-                    'destination' => $invoice->connected_stripe_account_id,
-                    'description' => "Balance Payment for Invoice #{$invoice->invoice_no}",
-                ]);
-            }
 
             // Mark invoice as paid
             $invoice->update([
