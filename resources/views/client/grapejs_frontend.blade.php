@@ -130,12 +130,16 @@
                     if (data.status === 'success') {
                         editor.setComponents(data.html);
                         editor.setStyle(data.css);
+                        editor.on('load', () => editor.runCommand('preview'));
                     }
                 })
                 .catch(error => console.error('Error loading:', error));
         };
         
-        editor.on('load', () => editor.runCommand('preview'));
+        setTimeout(function(){
+            editor.runCommand('preview');
+        },300);
+
         document.addEventListener('DOMContentLoaded', function () {
 
             function getCheckedServices() {
