@@ -124,7 +124,7 @@
         // Fetch content dynamically
         window.onload = function () {
             var slug = '{{$slug}}';
-            fetch(`/order/landingpageinfo/${slug}`)
+            fetch(`/landing-page/load/${slug}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
@@ -138,7 +138,7 @@
         
         setTimeout(function(){
             editor.runCommand('preview');
-        },1000);
+        },300);
 
         document.addEventListener('DOMContentLoaded', function () {
 
