@@ -45,7 +45,7 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/grapesjs/0.12.17/grapes.min.js" rel="stylesheet" />
+    <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet" />
 
     <link
       href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css"
