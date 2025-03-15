@@ -67,6 +67,7 @@ Route::domain('{username}.' . env('SESSION_DOMAIN'))->group(function () {
 
 // For client login
 Route::get('order/payment/{slug}', [App\Http\Controllers\HomeController::class, 'order'])->name('order');
+Route::get('order/landingpageinfo/{slug}', [App\Http\Controllers\HomeController::class, 'landingpageinfo'])->name('landingpageinfo');
 Route::post('order/landingpage', [App\Http\Controllers\HomeController::class, 'landingpagestore'])->name('landingpagestore');
 Route::get('order/landingpage/payment/{id}', [App\Http\Controllers\HomeController::class, 'landingpagepayment'])->name('landingpagepayment');
 

@@ -47,6 +47,20 @@ class HomeController extends Controller
         return view('client.grapejs_frontend')->with('landingPage', $landingPage)->with('slug', $landingPage->slug);
     }
 
+    public function landingpageinfo(Request $request, $slug){
+        $page = LandingPage::where('slug', $slug)->first();
+
+        if (!$page) {
+            return response()->json(['status' => 'error', 'message' => 'Page not found'], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'html' => $page->html,
+            'css' => $page->css
+        ]);
+    }
+
     public function landingpagestore(Request $request)
     {
         $slug = $request->landing_page;
