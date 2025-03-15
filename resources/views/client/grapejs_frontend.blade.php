@@ -124,7 +124,7 @@
         // Fetch content dynamically
         window.onload = function () {
             var slug = '{{$slug}}';
-            fetch(`/landing-page/load/${slug}`)
+            fetch(`/order/landingpageinfo/${slug}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
