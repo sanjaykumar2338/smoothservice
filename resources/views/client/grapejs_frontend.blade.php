@@ -108,8 +108,6 @@
     <script>
         var editor = grapesjs.init({
             container: '#gjs',
-            width: 'auto',
-            height: '100%',
             canvas: {
                 styles: [
                     'https://fonts.googleapis.com/css?family=IBM+Plex+Sans:300,400,500,600,700',
@@ -128,7 +126,6 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        alert('test');
                         editor.setComponents(data.html);
                         editor.setStyle(data.css);
                         editor.on('load', () => editor.runCommand('preview'));
