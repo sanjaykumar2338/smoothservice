@@ -128,6 +128,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
+                        alert('test');
                         editor.setComponents(data.html);
                         editor.setStyle(data.css);
                         editor.on('load', () => editor.runCommand('preview'));
@@ -138,7 +139,7 @@
         
         setTimeout(function(){
             editor.runCommand('preview');
-        },300);
+        },1000);
 
         document.addEventListener('DOMContentLoaded', function () {
 
