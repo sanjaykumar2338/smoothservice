@@ -14,8 +14,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     
     <!-- GrapesJS -->
-    <link rel="stylesheet" href="https://unpkg.com/grapesjs/dist/css/grapes.min.css">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs/dist/css/grapes.min.css">
+    
     @php
         $company_settings = App\Models\CompanySetting::where('user_id', auth()->id())->first();
     @endphp
@@ -103,7 +103,7 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/grapesjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/grapesjs@0.20.4/dist/grapes.min.js"></script>
 
     <script>
         var editor = grapesjs.init({
