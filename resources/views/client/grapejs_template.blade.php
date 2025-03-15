@@ -45,8 +45,8 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet" />
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs/dist/css/grapes.min.css">
+    
     <link
       href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css"
       rel="stylesheet"
@@ -63,7 +63,7 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="https://malsup.github.io/jquery.blockUI.js"></script>
-  <script src="https://unpkg.com/grapesjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/grapesjs@0.20.4/dist/grapes.min.js"></script>
   <script src="https://unpkg.com/grapesjs-preset-webpage@1.0.2"></script>
   <script src="https://unpkg.com/grapesjs-plugin-forms@2.0.5"></script>
   <script src="https://unpkg.com/grapesjs-blocks-basic@1.0.1"></script>
