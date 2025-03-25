@@ -237,16 +237,11 @@
                   const onboardingField = $('#onboarding_field').val();
 
                   // Send the data to the backend
-                  $.ajaxSetup({
-                      headers: {
-                          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                      }
-                  });
-
                   $.ajax({
-                      url: '{{ route("intakeform.store") }}', // Backend route
+                      url: '{{ route("intakeform.store") }}', // Your updated backend route
                       method: 'POST',
                       data: {
+                          _token: '{{ csrf_token() }}', // CSRF token for Laravel
                           form_name: formName,
                           form_fields: formData, // JSON data from form builder
                           checkmark: checkmark,
@@ -254,11 +249,11 @@
                       },
                       success: function(response) {
                           alert('Form saved successfully!');
-                          window.location.href = '{{ route("service.intakeform.list") }}'; // Redirect
+                          window.location.href = '{{ route("service.intakeform.list") }}'; // Updated route
                       },
                       error: function(xhr) {
-                          $('#error-list').html(''); // Clear old errors
-                          if (xhr.status === 422) {
+                          // Parse and display the errors
+                          if (xhr.status === 422) { // Laravel validation error status
                               const errors = xhr.responseJSON.errors;
                               for (let field in errors) {
                                   if (errors.hasOwnProperty(field)) {
@@ -272,7 +267,6 @@
                           }
                       }
                   });
-
               });
           });
         }
