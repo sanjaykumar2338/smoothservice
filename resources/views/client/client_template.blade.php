@@ -205,6 +205,7 @@
     <script src="{{asset('/assets/js/app-user-list.js')}}"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
     <script src="https://formbuilder.online/assets/js/form-builder.min.js"></script>
+    <script src="https://formbuilder.online/assets/js/form-render.min.js"></script>
     <script src="{{asset('/assets/js/custom.js')}}?v={{time()}}"></script>
 
     <script>

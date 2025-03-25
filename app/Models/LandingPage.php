@@ -16,6 +16,7 @@ class LandingPage extends Model
         'description',
         'slug',
         'is_visible',
+        'intake_form',
         'status',
         'show_in_sidebar',
         'show_coupon_field',

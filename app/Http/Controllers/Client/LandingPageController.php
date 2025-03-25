@@ -7,6 +7,7 @@ use App\Models\LandingPage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Service;
+use App\Models\Intakeform;
 
 class LandingPageController extends Controller
 {
@@ -33,7 +34,8 @@ class LandingPageController extends Controller
     // Show the form for creating a new landing page
     public function create()
     {
-        return view('client.pages.landingpage.create');
+        $intake_form = Intakeform::where('user_id', getUserID())->get();
+        return view('client.pages.landingpage.create')->with('intake_form', $intake_form);
     }
 
     // Store a newly created landing page in storage
@@ -61,6 +63,7 @@ class LandingPageController extends Controller
         LandingPage::create([
             'title' => $request->title,
             'description' => $request->description,
+            'intake_form' => $request->intake_form,
             'slug' => $slug,
             'is_visible' => $request->has('is_visible'),
             'show_in_sidebar' => $request->has('show_in_sidebar'),
@@ -79,7 +82,8 @@ class LandingPageController extends Controller
     public function edit($id)
     {
         $landingPage = LandingPage::findOrFail($id);
-        return view('client.pages.landingpage.edit', compact('landingPage'));
+        $intake_form = Intakeform::where('user_id', getUserID())->get();
+        return view('client.pages.landingpage.edit', compact('landingPage'))->with('intake_form', $intake_form);
     }
 
     public function update(Request $request, $id)
@@ -88,7 +92,7 @@ class LandingPageController extends Controller
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|max:255',
-            'description' => 'required',
+            'description' => 'nullable',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -115,6 +119,7 @@ class LandingPageController extends Controller
         $landingPage->update([
             'title' => $request->title,
             'description' => $request->description,
+            'intake_form' => $request->intake_form,
             'slug' => $slug,
             'is_visible' => $request->has('is_visible'),
             'show_in_sidebar' => $request->has('show_in_sidebar'),

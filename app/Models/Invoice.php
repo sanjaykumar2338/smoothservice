@@ -12,6 +12,8 @@ class Invoice extends Model
         'invoice_no',
         'client_id',
         'service_id',
+        'landing_page',
+        'landing_page_open',
         'note',  // Store client note
         'send_email',  // Send email notification
         'partial_payment',  // Store partial payment (upfront payment amount)

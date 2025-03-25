@@ -70,6 +70,8 @@ Route::get('order/payment/{slug}', [App\Http\Controllers\HomeController::class, 
 Route::get('order/landingpageinfo/{slug}', [App\Http\Controllers\HomeController::class, 'landingpageinfo'])->name('landingpageinfo');
 Route::post('order/landingpage', [App\Http\Controllers\HomeController::class, 'landingpagestore'])->name('landingpagestore');
 Route::get('order/landingpage/payment/{id}', [App\Http\Controllers\HomeController::class, 'landingpagepayment'])->name('landingpagepayment');
+Route::get('order/landingpage/intakeform/{id}/{invoice}', [App\Http\Controllers\HomeController::class, 'intakeform'])->name('intakeform');
+Route::post('order/landingpage/feedback', [App\Http\Controllers\HomeController::class, 'storeFeedback'])->name('storeFeedback');
 
 Route::prefix('portal')->middleware([ClientMiddleware::class, DynamicSessionDomain::class])->group(function () {
     Route::get('dashboard', [MainClientController::class, 'dashboard'])->name('portal.dashboard');

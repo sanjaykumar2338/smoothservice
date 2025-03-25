@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\LandingPage;
 use App\Models\Client;
 use App\Models\Invoice;
+uSE App\Models\Intakeform;
 use App\Models\InvoiceItem;
 use App\Models\Service;
 use App\Models\ClientStatus;
@@ -14,6 +15,8 @@ use App\Models\TeamMember;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ClientWelcome;
+use App\Models\FeedbackEntry;
+use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
 {
@@ -114,6 +117,7 @@ class HomeController extends Controller
             'added_by' => $user_id,
             'public_key' => \Str::random(32),
             'invoice_no' => $invoice_no,
+            'landing_page' => $landingPage->id,
         ]);
 
         $totalInvoiceAmount = 0;
@@ -173,7 +177,7 @@ class HomeController extends Controller
             Mail::to($client->email)->send(new \App\Mail\InvoiceGenerated($invoice, $client, $companyName));
         }
 
-        if(!getUserID()){
+        if(!getUserID() || 1){
             \Auth::guard('web')->logout();
             \Auth::guard('client')->login($client);
         }
@@ -360,4 +364,108 @@ class HomeController extends Controller
         // Pass the invoice data to the view
         return view('c_main.c_pages.c_invoice.c_outside', compact('invoice', 'services', 'users', 'teamMembers', 'addedByUser', 'main_data'));
     }
+
+    public function intakeform(Request $request, $id, $inv){
+        $landing_page = LandingPage::where('id',$id)->first();
+        $invoice = Invoice::where('invoice_no', $inv)->first();
+
+        if($landing_page->intake_form && $invoice){
+            $intake_form = Intakeform::where('id', $landing_page->intake_form)
+                ->where('form_fields', '<>', '')
+                ->first();
+            
+            if($intake_form){
+                return view('client.intakeform_template')->with('intake_form', $intake_form)->with('invoice_no',$invoice->id)->with('landing_page', $id);
+            }
+        }
+
+        return abort(404);
+    }
+
+    public function storeFeedback(Request $request)
+    {
+        try {
+            // Validate request data
+            $validatedData = $request->validate([
+                'landing_page' => 'required|integer',
+                'invoice_id'   => 'nullable|integer',
+                'form_data'    => 'required|array',
+            ]);
+
+            $landingPage = $validatedData['landing_page'];
+            $invoiceId   = $validatedData['invoice_id'] ?? null;
+            $formData    = $validatedData['form_data'];
+
+            $cleanedData = [];
+
+            foreach ($formData as $field) {
+                $entry = [
+                    'name'  => $field['name'] ?? null,
+                    'type'  => $field['type'] ?? 'text',
+                    'value' => $field['value'] ?? null,
+                ];
+
+                // If file field with base64 string, save file
+                if (
+                    $entry['type'] === 'file' &&
+                    !empty($entry['value']) &&
+                    preg_match('/^data:image\/(\w+);base64,/', $entry['value'])
+                ) {
+                    $entry['value'] = $this->saveBase64Image($entry['value']);
+                }
+
+                $cleanedData[] = $entry;
+            }
+
+            // Save to database (without extra escaping)
+            $feedback = FeedbackEntry::create([
+                'landing_page' => $landingPage,
+                'invoice_id'   => $invoiceId,
+                'user_id'      => getUserID(),
+                'form_data'    => $cleanedData, // Eloquent will auto-convert to JSON if casted
+            ]);
+
+            return response()->json([
+                'message'  => 'Feedback submitted successfully',
+                'feedback' => $feedback
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while saving feedback',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save Base64 Image and return the file path
+     */
+    private function saveBase64Image($base64String)
+    {
+        try {
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64String, $matches)) {
+                $imageType = $matches[1]; // Get image format (png, jpg, etc.)
+                $base64String = substr($base64String, strpos($base64String, ',') + 1);
+                $decodedImage = base64_decode($base64String);
+
+                if ($decodedImage === false) {
+                    return null; // Invalid base64 data
+                }
+
+                // Generate unique file name
+                $fileName = 'uploads/feedback/' . uniqid() . '.' . $imageType;
+
+                // Store image in Laravel storage (public disk)
+                Storage::disk('public')->put($fileName, $decodedImage);
+
+                // Return full URL of the stored image
+                return asset('storage/' . $fileName);
+            }
+        } catch (\Exception $e) {
+            return null;
+        }
+        return null;
+    }
+
 }

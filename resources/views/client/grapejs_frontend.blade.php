@@ -191,8 +191,8 @@
 
                 // If no service is selected, return early
                 if (selectedServices.length === 0) {
-                    console.warn("No services selected");
-                    return;
+                    //console.warn("No services selected");
+                    //return;
                 }
 
                 updateSummary(selectedServices);
@@ -344,9 +344,6 @@
 
             function addCompletePurchaseButton() {
                 const iframeDocument = editor.Canvas.getDocument();
-                const paypalRadio = iframeDocument.querySelector('input[type="radio"][name="paymentMethod"][value="paypal"]');
-                const stripeRadio = iframeDocument.querySelector('input[type="radio"][name="paymentMethod"][value="stripe"]');
-
                 const editorContainer = document.querySelector('.editor-container');
 
                 // Create button element
@@ -362,6 +359,9 @@
                     // Disable button and change text
                     completePurchaseButton.disabled = true;
                     completePurchaseButton.textContent = 'Processing...';
+
+                    const paypalRadio = iframeDocument.querySelector('input[type="radio"][name="paymentMethod"][value="paypal"]');
+                    const stripeRadio = iframeDocument.querySelector('input[type="radio"][name="paymentMethod"][value="stripe"]');
 
                     let formData = {};
                     let emailField = editor.Canvas.getDocument().querySelector('input[type="email"], input[name="email"]');
@@ -386,6 +386,13 @@
                         return;
                     }
 
+                    if(selectedServices.length==0){
+                        alert('Select service first !');
+                        completePurchaseButton.textContent = 'Complete Purchase'; // Restore button text
+                        completePurchaseButton.disabled = false; // Re-enable button
+                        return
+                    }
+
                     formData['landing_page'] = '{{$slug}}';
                     formData['selectedServices'] = selectedServices;
 
@@ -406,11 +413,12 @@
                         return response.json();
                     })
                     .then(data => {
-                        console.log("Updated Summary:", data);
-
+                        console.log("Updated Summary:", data, paypalRadio,'hello');
                         if (data.invoice_id) {
                             //window.location.href = `/order/landingpage/payment/${data.invoice_id}`;
-                            if(paypalRadio){
+
+                            //alert(paypalRadio.checked)
+                            if (paypalRadio && paypalRadio.checked) {
                                 window.location.href = `/portal/invoice/payment/paypal/${data.invoice_id}`;
                             }else{
                                 window.location.href = `/portal/invoice/payment/${data.invoice_id}`;

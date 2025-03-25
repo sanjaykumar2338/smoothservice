@@ -50,6 +50,8 @@ class IntakeformController extends Controller
         $intakeForm = IntakeForm::findOrFail($request->id); // Assuming you have an ID to find the record
 
         // Update the form fields
+        $user_id = getUserID();
+        $intakeForm->user_id = $user_id; 
         $intakeForm->form_name = $request->input('form_name');
         $intakeForm->form_fields = $request->input('form_fields'); // Store the form JSON data
         $intakeForm->checkmark = $request->input('checkmark') ? '1' : '0';
@@ -73,8 +75,9 @@ class IntakeformController extends Controller
         ]);
 
         // Create a new IntakeForm instance and save the data
+        $user_id = getUserID();
         $intakeForm = new IntakeForm();
-        $intakeForm->user_id = auth()->id(); // Assuming the user is logged in
+        $intakeForm->user_id = $user_id; // Assuming the user is logged in
         $intakeForm->form_name = $request->input('form_name');
         $intakeForm->form_fields = $request->input('form_fields'); // Store the form JSON data
         $intakeForm->checkmark = $request->input('checkmark') ? '1' : '0';

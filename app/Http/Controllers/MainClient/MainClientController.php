@@ -338,8 +338,24 @@ class MainClientController extends Controller
         ];
 
         //echo "<pre>"; print_r($main_data); die;
-
         // Pass the invoice data to the view
+        if($invoice->landing_page_open==0){
+            Invoice::where('id', $invoice->id)->update(['landing_page_open'=>1]);
+            $landing_page = \App\Models\LandingPage::where('id',$invoice->landing_page)->first();
+            if($landing_page->intake_form && $invoice){
+                $intake_form = \App\Models\Intakeform::where('id', $landing_page->intake_form)
+                    ->where('form_fields', '<>', '')
+                    ->first();
+                
+                if($intake_form){
+                    return redirect()->route('intakeform', [
+                        'id' => $invoice->landing_page,
+                        'invoice' => $invoice->invoice_no
+                    ]);                                    
+                }
+            }
+        }
+        
         return view('c_main.c_pages.c_invoice.c_show', compact('invoice', 'services', 'users', 'teamMembers', 'main_data'));
     }
 

@@ -264,6 +264,7 @@
       }
 
       // Creating Service Selection Block
+      /*
       createBlock(
           'select-services-dropdown',
           'fa-solid fa-caret-down',
@@ -281,6 +282,7 @@
             </div>
           `
       );
+      */
 
       // Client Section
       ['name', 'email', 'password', 'address', 'phone', 'email-optin'].forEach((field) => {
@@ -475,6 +477,7 @@
       );
 
       // Add "Captcha" block
+      /*
       createUtilityBlock(
         'captcha',
         'bi bi-shield-lock',
@@ -485,6 +488,7 @@
           </div>
         `
       );
+      */
 
       // Function to add blocks under "Others" category
     const addOthersBlock = (id, icon, label, content) => {

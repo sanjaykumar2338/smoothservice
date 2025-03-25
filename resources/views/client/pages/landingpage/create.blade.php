@@ -115,6 +115,16 @@
                             <input type="text" class="form-control" id="title" name="title" placeholder="Enter title" required>
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label" for="intake-form">Intake Form</label>
+                            <select class="form-control" id="intake_form" name="intake_form">
+                                <option value="">Select</option>
+                                @foreach($intake_form as $form)
+                                    <option value="{{$form->id}}">{{$form->form_name}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <!-- Description -->
                         <div class="mb-3" style="display:none;">
                             <label class="form-label" for="description">Description</label>

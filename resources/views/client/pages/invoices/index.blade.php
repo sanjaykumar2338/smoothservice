@@ -59,6 +59,7 @@
                         <th>Client</th>
                         <th>Total</th>
                         <th>Due Date</th>
+                        <th>Intake Form Feedback</th>
                         @if(checkPermission('add_edit_delete_invoice'))
                             <th>Actions</th>
                         @endif
@@ -67,14 +68,35 @@
                 <tbody class="table-border-bottom-0">
                     @if($invoices->count() > 0)
                         @foreach($invoices as $invoice)
-                        <tr class="clickable-row" data-href="{{ route('invoices.show', $invoice->id) }}">
+                        <tr>
                             <th scope="row">{{ $invoice->id }}</th>
                             <td>{{ $invoice->client->first_name }} {{ $invoice->client->last_name }}</td>
                             <td>{{$invoice->currency}} {{ $invoice->total }}</td>
                             <td>{{ $invoice->due_date }}</td>
+                            <td>
+                                @php
+                                    $feedback = \App\Models\FeedbackEntry::where('invoice_id', $invoice->id)->latest()->first();
+                                @endphp
+
+                                @if($feedback)
+
+                                <button
+                                    class="btn btn-sm btn-info"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#feedbackModal"
+                                    data-feedback='@json($feedback->form_data)'>
+                                    View Feedback
+                                </button>
+
+
+                                @else
+                                    <span class="text-muted">No Feedback</span>
+                                @endif
+                            </td>
                             @if(checkPermission('add_edit_delete_invoice'))
                             <td>
                                 <!-- Edit Button -->
+                                <a href="{{ route('invoices.show', $invoice->id) }}" class="btn btn-sm btn-primary">Details</a>
                                 <a href="{{ route('invoices.edit', $invoice->id) }}" class="btn btn-sm btn-primary">Edit</a>
                                 <a href="{{ route('invoices.deleteinvoice', $invoice->id) }}" onclick="return confirm('Are you sure?')" class="btn btn-sm btn-danger">Delete</a>
                             </td>
@@ -115,6 +137,45 @@
         </div>
     </div>
 </div>
+
+<div class="modal" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Feedback Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="feedbackBody">
+                <!-- Feedback data will be inserted here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const feedbackModal = document.getElementById('feedbackModal');
+        const feedbackBody = document.getElementById('feedbackBody');
+
+        // When modal is triggered
+        document.querySelectorAll('[data-feedback]').forEach(button => {
+            button.addEventListener('click', function () {
+                const feedback = JSON.parse(this.dataset.feedback);
+
+                let html = '';
+                feedback.forEach(item => {
+                    if (item.type === 'file') {
+                        html += `<p><strong>${item.name}:</strong><br><a href="${item.value}" target="_blank"><img src="${item.value}" width="100" /></a></p>`;
+                    } else {
+                        html += `<p><strong>${item.name}:</strong> ${item.value}</p>`;
+                    }
+                });
+
+                feedbackBody.innerHTML = html;
+            });
+        });
+    });
+</script>
 
 <script>
     // Add click event to each row to redirect to the show route
