@@ -143,7 +143,7 @@ Route::middleware([CheckWebOrTeam::class, DynamicSessionDomain::class])->group(f
     Route::get('/service/intakeform/{id}/edit', [IntakeformController::class, 'edit'])->name('service.intakeform.edit');
     Route::delete('/service/intakeform/{id}', [IntakeformController::class, 'destroy'])->name('intakeform.destroy');
     Route::post('/service/intakeform/store', [IntakeformController::class, 'store'])->name('intakeform.store');
-    Route::post('/service/intakeform/update_intake', [IntakeFormController::class, 'update_intake'])->name('service.intakeform.update_intake')->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+    Route::post('/service/intakeform/update_intake', [IntakeFormController::class, 'update_intake'])->name('service.intakeform.update_intake')->withoutMiddleware([\App\Http\Middleware\SkipCsrfForIntakeForm::class]);
 
 
     // Team member routes
