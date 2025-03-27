@@ -276,7 +276,15 @@
             });
 
             if (error) {
-                document.getElementById('card-errors').textContent = error.message;
+                if (error.message === "Billing address is required for export transactions.") {
+                    document.getElementById('card-errors').innerHTML = `
+                        ${error.message}. 
+                        <br><a href='{{ route("portal.profile") }}' class="btn btn-sm btn-warning mt-2">Update Billing Address</a>
+                    `;
+                } else {
+                    document.getElementById('card-errors').textContent = error.message;
+                }
+
                 button.disabled = false;
                 button.innerHTML = 'Pay Now and Recurring';
                 return;
@@ -302,7 +310,15 @@
                 // Handle 3D Secure authentication
                 const { error: confirmError } = await stripe.confirmCardPayment(result.client_secret);
                 if (confirmError) {
-                    document.getElementById('card-errors').textContent = confirmError.message;
+                    if (confirmError.message === "Billing address is required for export transactions.") {
+                        document.getElementById('card-errors').innerHTML = `
+                            ${confirmError.message}. 
+                            <br><a href='{{ route("portal.profile") }}' class="btn btn-sm btn-warning mt-2">Update Billing Address</a>
+                        `;
+                    } else {
+                        document.getElementById('card-errors').textContent = confirmError.message;
+                    }
+
                     button.disabled = false;
                     button.innerHTML = 'Pay Now and Recurring';
                     return;
@@ -392,7 +408,16 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             if (error) {
-                document.getElementById('card-errors').textContent = error.message;
+
+                if (error.message === "Billing address is required for export transactions.") {
+                    document.getElementById('card-errors').innerHTML = `
+                        ${error.message}. 
+                        <br><a href='{{ route("portal.profile") }}' class="btn btn-sm btn-warning mt-2">Update Billing Address</a>
+                    `;
+                } else {
+                    document.getElementById('card-errors').textContent = error.message;
+                }
+
                 button.disabled = false;
                 button.innerHTML = 'Pay Now';
                 return;
@@ -415,7 +440,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log(confirmError,'confirmError',error);
 
                 if (confirmError) {
-                    document.getElementById('card-errors').textContent = confirmError.message;
+                    if (confirmError.message === "Billing address is required for export transactions.") {
+                        document.getElementById('card-errors').innerHTML = `
+                            ${confirmError.message}. 
+                            <br><a href='{{ route("portal.profile") }}' class="btn btn-sm btn-warning mt-2">Update Billing Address</a>
+                        `;
+                    } else {
+                        document.getElementById('card-errors').textContent = confirmError.message;
+                    }
+                    
                     button.disabled = false;
                     button.innerHTML = 'Pay Now';
                     return;
