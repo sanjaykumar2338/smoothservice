@@ -227,6 +227,11 @@ class ClientController extends Controller
             'password' => 'nullable|string|min:8',
             'phoneNumber' => 'nullable|string|max:15',
             'profile_image' => 'nullable|image|max:800', // Validate image size (max 800KB)
+            'billing_address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:20',
+            'country' => 'nullable|string|max:100',
         ]);
 
         // Update the user's basic information
@@ -259,6 +264,12 @@ class ClientController extends Controller
             $request->file('profile_image')->move(public_path('images/profile'), $fileName);
             $user->profile_image = '/images/profile/' . $fileName;
         }
+
+        $user->billing_address = $request->input('billing_address');
+        $user->city = $request->input('city');
+        $user->state = $request->input('state');
+        $user->postal_code = $request->input('postal_code');
+        $user->country = $request->input('country');
 
         // Save user details
         $user->save();

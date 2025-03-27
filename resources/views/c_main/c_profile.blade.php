@@ -130,6 +130,38 @@
                         </label>
                      </div>
                   </div>
+
+                <hr class="my-4">
+                <h6>Billing Information</h6>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="billing_address" class="form-label">Billing Address</label>
+                        <input type="text" class="form-control" name="billing_address" value="{{ getAuthenticatedUser()->billing_address }}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="city" class="form-label">City</label>
+                        <input type="text" class="form-control" name="city" value="{{ getAuthenticatedUser()->city }}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="state" class="form-label">State</label>
+                        <input type="text" class="form-control" name="state" value="{{ getAuthenticatedUser()->state }}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="postal_code" class="form-label">Postal Code</label>
+                        <input type="text" class="form-control" name="postal_code" value="{{ getAuthenticatedUser()->postal_code }}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="country" class="form-label">Country</label>
+                        <input type="text" class="form-control" name="country" value="{{ getAuthenticatedUser()->country }}">
+                    </div>
+                </div>
+
+
                   <!-- Submit and Reset Buttons -->
                   <div class="mt-2">
                      <button type="submit" class="btn btn-primary me-2">Save changes</button>
