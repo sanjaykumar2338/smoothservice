@@ -458,7 +458,16 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (result.success) {
                 window.location.href = '{{ route("portal.invoices.show", $invoice->id) }}';
             } else {
-                document.getElementById('card-errors').textContent = result.message || 'Payment failed.';
+                if (result.message === "Billing address is required for export transactions.") {
+                    document.getElementById('card-errors').innerHTML = `
+                        ${result.message}. 
+                        <br><a href='{{ route("portal.profile") }}' class="btn btn-sm btn-warning mt-2">Update Billing Address</a>
+                    `;
+                } else {
+                    document.getElementById('card-errors').textContent = result.message || 'Payment failed.';
+                }
+                
+                //document.getElementById('card-errors').textContent = result.message || 'Payment failed.';
                 button.disabled = false;
                 button.innerHTML = 'Pay Now';
             }
