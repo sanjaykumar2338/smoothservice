@@ -228,7 +228,7 @@
         @endif
 
 
-        <br><a href='{{ route("portal.profile") }}' target="_blank" class="btn btn-primary mt-4 w-100">Update Billing Address</a>
+        <br><a href='{{ route("portal.profile") }}' target="_blank" class="btn btn-primary">Update Billing Address</a>
 
     </div>
 </div>
