@@ -200,7 +200,7 @@
                     <label for="card-element" class="form-label">Enter your card details</label>
                     <div id="card-element" class="form-control"></div>
                     <div id="card-errors" role="alert" class="text-danger mt-2"></div>
-                    <br><a href='{{ route("portal.profile") }}' class="btn btn-sm btn-warning mt-2">Update Billing Address</a>
+                    <br><a href='{{ route("portal.profile") }}' target="_blank" class="btn btn-sm btn-warning mt-2">Update Billing Address</a>
                 </div>
                 @if($trial_amount)      
                     <button class="btn btn-primary mt-4 w-100" id="recurring-submit-button" type="button">
@@ -221,7 +221,7 @@
                     <label for="card-element" class="form-label">Enter your card details</label>
                     <div id="card-element-2" class="form-control"></div>
                     <div id="card-errors" role="alert" class="text-danger mt-2"></div>
-                    <br><a href='{{ route("portal.profile") }}' class="btn btn-sm btn-warning mt-2">Update Billing Address</a>
+                    <br><a href='{{ route("portal.profile") }}' target="_blank" class="btn btn-primary mt-4 w-100">Update Billing Address</a>
                 </div>
                 <button class="btn btn-primary mt-4 w-100" id="checkout-button" type="button">
                     <i class="fas fa-lock"></i> Pay ${{ number_format($total - $invoice->upfront_payment_amount, 2) }}
