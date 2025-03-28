@@ -44,6 +44,7 @@ class IntegrationsController extends Controller
     // Redirect user to Stripe for account connection
     public function redirectToStripe(Request $request)
     {
+        echo url('/'); die;
         echo $request->headers->get('referer'); die;
         $originalUrl = $request->headers->get('referer') ?? url('/');
 
