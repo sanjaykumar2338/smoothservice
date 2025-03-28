@@ -44,17 +44,15 @@ class IntegrationsController extends Controller
     // Redirect user to Stripe for account connection
     public function redirectToStripe(Request $request)
     {
-        $originalUrl = url('/');
-
-        // Save original referring domain or fallback URL in the state param
-        $state = base64_encode($originalUrl);
+        // Optional: capture referring domain in `state` if needed
+        $state = base64_encode($request->headers->get('referer') ?? url('/'));
 
         $url = "https://connect.stripe.com/oauth/v2/authorize?" . http_build_query([
             'response_type' => 'code',
             'client_id' => env('STRIPE_CLIENT'),
             'scope' => 'read_write',
-            'redirect_uri' => 'https://smoothservice.net/stripe/callback', // must match exactly
-            'state' => $state
+            'redirect_uri' => 'https://smoothservice.net/stripe/callback', // MUST MATCH Stripe Dashboard
+            'state' => $state,
         ]);
 
         return redirect($url);
@@ -66,35 +64,28 @@ class IntegrationsController extends Controller
         if ($request->has('error')) {
             return redirect()->route('integrations')->with('error', 'Stripe connection failed.');
         }
-
+    
         $code = $request->get('code');
         $state = $request->get('state');
-
-        echo base64_decode($state); die;
-
+        $redirectBack = $state ? base64_decode($state) . '/integrations' : route('integrations');
+    
         try {
             $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET'));
-
+    
             $response = $stripe->oauth->token([
                 'grant_type' => 'authorization_code',
                 'code' => $code,
             ]);
-
+    
             $user = Auth::user();
             $user->stripe_connect_account_id = $response['stripe_user_id'];
             $user->save();
-
-            // Redirect to original subdomain with /integrations path
-            $redirectBack = $state
-                ? rtrim(base64_decode($state), '/') . '/integrations'
-                : route('integrations');
-
-            return redirect()->to($redirectBack)->with('success', 'Stripe account connected successfully.');
-
+    
+            return redirect($redirectBack)->with('success', 'Stripe account connected successfully.');
         } catch (\Exception $e) {
-            return redirect()->route('integrations')->with('error', 'Failed to connect Stripe: ' . $e->getMessage());
+            return redirect($redirectBack)->with('error', 'Failed to connect Stripe: ' . $e->getMessage());
         }
-    }
+    }    
 
     public function disconnect(Request $request)
     {
