@@ -342,7 +342,7 @@ class MainClientController extends Controller
         if($invoice->landing_page_open==0){
             Invoice::where('id', $invoice->id)->update(['landing_page_open'=>1]);
             $landing_page = \App\Models\LandingPage::where('id',$invoice->landing_page)->first();
-            if($landing_page->intake_form && $invoice){
+            if (isset($landing_page->intake_form) && $invoice) {
                 $intake_form = \App\Models\Intakeform::where('id', $landing_page->intake_form)
                     ->where('form_fields', '<>', '')
                     ->first();

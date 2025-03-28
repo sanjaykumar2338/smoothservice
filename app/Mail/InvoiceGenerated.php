@@ -29,7 +29,8 @@ class InvoiceGenerated extends Mailable
      */
     public function build()
     {
-        return $this->subject('Invoice Generated: ' . $this->invoice->invoice_no)
+        return $this->from(config('mail.from.address'), $this->companyName)
+                    ->subject('Invoice Generated: ' . $this->invoice->invoice_no)
                     ->view('emails.invoice_generated');
     }
 }

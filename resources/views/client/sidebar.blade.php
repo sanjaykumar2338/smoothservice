@@ -45,9 +45,9 @@
                data-collapsed-src="{{ $favicon_exists ? asset('storage/' . $company_settings->favicon) : '' }}" 
                class="sidebar-logo" alt="Sidebar Logo" id="sidebarLogo">
          @elseif($company_settings && $company_settings->company_name)
-            <span class="app-brand-text demo menu-text fs-4">{{ $company_settings->company_name }}</span>
+            <span class="app-brand-text demo fs-4">{{ $company_settings->company_name }}</span>
          @else
-            <span class="app-brand-text demo menu-text fs-4">{{ env('APP_NAME') }}</span>
+            <span class="app-brand-text demo fs-4">{{ env('APP_NAME') }}</span>
          @endif
       </a>
 
