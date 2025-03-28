@@ -44,9 +44,7 @@ class IntegrationsController extends Controller
     // Redirect user to Stripe for account connection
     public function redirectToStripe(Request $request)
     {
-        echo url('/'); die;
-        echo $request->headers->get('referer'); die;
-        $originalUrl = $request->headers->get('referer') ?? url('/');
+        $originalUrl = url('/');
 
         // Save original referring domain or fallback URL in the state param
         $state = base64_encode($originalUrl);
@@ -70,25 +68,27 @@ class IntegrationsController extends Controller
         }
 
         $code = $request->get('code');
-        $state = $request->get('state'); // Encoded original domain (if sent)
+        $state = $request->get('state');
 
         try {
             $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET'));
 
-            // Exchange the authorization code for an access token
             $response = $stripe->oauth->token([
                 'grant_type' => 'authorization_code',
                 'code' => $code,
             ]);
 
-            // Save the user's Stripe account ID
             $user = Auth::user();
             $user->stripe_connect_account_id = $response['stripe_user_id'];
             $user->save();
 
-            $redirectBack = $state ? base64_decode($state) : route('integrations');
+            // Redirect to original subdomain with /integrations path
+            $redirectBack = $state
+                ? rtrim(base64_decode($state), '/') . '/integrations'
+                : route('integrations');
 
             return redirect()->to($redirectBack)->with('success', 'Stripe account connected successfully.');
+
         } catch (\Exception $e) {
             return redirect()->route('integrations')->with('error', 'Failed to connect Stripe: ' . $e->getMessage());
         }
