@@ -61,6 +61,7 @@ class IntegrationsController extends Controller
     // Handle callback from Stripe
     public function handleCallback(Request $request)
     {
+        echo "ggggg"; die;
         if ($request->has('error')) {
             return redirect()->route('integrations')->with('error', 'Stripe connection failed.');
         }
