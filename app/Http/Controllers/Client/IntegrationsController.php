@@ -70,6 +70,8 @@ class IntegrationsController extends Controller
         $code = $request->get('code');
         $state = $request->get('state');
 
+        echo base64_decode($state); die;
+
         try {
             $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET'));
 
