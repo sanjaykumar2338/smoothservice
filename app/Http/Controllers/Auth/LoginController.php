@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\InvoiceSubscription;
 use App\Models\Client;
+use App\Models\Admin;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Session;
@@ -299,6 +300,27 @@ class LoginController extends Controller
             \Session::forget('admin_id');
 
             return redirect()->route('dashboard')->with('success', 'You are now back as admin.');
+        }
+
+        return redirect()->route('login')->with('error', 'No admin session found.');
+    }
+
+    public function switchBackToMainAdmin()
+    {
+        // Check if the admin ID is stored in the session
+        if (Session::has('admin_main_id')) {
+            $adminId = Session::get('admin_main_id');
+            
+            // Log out the current client
+            $user = Admin::find($adminId);
+            
+            // Log back in as the user
+            Auth::guard('admin')->login($user);
+
+            // Forget the admin_id session
+            \Session::forget('admin_main_id');
+
+            return redirect()->route('admin.dashboard')->with('success', 'You are now back as admin.');
         }
 
         return redirect()->route('login')->with('error', 'No admin session found.');

@@ -26,6 +26,7 @@ use App\Http\Controllers\Client\LandingPageController;
 
 use App\Http\Middleware\CheckWebOrTeam;
 use App\Http\Middleware\CheckSubdomain;
+use App\Http\Middleware\AdminAuthMiddleware;
 use App\Http\Middleware\DynamicSessionDomain;
 use App\Http\Middleware\ClientMiddleware;
 use App\Http\Middleware\CheckTeamMembers;
@@ -52,6 +53,7 @@ Route::middleware([CheckSubdomain::class, DynamicSessionDomain::class])->group(f
     Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     Route::get('/switch-back', [LoginController::class, 'switchBackToAdmin'])->name('switch_back');
+    Route::get('/switch-back-admin', [LoginController::class, 'switchBackToMainAdmin'])->name('switch_back_admin');
 });
 
 Route::post('/services-summary', function (Request $request) {
@@ -72,6 +74,35 @@ Route::post('order/landingpage', [App\Http\Controllers\HomeController::class, 'l
 Route::get('order/landingpage/payment/{id}', [App\Http\Controllers\HomeController::class, 'landingpagepayment'])->name('landingpagepayment');
 Route::get('order/landingpage/intakeform/{id}/{invoice}', [App\Http\Controllers\HomeController::class, 'intakeform'])->name('intakeform');
 Route::post('order/landingpage/feedback', [App\Http\Controllers\HomeController::class, 'storeFeedback'])->name('storeFeedback');
+
+Route::prefix('admin')->group(function () {
+    Route::get('/', [App\Http\Controllers\Admin\AdminController::class, 'index'])->name('admin.index');
+    Route::post('login', [App\Http\Controllers\Admin\AdminController::class, 'login'])->name('admin.login');
+
+    Route::middleware([AdminAuthMiddleware::class])->group(function () {
+        Route::get('/dashboard', [App\Http\Controllers\Admin\AdminDashboardController::class, 'dashboard'])->name('admin.dashboard');
+        Route::get('/orders', [App\Http\Controllers\Admin\AdminDashboardController::class, 'orders'])->name('admin.orders');
+        Route::get('/order/show/{id}', [App\Http\Controllers\Admin\AdminDashboardController::class, 'ordersshow'])->name('admin.order.show');
+        Route::get('/users', [App\Http\Controllers\Admin\AdminDashboardController::class, 'usersall'])->name('admin.users');
+        Route::get('/sign_in_as_user/{id}', [App\Http\Controllers\Admin\AdminDashboardController::class, 'sign_in_as_user'])->name('admin.sign_in_as_user');
+
+        Route::get('/logout', [App\Http\Controllers\Admin\AdminDashboardController::class, 'logout'])->name('admin.logout');
+    });
+});
+
+Route::get('/create-admin-user', function () {
+    return;
+    DB::table('admin_users')->insert([
+        'name' => 'Admin User',
+        'email' => 'admin@gmail.com',
+        'password' => Hash::make('8@XVyEayI&J'), // Secure hash
+        'is_super_admin' => true,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return 'Admin user created successfully!';
+});
 
 Route::prefix('portal')->middleware([ClientMiddleware::class, DynamicSessionDomain::class])->group(function () {
     Route::get('dashboard', [MainClientController::class, 'dashboard'])->name('portal.dashboard');

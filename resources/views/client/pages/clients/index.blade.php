@@ -99,12 +99,12 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="dropdown-item" onclick="return confirm('Are you sure?')" style="display: block;
-    padding: 3px 20px;
-    clear: both;
-    font-weight: 400;
-    line-height: 1.42857143;
-    color: #333;
-    white-space: nowrap;">Delete</button>
+                                                        padding: 3px 20px;
+                                                        clear: both;
+                                                        font-weight: 400;
+                                                        line-height: 1.42857143;
+                                                        color: #333;
+                                                        white-space: nowrap;">Delete</button>
                                                 </form>
                                             </li>
                                         @endif

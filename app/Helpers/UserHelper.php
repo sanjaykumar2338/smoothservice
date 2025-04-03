@@ -58,6 +58,10 @@ if (!function_exists('getUserID')) {
             return auth()->guard('client')->user()->id;
         }
 
+        if (auth()->guard('admin')->check()) {
+            return auth()->guard('admin')->user()->id;
+        }
+
         // If no user is authenticated or no permission is available, return false
         return false;
     }
