@@ -268,7 +268,7 @@
                sidebarLogo.style.width = "32px";
          } else {
                // Switch back to the sidebar logo when expanded
-               //sidebarLogo.src = "{{ asset('storage/' . $company_settings->sidebar_logo) }}";
+               // sidebarLogo.src = "{{ asset('storage/' . $company_settings->sidebar_logo) }}";
                sidebarLogo.src = "{{ $company_settings ? asset('storage/' . $company_settings->sidebar_logo) : asset('default-logo.png') }}";
 
                sidebarLogo.style.height = "54%"; // Reset to default size
