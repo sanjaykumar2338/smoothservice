@@ -323,7 +323,7 @@ class LoginController extends Controller
             return redirect()->route('admin.dashboard')->with('success', 'You are now back as admin.');
         }
 
-        return redirect()->route('login')->with('error', 'No admin session found.');
+        return redirect()->route('admin.index')->with('error', 'No admin session found.');
     }
 
     public function handleWebhook(Request $request)
