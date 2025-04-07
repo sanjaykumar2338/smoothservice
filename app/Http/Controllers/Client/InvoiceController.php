@@ -20,7 +20,6 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-
         $invoices = Invoice::with('client', 'service')
             ->when($search, function ($query, $search) {
                 return $query->whereHas('client', function ($q) use ($search) {

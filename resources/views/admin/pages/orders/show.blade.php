@@ -35,24 +35,6 @@
       </div>
       <div class="col-md-6 d-flex justify-content-end">
          <ul class="nav nav-pills flex-sm-row mb-4">
-            <li class="nav-item dropdown">
-               <a class="nav-link active dropdown-toggle" style="background-color: {{ $orderStatus?->color ?? 'defaultColor' }}" href="javascript:void(0);" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-               <span id="selectedStatus">{{ $orderStatus?->name ?: 'Select Status' }}</span>
-               </a>
-               <ul class="dropdown-menu" aria-labelledby="profileDropdown">
-                  @foreach($orderstatus as $status)
-                  <li>
-                     <a class="dropdown-item" href="javascript:void(0);" 
-                        onclick="changeStatus('{{ $status->id }}', '{{ $status->name }}', '{{ $status->color }}')">{{ $status->name }}</a>
-                  </li>
-                  @endforeach
-               </ul>
-            </li>
-            <li class="nav-item">
-               <a class="nav-link {{ $order->notification == 0 ? 'cross-overlay' : '' }}" href="javascript:void(0);" id="notification-icon" onclick="toggleIcon()">
-               <i class="bx bx-bell me-1" id="icon"></i>
-               </a>
-            </li>
             <li class="nav-item">
                <div class="dropdown" style="padding-top: 6px;">
                   <button

@@ -84,8 +84,14 @@ Route::prefix('admin')->group(function () {
         Route::get('/orders', [App\Http\Controllers\Admin\AdminDashboardController::class, 'orders'])->name('admin.orders');
         Route::get('/order/show/{id}', [App\Http\Controllers\Admin\AdminDashboardController::class, 'ordersshow'])->name('admin.order.show');
         Route::get('/users', [App\Http\Controllers\Admin\AdminDashboardController::class, 'usersall'])->name('admin.users');
+        Route::get('/tickets', [App\Http\Controllers\Admin\AdminDashboardController::class, 'ticketsall'])->name('admin.tickets');
+        Route::get('/ticketshow/{id}', [App\Http\Controllers\Admin\AdminDashboardController::class, 'ticketshow'])->name('admin.ticketshow');
+        Route::get('/invoices', [App\Http\Controllers\Admin\AdminDashboardController::class, 'invoices'])->name('admin.invoices');
+        Route::get('/invoice/show/{id}', [App\Http\Controllers\Admin\AdminDashboardController::class, 'invoiceshow'])->name('admin.invoiceshow');
+        Route::get('subscriptions', [App\Http\Controllers\Admin\AdminDashboardController::class, 'subscriptions'])->name('admin.subscriptions');
+        Route::get('subscription/{id}', [App\Http\Controllers\Admin\AdminDashboardController::class, 'subscriptionshow'])->name('admin.subscriptionshow');
+        
         Route::get('/sign_in_as_user/{id}', [App\Http\Controllers\Admin\AdminDashboardController::class, 'sign_in_as_user'])->name('admin.sign_in_as_user');
-
         Route::get('/logout', [App\Http\Controllers\Admin\AdminDashboardController::class, 'logout'])->name('admin.logout');
     });
 });

@@ -64,24 +64,20 @@
          </a>
       </li>
       <!-- Tickets -->
-      <li class="menu-item @php echo in_array(request()->route()->getName(), ['portal.tickets','portal.tickets.show','portal.tickets.create']) ? 'open active' : ''@endphp">
-          <a href="{{ route('portal.tickets') }}" class="menu-link">
+      <li class="menu-item @php echo in_array(request()->route()->getName(), ['admin.tickets','admin.ticketshow']) ? 'open active' : ''@endphp">
+          <a href="{{ route('admin.tickets') }}" class="menu-link">
               <i class='menu-icon tf-icons bx bx-clipboard'></i>
               <div data-i18n="Tickets">Tickets</div>
           </a>
       </li>
-      <!-- billing -->
-      <li class="menu-header small text-uppercase">
-         <span class="menu-header-text" data-i18n="Billing">Billing</span>
-      </li>
-      <li class="menu-item {{ request()->routeIs(['portal.invoices','portal.invoices.show','portal.invoice.payment']) ? 'active' : '' }}">
-         <a href="{{ route('portal.invoices') }}" class="menu-link">
+      <li class="menu-item {{ request()->routeIs(['admin.invoices','admin.invoiceshow']) ? 'active' : '' }}">
+         <a href="{{ route('admin.invoices') }}" class="menu-link">
             <i class="menu-icon tf-icons bx bx-receipt"></i> <!-- Invoice icon -->
             <div data-i18n="Invoices">Invoices</div>
          </a>
       </li>
-      <li class="menu-item {{ request()->routeIs(['portal.invoice.subscription']) ? 'active' : '' }}">
-         <a href="{{ route('portal.invoice.subscription') }}" class="menu-link">
+      <li class="menu-item {{ request()->routeIs(['admin.subscriptions','admin.subscriptionshow']) ? 'active' : '' }}">
+         <a href="{{ route('admin.subscriptions') }}" class="menu-link">
             <i class="menu-icon tf-icons bx bx-book"></i> <!-- Subscription icon, you can replace it if needed -->
             <div data-i18n="Subscriptions">Subscriptions</div>
          </a>
