@@ -152,7 +152,7 @@ class AdminDashboardController extends Controller
 
     public function subscriptions(Request $request){
         $search = $request->input('search');
-        $subscriptions = Invoice::with('client', 'service')
+        $subscriptions = Subscription::with('client', 'service')
             ->when($search, function ($query, $search) {
                 return $query->whereHas('client', function ($q) use ($search) {
                     $q->where('first_name', 'like', "%{$search}%")
