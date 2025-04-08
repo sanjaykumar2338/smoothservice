@@ -25,6 +25,7 @@ use App\Models\ClientReply;
 use App\Models\OrderProjectData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AdminDashboardController extends Controller
 {
@@ -150,6 +151,18 @@ class AdminDashboardController extends Controller
         return view('admin.pages.invoices.show', compact('invoice', 'services', 'users', 'teamMembers'));
     }
 
+    public function downloadInvoice($id)
+    {
+        // Retrieve the invoice and related data
+        $invoice = Invoice::with('client', 'items')->findOrFail($id);
+
+        // Generate the PDF using the view
+        $pdf = PDF::loadView('client.pages.invoices.pdf', compact('invoice'));
+
+        // Download the PDF
+        return $pdf->download('invoice_' . $invoice->id . '.pdf');
+    }
+
     public function subscriptions(Request $request){
         $search = $request->input('search');
         $subscriptions = Subscription::with('client', 'service')
@@ -163,6 +176,18 @@ class AdminDashboardController extends Controller
             })->paginate(10);
 
         return view('admin.pages.subscriptions.index', compact('subscriptions', 'search'));
+    }
+
+    public function downloadSubscription($id)
+    {
+        // Retrieve the subscription and related data
+        $subscription = Subscription::with('client', 'items')->findOrFail($id);
+
+        // Generate the PDF using the view
+        $pdf = PDF::loadView('client.pages.subscriptions.pdf', compact('subscription'));
+
+        // Download the PDF
+        return $pdf->download('subscription_' . $subscription->id . '.pdf');
     }
 
     public function subscriptionshow($id)

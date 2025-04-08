@@ -44,8 +44,8 @@
                     <h5>Invoice #{{ $invoice->invoice_no }}</h5>
                 </div>
                 <div class="d-flex align-items-center">
-                    <button class="btn btn-danger me-2" onclick="window.location.href='{{ route('invoices.download', $invoice->id) }}'">Download</button>
-                    <div class="dropdown">
+                    <button class="btn btn-danger me-2" onclick="window.location.href='{{ route('admin.invoices.download', $invoice->id) }}'">Download</button>
+                    <div class="dropdown hidden">
                         <button
                             type="button"
                             class="btn dropdown-toggle hide-arrow p-0"
