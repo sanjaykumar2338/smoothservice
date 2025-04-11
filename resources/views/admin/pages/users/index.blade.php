@@ -53,7 +53,7 @@
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>{{ $user->created_at->format('M d, Y') }}</td>
-                            <td >
+                            <td>
                                 <div class="dropdown" style="display: inline;">
                                     <button class="btn btn-sm btn-light p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bx bx-dots-vertical-rounded"></i>
@@ -61,6 +61,15 @@
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li>
                                             <a class="dropdown-item" href="{{ route('admin.sign_in_as_user', $user->id) }}">Sign in as user</a>
+                                        </li>
+                                        <li>
+                                            <form action="{{ route('admin.toggle_user_status', $user->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to {{ $user->is_disabled ? 'enable' : 'disable' }} this user?');">
+                                                @csrf
+                                                @method('PUT')
+                                                <button type="submit" class="dropdown-item" style="padding-left: 20px;">
+                                                    {{ $user->is_disabled ? 'Enable User' : 'Disable User' }}
+                                                </button>
+                                            </form>
                                         </li>
                                     </ul>
                                 </div>

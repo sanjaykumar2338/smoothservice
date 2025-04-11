@@ -190,6 +190,15 @@ class AdminDashboardController extends Controller
         return $pdf->download('subscription_' . $subscription->id . '.pdf');
     }
 
+    public function toggleUserStatus($id)
+    {
+        $user = User::findOrFail($id);
+        $user->is_disabled = !$user->is_disabled;
+        $user->save();
+
+        return back()->with('success', 'User status updated successfully.');
+    }
+
     public function subscriptionshow($id)
     {
         // Fetch all users and team members added by the current logged-in user

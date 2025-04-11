@@ -92,6 +92,7 @@ Route::prefix('admin')->group(function () {
         Route::get('subscription/{id}', [App\Http\Controllers\Admin\AdminDashboardController::class, 'subscriptionshow'])->name('admin.subscriptionshow');
         Route::get('invoices/{id}/download', [App\Http\Controllers\Admin\AdminDashboardController::class, 'downloadInvoice'])->name('admin.invoices.download');
         Route::get('subscriptions/{id}/download', [App\Http\Controllers\Admin\AdminDashboardController::class, 'downloadSubscription'])->name('admin.subscriptions.download');
+        Route::put('/users/{id}/toggle', [App\Http\Controllers\Admin\AdminDashboardController::class, 'toggleUserStatus'])->name('admin.toggle_user_status');
 
         Route::get('/sign_in_as_user/{id}', [App\Http\Controllers\Admin\AdminDashboardController::class, 'sign_in_as_user'])->name('admin.sign_in_as_user');
         Route::get('/logout', [App\Http\Controllers\Admin\AdminDashboardController::class, 'logout'])->name('admin.logout');

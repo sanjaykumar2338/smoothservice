@@ -168,6 +168,14 @@ class LoginController extends Controller
 
         // Attempt login for web users
         if (Auth::guard('web')->attempt($credentials, 1)) {
+
+            $user = Auth::guard('web')->user();
+            if ($user->is_disabled) {
+                Auth::guard('web')->logout(); // Log them out immediately
+                return redirect()->back()->withErrors([
+                    'email' => 'Your account has been disabled. Please contact support.',
+                ]);
+            }
             
             $workspace = Auth::guard('web')->user()->workspace;
             $request->session()->regenerate();
