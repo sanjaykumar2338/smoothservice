@@ -247,7 +247,7 @@ Route::middleware([CheckWebOrTeam::class, DynamicSessionDomain::class])->group(f
     Route::delete('/orderstatuses/delete/{id}', [SettingController::class, 'destroy'])->name('setting.orderstatuses.delete');
 
      // ticket statuses routes
-     Route::get('/ticketstatuses/list', [TicketStatusController::class, 'index'])->name('setting.ticketstatuses.list');
+    Route::get('/ticketstatuses/list', [TicketStatusController::class, 'index'])->name('setting.ticketstatuses.list');
     Route::get('/ticketstatuses/create', [TicketStatusController::class, 'create'])->name('setting.ticketstatuses.create');
     Route::post('/ticketstatuses/store', [TicketStatusController::class, 'store'])->name('setting.ticketstatuses.store');
     Route::get('/ticketstatuses/edit/{id}', [TicketStatusController::class, 'edit'])->name('setting.ticketstatuses.edit');
@@ -262,6 +262,10 @@ Route::middleware([CheckWebOrTeam::class, DynamicSessionDomain::class])->group(f
     Route::get('/tags/edit/{id}', [TagController::class, 'edit'])->name('tags.edit');
     Route::put('/tags/update/{id}', [TagController::class, 'update'])->name('tags.update');
     Route::delete('/tags/delete/{id}', [TagController::class, 'destroy'])->name('tags.delete');
+    
+    //Notifications list
+    Route::get('/notifications/list', [OrderController::class, 'notifications'])->name('notifications.list');
+    Route::delete('/notifications/{id}', [OrderController::class, 'destroynotification'])->name('notifications.destroy');
 
     //Ticket tags routes
     Route::get('/tickettags/list', [TicketTagController::class, 'index'])->name('tickettags.list');

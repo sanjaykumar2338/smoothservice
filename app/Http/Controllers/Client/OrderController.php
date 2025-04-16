@@ -101,6 +101,20 @@ class OrderController extends Controller
         return view('client.pages.orders.show', compact('order','team_members','project_data','client_replies','orderHistory','orderstatus','orderStatus','tags','existingTags','existingTagsName','teamMembers'));
     }
 
+    public function notifications(){
+        $notifications = History::where('user_id', getUserID())
+            ->orderBy('created_at', 'desc')
+            ->paginate(10); // Adjust as needed
+
+        return view('client.pages.notifications.list', compact('notifications'));
+    }
+
+    public function destroynotification($id)
+    {
+        History::findOrFail($id)->delete();
+        return back()->with('success', 'Notification deleted successfully.');
+    }
+
     public function saveTeamMembers(Request $request)
     {
         $orderId = $request->input('order_id');

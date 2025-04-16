@@ -154,6 +154,26 @@ if (!function_exists('invoiceSummary')) {
     }
 }
 
+if (!function_exists('notifications')) {
+    function notifications($limit = null) {
+        $user_id = getUserID();
+
+        $query = \App\Models\History::where('user_id', $user_id)
+            ->orderBy('created_at', 'desc');
+
+        if ($limit !== null) {
+            $query->limit($limit);
+        } else {
+            return $query->paginate(20);
+        }
+
+        $history = $query->get();
+        return $history->groupBy(function ($item) {
+            return \Carbon\Carbon::parse($item->created_at)->format('Y-m-d');
+        });
+    }
+}
+
 if (!function_exists('servicesSummary')) {
     function servicesSummary(Request $request){
         $summary = [
