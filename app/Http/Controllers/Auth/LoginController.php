@@ -262,7 +262,8 @@ class LoginController extends Controller
         return view('auth.forget');
     }
 
-    public function create_account(Request $request){
+    public function create_account(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -271,8 +272,8 @@ class LoginController extends Controller
                 'required',
                 'string',
                 'max:255',
-                'alpha_dash', // Allows letters, numbers, dashes, and underscores
-                'unique:users,workspace', // Ensure it's unique across users
+                'alpha_dash',
+                'unique:users,workspace',
             ],
         ]);
 
@@ -284,12 +285,16 @@ class LoginController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'workspace' => $request->workspace
+            'workspace' => $request->workspace,
         ]);
 
         Auth::login($user);
 
-        return redirect()->intended(route('dashboard'));
+        // Get the session domain from the .env or fallback
+        $sessionDomain = ltrim(env('SESSION_DOMAIN')) !== '' ? env('SESSION_DOMAIN') : 'smoothservice.net';
+
+        // Redirect to the user's subdomain dashboard
+        return redirect("https://{$user->workspace}.{$sessionDomain}/dashboard");
     }
 
     public function switchBackToAdmin()
