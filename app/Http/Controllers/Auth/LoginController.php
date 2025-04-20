@@ -284,7 +284,7 @@ class LoginController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'workspace' => $data['workspace'], // Save workspace
+            'workspace' => $request->workspace
         ]);
 
         Auth::login($user);
