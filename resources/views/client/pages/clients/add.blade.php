@@ -89,13 +89,13 @@
                         <!-- Company -->
                         <div class="mb-3">
                             <label class="form-label" for="company">Company</label>
-                            <input type="text" class="form-control" id="company" name="company" value="{{ old('company') }}" placeholder="Enter Company" required />
+                            <input type="text" class="form-control" id="company" name="company" value="{{ old('company') }}" placeholder="Enter Company"/>
                         </div>
 
                         <!-- Tax ID -->
                         <div class="mb-3">
                             <label class="form-label" for="tax_id">Tax ID</label>
-                            <input type="text" class="form-control" id="tax_id" name="tax_id" value="{{ old('tax_id') }}" placeholder="Enter Tax ID" required />
+                            <input type="text" class="form-control" id="tax_id" name="tax_id" value="{{ old('tax_id') }}" placeholder="Enter Tax ID"/>
                         </div>
 
                         <!-- Billing Address -->
