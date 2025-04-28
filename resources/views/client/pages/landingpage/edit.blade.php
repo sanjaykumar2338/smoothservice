@@ -43,7 +43,7 @@
                             <input type="text" class="form-control" id="title" name="title" value="{{ old('title', $landingPage->title) }}" placeholder="Enter title" required>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-3" style="display:none;">
                             <label class="form-label" for="intake-form">Intake Form</label>
                             <select class="form-control" id="intake_form" name="intake_form">
                                 <option value="">Select</option>

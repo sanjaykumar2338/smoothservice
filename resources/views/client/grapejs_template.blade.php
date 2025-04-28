@@ -52,6 +52,8 @@
       rel="stylesheet"
     />
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+
     <meta name="csrf-token" content="{{ csrf_token() }}">
   </head>
 
@@ -59,6 +61,60 @@
 
   <body>
     @yield('content')
+    
+    <!-- Modal -->
+    <div class="modal fade" id="serviceDropdownModal" tabindex="-1" aria-labelledby="serviceDropdownModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content p-4 shadow-sm rounded">
+          <div class="modal-header border-bottom">
+            <h5 class="modal-title fw-bold">Edit Field</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Field Name</label>
+              <input type="text" id="fieldNameInput" class="form-control" placeholder="Select services">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Services</label>
+              <select id="serviceListModal" class="form-select" multiple></select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Default Text</label>
+              <input type="text" id="defaultTextInput" class="form-control" placeholder="Please select...">
+            </div>
+
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="requiredField">
+              <label class="form-check-label" for="requiredField">
+                Required field
+              </label>
+            </div>
+
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="allowMultipleSelections">
+              <label class="form-check-label" for="allowMultipleSelections">
+                Allow multiple selections
+              </label>
+            </div>
+
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="allowMultipleQuantities">
+              <label class="form-check-label" for="allowMultipleQuantities">
+                Allow multiple quantities
+              </label>
+            </div>
+          </div>
+
+          <div class="modal-footer border-top">
+            <button id="confirmServices" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </body>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -67,6 +123,7 @@
   <script src="https://unpkg.com/grapesjs-preset-webpage@1.0.2"></script>
   <script src="https://unpkg.com/grapesjs-plugin-forms@2.0.5"></script>
   <script src="https://unpkg.com/grapesjs-blocks-basic@1.0.1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 
   <script>
       // Initialize GrapesJS editor
@@ -168,6 +225,7 @@
 
       // Get services data from the Blade file
       const services = {!! isset($services) ? json_encode($services) : '[]' !!}; // Pass services safely to JS
+      //console.log(services,'services');
 
       // Create dynamic block content with passed services
       let servicesContent = `
@@ -224,11 +282,32 @@
       // Add block with dynamic content
       createBlock(
         'select-services',
-        'fa-solid fa-bars',
+        'fa-solid fa-th-large',
         'Service Options',
         { id: 'service-selection', label: 'Service Selection', open: true },
         servicesContent
       );
+
+      let dropdownCounter = 1; // Move this outside so it doesn't reset on every call
+      function createServiceDropdownBlock() {
+        const uniqueId = `serviceDropdownSelect-${dropdownCounter++}`;
+
+        createBlock(
+          `select-services-${uniqueId}`, // Also make block ID unique
+          'fa-solid fa-chevron-down',
+          'Service Dropdown',
+          { id: 'service-selection', label: 'Service Selection', open: true },
+          `
+            <div class="trigger-service-modal">
+              <select class="form-control mt-2" id="${uniqueId}">
+                <option value="">Select a service</option>
+              </select>
+            </div>
+          `
+        );
+      }
+
+      createServiceDropdownBlock();
 
       document.addEventListener('DOMContentLoaded', function () {
         const openBlocksButton = document.querySelector('.gjs-pn-btn.fa.fa-th-large');
@@ -639,5 +718,159 @@
       }
     });
 
+    let selectedComponent = null;
+    let choicesInstance = null; // Separate Choices instance
+
+    function initChoices(selectedTexts = []) {
+      const select = document.getElementById('serviceListModal');
+      select.innerHTML = ''; // Clear old options
+
+      services.forEach(service => {
+        const option = document.createElement('option');
+        option.value = service.id;
+        option.textContent = service.service_name;
+        if (selectedTexts.includes(service.service_name)) {
+          option.selected = true;
+        }
+        select.appendChild(option);
+      });
+
+      if (choicesInstance) {
+        choicesInstance.destroy();
+      }
+
+      choicesInstance = new Choices(select, {
+        removeItemButton: true,
+        shouldSort: false,
+      });
+    }
+
+    function openServiceModal(component, isNew = false) {
+      const modal = new bootstrap.Modal(document.getElementById('serviceDropdownModal'));
+
+      const fieldNameInput = document.getElementById('fieldNameInput');
+      const defaultTextInput = document.getElementById('defaultTextInput');
+      const requiredFieldCheckbox = document.getElementById('requiredField');
+      const allowMultipleSelectionsCheckbox = document.getElementById('allowMultipleSelections');
+      const allowMultipleQuantitiesCheckbox = document.getElementById('allowMultipleQuantities');
+
+      const attrs = component.get('attributes') || {};
+
+      fieldNameInput.value = attrs['data-field-name'] || '';
+      defaultTextInput.value = attrs['data-default-text'] || '';
+      requiredFieldCheckbox.checked = attrs['data-required'] === 'true';
+      allowMultipleSelectionsCheckbox.checked = attrs['data-allow-multiple'] === 'true';
+      allowMultipleQuantitiesCheckbox.checked = attrs['data-allow-quantities'] === 'true';
+
+      let selectedServices = [];
+
+      const el = component.getEl();
+      let selectEl = null;
+
+      if (el.tagName === 'SELECT' && el.id.startsWith('serviceDropdownSelect-')) {
+        selectEl = el;
+      } else if (el.querySelector) {
+        selectEl = el.querySelector('select[id^="serviceDropdownSelect-"]');
+      }
+
+      if (selectEl) {
+        selectedServices = Array.from(selectEl.options)
+          .filter(option => option.textContent.trim() !== '')
+          .map(option => option.textContent.trim());
+      }
+
+      setTimeout(() => {
+        initChoices(selectedServices);
+        modal.show();
+      }, 100);
+    }
+
+    // When a new component is added
+    editor.on('component:add', (component) => {
+      setTimeout(() => {
+        const el = component.getEl();
+        if (el && el.classList && el.classList.contains('trigger-service-modal')) {
+          selectedComponent = component;
+          openServiceModal(selectedComponent, true);
+        }
+      }, 500);
+    });
+
+    // When a component is selected
+    editor.on('component:selected', (component) => {
+      setTimeout(() => {
+        const el = component.getEl();
+        if (!el) return;
+
+        const isServiceDiv = el.classList.contains('trigger-service-modal');
+        const isServiceSelect = el.id && el.id.startsWith('serviceDropdownSelect-');
+
+        if (isServiceDiv || isServiceSelect) {
+          selectedComponent = component;
+          openServiceModal(selectedComponent, false);
+        }
+      }, 300);
+    });
+
+    // When confirm button clicked
+    // When confirm button clicked
+    document.getElementById('confirmServices')?.addEventListener('click', () => {
+      if (!selectedComponent) return;
+
+      const fieldName = document.getElementById('fieldNameInput').value;
+      const defaultText = document.getElementById('defaultTextInput').value;
+      const required = document.getElementById('requiredField').checked;
+      const allowMultiple = false; //document.getElementById('allowMultipleSelections').checked;
+      const allowQuantities = document.getElementById('allowMultipleQuantities').checked;
+
+      const selectedOptions = choicesInstance.getValue().map(opt => opt.value);
+      const selectedLabels = choicesInstance.getValue().map(opt => opt.label);
+
+      selectedComponent.setAttributes({
+        'data-field-name': fieldName,
+        'data-default-text': defaultText,
+        'data-required': required,
+        'data-allow-multiple': allowMultiple,
+        'data-allow-quantities': allowQuantities,
+        'data-selected-services': JSON.stringify(selectedOptions),
+      });
+
+      const el = selectedComponent.getEl();
+      let select = null;
+
+      if (el.tagName === 'SELECT' && el.id.startsWith('serviceDropdownSelect-')) {
+        select = el;
+      } else if (el.querySelector) {
+        select = el.querySelector('select[id^="serviceDropdownSelect-"]');
+      }
+
+      if (select) {
+        select.innerHTML = '';
+
+        if (defaultText) {
+          const defaultOption = document.createElement('option');
+          defaultOption.textContent = defaultText;
+          select.appendChild(defaultOption);
+        }
+
+        selectedLabels.forEach(serviceName => {
+          const opt = document.createElement('option');
+          opt.textContent = serviceName;
+          select.appendChild(opt);
+        });
+
+        if (required) {
+          select.setAttribute('required', 'required');
+        } else {
+          select.removeAttribute('required');
+        }
+
+        if (allowMultiple) {
+          select.setAttribute('multiple', 'multiple');
+        } else {
+          select.removeAttribute('multiple');
+        }
+      }
+    });
   </script>
 </html>

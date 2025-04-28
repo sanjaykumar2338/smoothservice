@@ -74,7 +74,7 @@ class LandingPageController extends Controller
             'landing_no' => $landing_no,
         ]);
 
-        return redirect()->route('landingpage.design', $slug);
+        //return redirect()->route('landingpage.design', $slug);
         return redirect()->route('landingpage.list')->with('success', 'Landing page created successfully.');
     }
 
