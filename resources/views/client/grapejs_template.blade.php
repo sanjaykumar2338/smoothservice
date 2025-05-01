@@ -62,7 +62,7 @@
   <body>
     @yield('content')
     
-    <!-- Modal -->
+    <!-- Modal for dropdown services-->
     <div class="modal fade" id="serviceDropdownModal" tabindex="-1" aria-labelledby="serviceDropdownModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content p-4 shadow-sm rounded">
@@ -110,6 +110,59 @@
 
           <div class="modal-footer border-top">
             <button id="confirmServices" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for services options -->
+    <div class="modal fade" id="serviceOptionsDropdownModal" tabindex="-1" aria-labelledby="serviceOptionsDropdownModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content p-4 shadow-sm rounded">
+          <div class="modal-header border-bottom">
+            <h5 class="modal-title fw-bold">Edit Field</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Field Name</label>
+              <input type="text" id="fieldNameInput1" class="form-control" placeholder="Select services">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Services</label>
+              <select id="serviceListModal1" class="form-select" multiple></select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Default Selection</label>
+              <select id="serviceDefaultListModal1" class="form-select"></select>
+            </div>
+
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="requiredField1">
+              <label class="form-check-label" for="requiredField">
+                Required field
+              </label>
+            </div>
+
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="allowMultipleSelections1">
+              <label class="form-check-label" for="allowMultipleSelections">
+                Allow multiple selections
+              </label>
+            </div>
+
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="allowMultipleQuantities1">
+              <label class="form-check-label" for="allowMultipleQuantities">
+                Allow multiple quantities
+              </label>
+            </div>
+          </div>
+
+          <div class="modal-footer border-top">
+            <button id="confirmOptionServices" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
           </div>
         </div>
       </div>
@@ -278,15 +331,6 @@
           </div>
         </div>
       `;
-
-      // Add block with dynamic content
-      createBlock(
-        'select-services',
-        'fa-solid fa-th-large',
-        'Service Options',
-        { id: 'service-selection', label: 'Service Selection', open: true },
-        servicesContent
-      );
 
       let dropdownCounter = 1; // Move this outside so it doesn't reset on every call
       function createServiceDropdownBlock() {
@@ -755,17 +799,25 @@
       const allowMultipleQuantitiesCheckbox = document.getElementById('allowMultipleQuantities');
 
       const attrs = component.get('attributes') || {};
+      console.log(attrs,'c');
 
-      fieldNameInput.value = attrs['data-field-name'] || '';
-      defaultTextInput.value = attrs['data-default-text'] || '';
-      requiredFieldCheckbox.checked = attrs['data-required'] === 'true';
-      allowMultipleSelectionsCheckbox.checked = attrs['data-allow-multiple'] === 'true';
-      allowMultipleQuantitiesCheckbox.checked = attrs['data-allow-quantities'] === 'true';
+      const el = component.getEl(); // Could be the <div> or <select>
+      const selectEl2 = el.tagName === 'SELECT' ? el : el.querySelector('select');
+
+      // Determine source of attributes
+      const attrSource = el.hasAttribute('data-field-name') ? el : (selectEl2?.hasAttribute('data-field-name') ? selectEl2 : null);
+
+      if (attrSource) {
+        fieldNameInput.value = attrSource.getAttribute('data-field-name') || '';
+        defaultTextInput.value = attrSource.getAttribute('data-default-text') || '';
+        requiredFieldCheckbox.checked = attrSource.getAttribute('data-required') === 'true';
+        allowMultipleSelectionsCheckbox.checked = attrSource.getAttribute('data-allow-multiple') === 'true';
+        allowMultipleQuantitiesCheckbox.checked = attrSource.getAttribute('data-allow-quantities') === 'true';
+      }
 
       let selectedServices = [];
-
-      const el = component.getEl();
       let selectEl = null;
+      console.log(el,'eling');
 
       if (el.tagName === 'SELECT' && el.id.startsWith('serviceDropdownSelect-')) {
         selectEl = el;
@@ -785,10 +837,11 @@
       }, 100);
     }
 
-    // When a new component is added
+    // When a new component is added for dropdown
     editor.on('component:add', (component) => {
       setTimeout(() => {
         const el = component.getEl();
+        console.log('element cccccc', el);
         if (el && el.classList && el.classList.contains('trigger-service-modal')) {
           selectedComponent = component;
           openServiceModal(selectedComponent, true);
@@ -813,14 +866,13 @@
     });
 
     // When confirm button clicked
-    // When confirm button clicked
     document.getElementById('confirmServices')?.addEventListener('click', () => {
       if (!selectedComponent) return;
 
       const fieldName = document.getElementById('fieldNameInput').value;
       const defaultText = document.getElementById('defaultTextInput').value;
       const required = document.getElementById('requiredField').checked;
-      const allowMultiple = false; //document.getElementById('allowMultipleSelections').checked;
+      const allowMultiple = document.getElementById('allowMultipleSelections').checked;
       const allowQuantities = document.getElementById('allowMultipleQuantities').checked;
 
       const selectedOptions = choicesInstance.getValue().map(opt => opt.value);
@@ -836,13 +888,7 @@
       });
 
       const el = selectedComponent.getEl();
-      let select = null;
-
-      if (el.tagName === 'SELECT' && el.id.startsWith('serviceDropdownSelect-')) {
-        select = el;
-      } else if (el.querySelector) {
-        select = el.querySelector('select[id^="serviceDropdownSelect-"]');
-      }
+      const select = el.tagName === 'SELECT' ? el : el.querySelector('select');
 
       if (select) {
         select.innerHTML = '';
@@ -866,11 +912,251 @@
         }
 
         if (allowMultiple) {
-          select.setAttribute('multiple', 'multiple');
+          //select.setAttribute('multiple', 'multiple');
         } else {
-          select.removeAttribute('multiple');
+          //select.removeAttribute('multiple');
         }
       }
     });
+
+    // for service options code
+    /*
+    let servicesContent1 = `
+        <div class="trigger-service-options-modal" style="padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f8f9fa;">
+          <div class="service-options-container">
+            <h3 style="font-size: 18px; font-weight: bold; color: #333;">Select Services</h3>
+            <div class="service-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
+              <!-- Will be dynamically populated -->
+            </div>
+          </div>
+        </div>
+      `;
+
+    createBlock(
+      'select-services',
+      'fa-solid fa-th-large',
+      'Service Options',
+      { id: 'service-selection', label: 'Service Selection', open: true },
+      servicesContent1
+    );
+    */
+
+    let dropdownCounteroptionservice = 1; // Move this outside so it doesn't reset on every call
+    function createOptionServiceDropdownBlock() {
+      const uniqueId = `serviceOptionDropdownSelect-${dropdownCounteroptionservice++}`;
+
+      createBlock(
+        `select-option-services-${uniqueId}`, // Also make block ID unique
+        'fa-solid fa-th-large',
+        'Service Options',
+        { id: 'service-selection', label: 'Service Selection', open: true },
+        `
+          <div class="trigger-service-options-modal" style="padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f8f9fa;">
+            <div class="service-options-container" id="${uniqueId}">
+              <h3 style="font-size: 18px; font-weight: bold; color: #333;">Select Services</h3>
+              <div class="service-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
+                <!-- Will be dynamically populated -->
+              </div>
+            </div>
+          </div>
+        `
+      );
+    }
+    
+    createOptionServiceDropdownBlock();
+    
+    editor.on('component:add', (component) => {
+      setTimeout(() => {
+        const el = component.getEl();
+        console.log('element', el);
+        if (el && el.classList && el.classList.contains('service-options-container')) {
+          selectedComponent = component;
+          openServiceModal1(selectedComponent, true);
+        }
+      }, 500);
+    });
+
+    let choicesInstance1 = null; // Separate Choices instance
+    function initChoices1(selectedTexts = []) {
+      const select = document.getElementById('serviceListModal1');
+      select.innerHTML = ''; // Clear old options
+
+      services.forEach(service => {
+        const option = document.createElement('option');
+        option.value = service.id;
+        option.textContent = service.service_name;
+        if (selectedTexts.includes(service.id.toString())) {
+          option.selected = true;
+        }
+        select.appendChild(option);
+      });
+
+      if (choicesInstance1) {
+        choicesInstance1.destroy();
+      }
+
+      console.log(selectedTexts,'selectedTexts');
+      console.log(select,'select');
+
+      choicesInstance1 = new Choices(select, {
+        removeItemButton: true,
+        shouldSort: false,
+      });
+
+      const defaultTextInput = document.getElementById('serviceDefaultListModal1');
+      const selectElement = choicesInstance1.passedElement.element;
+
+      // Utility function to sync values
+      function updateDefaultSelect(values) {
+        defaultTextInput.innerHTML = ''; // Clear existing options
+
+        // Add empty option for optional default selection
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = '-- Select default (optional) --';
+        defaultTextInput.appendChild(emptyOption);
+
+        // Add options from selected services
+        values.forEach(id => {
+          const matchedService = services.find(service => service.id == id);
+          if (matchedService) {
+            const option = document.createElement('option');
+            option.value = matchedService.id;
+            option.textContent = matchedService.service_name;
+            defaultTextInput.appendChild(option);
+          }
+        });
+      }
+
+      selectElement.addEventListener('addItem', function () {
+        const currentValues = choicesInstance1.getValue(true); // returns array of ids
+        updateDefaultSelect(currentValues);
+      });
+
+      selectElement.addEventListener('removeItem', function () {
+        const currentValues = choicesInstance1.getValue(true);
+        updateDefaultSelect(currentValues);
+      });
+    }
+
+    function openServiceModal1(component, isNew = false) {
+      const modal = new bootstrap.Modal(document.getElementById('serviceOptionsDropdownModal'));
+
+      const fieldNameInput = document.getElementById('fieldNameInput1');
+      const defaultTextInput = document.getElementById('serviceDefaultListModal1');
+      const requiredFieldCheckbox = document.getElementById('requiredField1');
+      const allowMultipleSelectionsCheckbox = document.getElementById('allowMultipleSelections1');
+      const allowMultipleQuantitiesCheckbox = document.getElementById('allowMultipleQuantities1');
+
+      const attrs = component.get('attributes') || {};
+      console.log(attrs,component);
+
+
+      fieldNameInput.value = attrs['data-field-name'] || '';
+      requiredFieldCheckbox.checked = attrs['data-required'];
+      allowMultipleSelectionsCheckbox.checked = attrs['data-allow-multiple'];
+      allowMultipleQuantitiesCheckbox.checked = attrs['data-allow-quantities'];
+
+      const selectedServiceIds = JSON.parse(attrs['data-selected-services'] || '[]');
+      const defaultText = attrs['data-default-text'] || '';
+
+      console.log(selectedServiceIds,'selectedServiceIds');
+
+      setTimeout(() => {
+        initChoices1(selectedServiceIds); // Preload multi-select
+        // Set default selected value (optional)
+        defaultTextInput.value = defaultText;
+        modal.show();
+      }, 100);
+    }
+
+    // When confirm button clicked
+    document.getElementById('confirmOptionServices')?.addEventListener('click', () => {
+      if (!selectedComponent) return;
+
+      const fieldName = document.getElementById('fieldNameInput1').value;
+      const defaultText = document.getElementById('serviceDefaultListModal1').value;
+      const required = document.getElementById('requiredField1').checked;
+      const allowMultiple = document.getElementById('allowMultipleSelections1').checked;
+      const allowQuantities = document.getElementById('allowMultipleQuantities1').checked;
+
+      const selectedOptions = choicesInstance1.getValue().map(opt => opt.value);
+      const selectedLabels = choicesInstance1.getValue().map(opt => opt.label);
+
+      selectedComponent.setAttributes({
+        'data-field-name': fieldName,
+        'data-default-text': defaultText,
+        'data-required': required,
+        'data-allow-multiple': allowMultiple,
+        'data-allow-quantities': allowQuantities,
+        'data-selected-services': JSON.stringify(selectedOptions),
+      });
+
+      const el = selectedComponent.getEl();
+      const container = el.querySelector('.service-grid');
+
+      if (container) {
+        container.innerHTML = '';
+
+        selectedOptions.forEach((serviceId) => {
+          const service = services.find(s => s.id == serviceId);
+          if (!service) return;
+
+          // Format pricing info
+          let price = '';
+          if (service.service_type === 'recurring') {
+            if (service.trial_for && service.trial_price) {
+              price = `$${service.trial_price} for ${service.trial_for} ${service.trial_period || 'day'}${service.trial_for > 1 ? 's' : ''}, `;
+            }
+            price += `$${service.recurring_service_currency_value} / ${service.recurring_service_currency_value_two} ${service.recurring_service_currency_value_two_type}`;
+          } else {
+            price = `$${service.one_time_service_currency_value}`;
+          }
+
+          const box = document.createElement('div');
+          box.classList.add('service-box');
+          box.style.cssText = `
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: left;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          `;
+
+          box.innerHTML = `
+            <label style="display: block; cursor: pointer;">
+              <input type="${allowMultiple ? 'checkbox' : 'radio'}" name="service_option_${fieldName}" value="${service.id}" style="margin-right: 10px;" />
+              <strong>${service.service_name}</strong>
+              <p style="margin: 5px 0 0; font-size: 14px; color: #555;">${price}</p>
+            </label>
+            ${
+              allowQuantities
+                ? `<select style="margin-top: 10px;" class="form-select">
+                    ${[...Array(10)].map((_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+                  </select>`
+                : ''
+            }
+          `;
+          container.appendChild(box);
+        });
+      }
+    });
+
+    editor.on('component:selected', (component) => {
+      setTimeout(() => {
+        const el = component.getEl();
+        if (!el) return;
+
+        const isServiceDiv = el.classList.contains('service-options-container');
+        const isServiceSelect = el.id && el.id.startsWith('serviceOptionDropdownSelect-');
+
+        if (isServiceDiv || isServiceSelect) {
+          selectedComponent = component;
+          openServiceModal1(selectedComponent, false);
+        }
+      }, 300);
+    });
+
   </script>
 </html>
