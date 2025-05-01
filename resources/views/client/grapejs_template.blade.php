@@ -82,8 +82,8 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label fw-semibold">Default Text</label>
-              <input type="text" id="defaultTextInput" class="form-control" placeholder="Please select...">
+              <label class="form-label fw-semibold">Default Service</label>
+              <select id="serviceDefaultListModal" class="form-select"></select>
             </div>
 
             <div class="form-check mb-2">
@@ -343,6 +343,7 @@
           { id: 'service-selection', label: 'Service Selection', open: true },
           `
             <div class="trigger-service-modal">
+              <h3 style="font-size: 18px; font-weight: bold; color: #333;">Select Services</h3>
               <select class="form-control mt-2" id="${uniqueId}">
                 <option value="">Select a service</option>
               </select>
@@ -787,6 +788,41 @@
         removeItemButton: true,
         shouldSort: false,
       });
+
+      const defaultTextInput = document.getElementById('serviceDefaultListModal');
+      const selectElement = choicesInstance.passedElement.element;
+
+      // Utility function to sync values
+      function updateDefaultSelect(values) {
+        defaultTextInput.innerHTML = ''; // Clear existing options
+
+        // Add empty option for optional default selection
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = '-- Select default (optional) --';
+        defaultTextInput.appendChild(emptyOption);
+
+        // Add options from selected services
+        values.forEach(id => {
+          const matchedService = services.find(service => service.id == id);
+          if (matchedService) {
+            const option = document.createElement('option');
+            option.value = matchedService.id;
+            option.textContent = matchedService.service_name;
+            defaultTextInput.appendChild(option);
+          }
+        });
+      }
+
+      selectElement.addEventListener('addItem', function () {
+        const currentValues = choicesInstance.getValue(true); // returns array of ids
+        updateDefaultSelect(currentValues);
+      });
+
+      selectElement.addEventListener('removeItem', function () {
+        const currentValues = choicesInstance.getValue(true);
+        updateDefaultSelect(currentValues);
+      });
     }
 
     function openServiceModal(component, isNew = false) {
@@ -867,57 +903,64 @@
 
     // When confirm button clicked
     document.getElementById('confirmServices')?.addEventListener('click', () => {
-      if (!selectedComponent) return;
+        if (!selectedComponent) return;
 
-      const fieldName = document.getElementById('fieldNameInput').value;
-      const defaultText = document.getElementById('defaultTextInput').value;
-      const required = document.getElementById('requiredField').checked;
-      const allowMultiple = document.getElementById('allowMultipleSelections').checked;
-      const allowQuantities = document.getElementById('allowMultipleQuantities').checked;
+        const fieldName = document.getElementById('fieldNameInput').value;
+        const defaultText = document.getElementById('serviceDefaultListModal').value;
+        const required = document.getElementById('requiredField').checked;
+        const allowMultiple = document.getElementById('allowMultipleSelections').checked;
+        const allowQuantities = document.getElementById('allowMultipleQuantities').checked;
 
-      const selectedOptions = choicesInstance.getValue().map(opt => opt.value);
-      const selectedLabels = choicesInstance.getValue().map(opt => opt.label);
+        const selectedOptions = choicesInstance.getValue().map(opt => opt.value);
+        const selectedLabels = choicesInstance.getValue().map(opt => opt.label);
 
-      selectedComponent.setAttributes({
-        'data-field-name': fieldName,
-        'data-default-text': defaultText,
-        'data-required': required,
-        'data-allow-multiple': allowMultiple,
-        'data-allow-quantities': allowQuantities,
-        'data-selected-services': JSON.stringify(selectedOptions),
-      });
-
-      const el = selectedComponent.getEl();
-      const select = el.tagName === 'SELECT' ? el : el.querySelector('select');
-
-      if (select) {
-        select.innerHTML = '';
-
-        if (defaultText) {
-          const defaultOption = document.createElement('option');
-          defaultOption.textContent = defaultText;
-          select.appendChild(defaultOption);
-        }
-
-        selectedLabels.forEach(serviceName => {
-          const opt = document.createElement('option');
-          opt.textContent = serviceName;
-          select.appendChild(opt);
+        selectedComponent.setAttributes({
+          'data-field-name': fieldName,
+          'data-default-text': defaultText,
+          'data-required': required,
+          'data-allow-multiple': allowMultiple,
+          'data-allow-quantities': allowQuantities,
+          'data-selected-services': JSON.stringify(selectedOptions),
         });
 
-        if (required) {
-          select.setAttribute('required', 'required');
-        } else {
-          select.removeAttribute('required');
+        const el = selectedComponent.getEl();
+        const select = el.tagName === 'SELECT' ? el : el.querySelector('select');
+
+        if (select) {
+          select.innerHTML = '';
+
+          selectedLabels.forEach(serviceName => {
+            const opt = document.createElement('option');
+            opt.textContent = serviceName;
+
+            // ✅ Mark this option as selected if it matches the default text
+            if (serviceName === defaultText) {
+              opt.selected = true;
+            }
+
+            select.appendChild(opt);
+          });
+
+          if (required) {
+            select.setAttribute('required', 'required');
+          } else {
+            select.removeAttribute('required');
+          }
+
+          if (allowMultiple) {
+            //select.setAttribute('multiple', 'multiple');
+          } else {
+            //select.removeAttribute('multiple');
+          }
         }
 
-        if (allowMultiple) {
-          //select.setAttribute('multiple', 'multiple');
-        } else {
-          //select.removeAttribute('multiple');
+        // 👇 Set the heading text to match the field name
+        const heading = el.querySelector('h3');
+        if (heading) {
+          heading.textContent = fieldName || 'Select Services';
         }
-      }
     });
+
 
     // for service options code
     /*
@@ -1095,6 +1138,12 @@
       const el = selectedComponent.getEl();
       const container = el.querySelector('.service-grid');
 
+      // 👇 Set the heading text to match the field name
+      const heading = el.querySelector('h3');
+      if (heading) {
+        heading.textContent = fieldName || 'Select Services';
+      }
+
       if (container) {
         container.innerHTML = '';
 
@@ -1126,7 +1175,13 @@
 
           box.innerHTML = `
             <label style="display: block; cursor: pointer;">
-              <input type="${allowMultiple ? 'checkbox' : 'radio'}" name="service_option_${fieldName}" value="${service.id}" style="margin-right: 10px;" />
+              <input 
+                type="${allowMultiple ? 'checkbox' : 'radio'}" 
+                name="service_option_${fieldName}" 
+                value="${service.id}" 
+                ${defaultText == service.id ? 'checked' : ''} 
+                style="margin-right: 10px;" 
+              />
               <strong>${service.service_name}</strong>
               <p style="margin: 5px 0 0; font-size: 14px; color: #555;">${price}</p>
             </label>
