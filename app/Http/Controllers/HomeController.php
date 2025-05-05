@@ -127,8 +127,9 @@ class HomeController extends Controller
 
         // Save each item in the invoice_items table
         foreach ($request->selectedServices as $index => $item) {
-            $service = $item['service_id'] ?? null;
-            //echo "<pre>"; print_r($service->recurring_service_currency_value); die;
+            $serviceid = $item['service_id'] ?? null;
+            $service = \App\Models\Service::find($serviceid);
+            //echo "<pre>"; print_r($service); die;
 
             // Default values for price, discount, and trial price
             $price = 0;
@@ -138,11 +139,11 @@ class HomeController extends Controller
             $trialPrice = 0;
         
             // Check for recurring service with trial price
-            if ($service && $service->service_type === 'recurring' && $service->trial_for) {
+            if ($service && $service?->service_type === 'recurring' && $service->trial_for) {
                 //$trialPrice = $service->trial_price ?? 0;
                 $price = $service->recurring_service_currency_value;
                 $trialPrice =  $service->trial_price ?? $price;
-            } else if($service && $service->service_type === 'recurring' ){
+            } else if($service && $service?->service_type === 'recurring' ){
                 $price = $service->recurring_service_currency_value;
             } else {
                 // Use regular price if not a recurring service with trial
