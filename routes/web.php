@@ -57,7 +57,7 @@ Route::middleware([CheckSubdomain::class, DynamicSessionDomain::class])->group(f
 });
 
 Route::post('/services-summary', function (Request $request) {
-    return servicesSummary($request);
+    return servicesSummary_grapejsfrontent($request);
 });
 
 Route::get('/paypal/cancel/subscription/webhook', [LoginController::class, 'handleWebhook'])->name('portal.paypal.cancel.subscription.webhook');

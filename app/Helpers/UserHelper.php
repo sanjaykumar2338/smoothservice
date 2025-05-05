@@ -229,3 +229,56 @@ if (!function_exists('servicesSummary')) {
         return $summary;
     }
 }
+
+if (!function_exists('servicesSummary_grapejsfrontent')) {
+    function servicesSummary_grapejsfrontent(Request $request) {
+        $summary = [
+            'total' => 0,
+            'trial_amount' => 0,
+            'next_payment_recurring' => 0,
+            'total_discount' => 0,
+            'payment_type' => 'fixed', // Default
+            'interval' => 1,
+            'interval_type' => 'month',
+        ];
+
+        $services = $request->services;
+
+        foreach ($services as $key => $item) {
+            $serviceId = $item['service_id'] ?? null;
+            $quantity = max(1, intval($item['quantity'] ?? 1));
+
+            if (!$serviceId) continue;
+
+            $service = \App\Models\Service::find($serviceId);
+            if (!$service) continue;
+
+            // Set recurring data from first recurring service
+            if ($key === 0 && $service->service_type === 'recurring') {
+                $summary['interval'] = $service->recurring_service_currency_value_two;
+                $summary['interval_type'] = strtolower($service->recurring_service_currency_value_two_type);
+                $summary['payment_type'] = 'recurring';
+            }
+
+            if (!empty($service->trial_for)) {
+                $trialPrice = floatval($service->trial_price);
+                $summary['trial_amount'] += $trialPrice * $quantity;
+
+                $nextPrice = floatval($service->recurring_service_currency_value);
+                $summary['next_payment_recurring'] += $nextPrice * $quantity;
+            } elseif ($service->service_type === 'recurring') {
+                $price = floatval($service->recurring_service_currency_value);
+                $summary['next_payment_recurring'] += $price * $quantity;
+            } else {
+                $fixedPrice = floatval($service->one_time_service_currency_value);
+                $summary['total'] += $fixedPrice * $quantity;
+                $summary['payment_type'] = 'fixed';
+            }
+
+            // Optionally apply discount logic here
+            $summary['total_discount'] = 0;
+        }
+
+        return $summary;
+    }
+}

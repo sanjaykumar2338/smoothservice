@@ -332,12 +332,12 @@
         </div>
       `;
 
-      let dropdownCounter = 1; // Move this outside so it doesn't reset on every call
+      let dropdownCounter = 1; 
       function createServiceDropdownBlock() {
         const uniqueId = `serviceDropdownSelect-${dropdownCounter++}`;
 
         createBlock(
-          `select-services-${uniqueId}`, // Also make block ID unique
+          `select-services-${uniqueId}`,
           'fa-solid fa-chevron-down',
           'Service Dropdown',
           { id: 'service-selection', label: 'Service Selection', open: true },
@@ -829,7 +829,7 @@
       const modal = new bootstrap.Modal(document.getElementById('serviceDropdownModal'));
 
       const fieldNameInput = document.getElementById('fieldNameInput');
-      const defaultTextInput = document.getElementById('defaultTextInput');
+      const defaultTextInput = document.getElementById('serviceDefaultListModal');
       const requiredFieldCheckbox = document.getElementById('requiredField');
       const allowMultipleSelectionsCheckbox = document.getElementById('allowMultipleSelections');
       const allowMultipleQuantitiesCheckbox = document.getElementById('allowMultipleQuantities');
@@ -843,12 +843,13 @@
       // Determine source of attributes
       const attrSource = el.hasAttribute('data-field-name') ? el : (selectEl2?.hasAttribute('data-field-name') ? selectEl2 : null);
 
+      console.log(attrs,'dddd')
       if (attrSource) {
         fieldNameInput.value = attrSource.getAttribute('data-field-name') || '';
         defaultTextInput.value = attrSource.getAttribute('data-default-text') || '';
-        requiredFieldCheckbox.checked = attrSource.getAttribute('data-required') === 'true';
-        allowMultipleSelectionsCheckbox.checked = attrSource.getAttribute('data-allow-multiple') === 'true';
-        allowMultipleQuantitiesCheckbox.checked = attrSource.getAttribute('data-allow-quantities') === 'true';
+        requiredFieldCheckbox.checked = attrSource.getAttribute('data-required');
+        allowMultipleSelectionsCheckbox.checked = attrSource.getAttribute('data-allow-multiple');
+        allowMultipleQuantitiesCheckbox.checked = attrSource.getAttribute('data-allow-quantities');
       }
 
       let selectedServices = [];
@@ -868,13 +869,32 @@
       }
 
       setTimeout(() => {
+        // 1. Initialize Choices multi-select dropdown with selected service names
         initChoices(selectedServices);
+
+        // 2. Clear and populate default select dropdown
+        defaultTextInput.innerHTML = '';
+
+        selectedServices.forEach(serviceName => {
+          const opt = document.createElement('option');
+          opt.value = serviceName;
+          opt.textContent = serviceName;
+
+          // Set selected if matches current default
+          if (attrSource?.getAttribute('data-default-text') === serviceName) {
+            opt.selected = true;
+          }
+
+          defaultTextInput.appendChild(opt);
+        });
+
+        // 3. Finally show the modal
         modal.show();
       }, 100);
     }
 
     // When a new component is added for dropdown
-    editor.on('component:add', (component) => {
+    editor.on('block:drag:stop', (component) => {
       setTimeout(() => {
         const el = component.getEl();
         console.log('element cccccc', el);
@@ -896,71 +916,128 @@
 
         if (isServiceDiv || isServiceSelect) {
           selectedComponent = component;
-          openServiceModal(selectedComponent, false);
+          //openServiceModal(selectedComponent, false);
         }
       }, 300);
     });
 
     // When confirm button clicked
     document.getElementById('confirmServices')?.addEventListener('click', () => {
-        if (!selectedComponent) return;
+      if (!selectedComponent) return;
 
-        const fieldName = document.getElementById('fieldNameInput').value;
-        const defaultText = document.getElementById('serviceDefaultListModal').value;
-        const required = document.getElementById('requiredField').checked;
-        const allowMultiple = document.getElementById('allowMultipleSelections').checked;
-        const allowQuantities = document.getElementById('allowMultipleQuantities').checked;
+      const fieldName = document.getElementById('fieldNameInput').value;
+      const defaultText = document.getElementById('serviceDefaultListModal').value;
+      const required = document.getElementById('requiredField').checked;
+      const allowMultiple = document.getElementById('allowMultipleSelections').checked;
+      const allowQuantities = document.getElementById('allowMultipleQuantities').checked;
 
-        const selectedOptions = choicesInstance.getValue().map(opt => opt.value);
-        const selectedLabels = choicesInstance.getValue().map(opt => opt.label);
+      const selectedOptions = choicesInstance.getValue().map(opt => opt.value);
+      const selectedLabels = choicesInstance.getValue().map(opt => opt.label);
 
-        selectedComponent.setAttributes({
+      selectedComponent.setAttributes({
           'data-field-name': fieldName,
           'data-default-text': defaultText,
           'data-required': required,
           'data-allow-multiple': allowMultiple,
           'data-allow-quantities': allowQuantities,
           'data-selected-services': JSON.stringify(selectedOptions),
-        });
+      });
 
-        const el = selectedComponent.getEl();
-        const select = el.tagName === 'SELECT' ? el : el.querySelector('select');
+      const el = selectedComponent.getEl();
+      const select = el.tagName === 'SELECT' ? el : el.querySelector('select');
 
-        if (select) {
+      if (select) {
           select.innerHTML = '';
-
           selectedLabels.forEach(serviceName => {
-            const opt = document.createElement('option');
-            opt.textContent = serviceName;
-
-            // ✅ Mark this option as selected if it matches the default text
-            if (serviceName === defaultText) {
-              opt.selected = true;
-            }
-
-            select.appendChild(opt);
+              const opt = document.createElement('option');
+              opt.textContent = serviceName;
+              if (serviceName === defaultText) opt.selected = true;
+              select.appendChild(opt);
           });
 
           if (required) {
-            select.setAttribute('required', 'required');
+              select.setAttribute('required', 'required');
           } else {
-            select.removeAttribute('required');
+              select.removeAttribute('required');
           }
+
+          // 👇 Handle dropdown appending blocks
+          const appendContainer = el.querySelector('.appended-options') || (() => {
+              const div = document.createElement('div');
+              div.className = 'appended-options';
+              div.style.marginTop = '10px';
+              el.appendChild(div);
+              return div;
+          })();
+
+          select.onchange = function () {
+              const selectedValue = select.value;
+              const label = selectedOptions.includes(selectedValue)
+                  ? selectedLabels[selectedOptions.indexOf(selectedValue)]
+                  : selectedValue;
+
+              if (!selectedValue) return;
+
+              const block = document.createElement('div');
+              block.className = 'appended-block';
+              block.style.cssText = `
+                  border: 1px solid #ccc;
+                  padding: 10px;
+                  margin-bottom: 5px;
+                  background: #f9f9f9;
+                  border-radius: 5px;
+              `;
+
+              if (allowMultiple) {
+                  block.innerHTML = `
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <strong>${label}</strong>
+                          <button title="Remove" style="background: none; border: none; cursor: pointer;">
+                              <i class="fa fa-trash" style="color: red; font-size: 16px;"></i>
+                          </button>
+                      </div>
+                      ${allowQuantities ? '<label style="display:block; margin-top:5px;">Qty: <input type="number" min="1" value="1" style="width:60px;"></label>' : ''}
+                  `;
+                  block.querySelector('button').addEventListener('click', () => {
+                      block.remove();
+                  });
+              } else {
+                  block.innerHTML = `
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <label style="margin: 0;">
+                              <input type="radio" name="deselectOption" />
+                              <strong>${label}</strong>
+                          </label>
+                          <i class="fa fa-trash" style="color: red; font-size: 16px; cursor: pointer;" title="Remove"></i>
+                      </div>
+                      ${allowQuantities ? '<label style="display:block; margin-top:5px;">Qty: <input type="number" min="1" value="1" style="width:60px;"></label>' : ''}
+                  `;
+                  block.querySelector('.fa-trash').addEventListener('click', () => {
+                      block.remove();
+                      select.style.display = 'block';
+                      select.value = '';
+                  });
+
+                  select.style.display = 'none'; // hide after first selection
+              }
+
+              appendContainer.appendChild(block);
+          };
 
           if (allowMultiple) {
-            //select.setAttribute('multiple', 'multiple');
+              select.removeAttribute('multiple');
+              select.style.display = 'block';
           } else {
-            //select.removeAttribute('multiple');
+              select.removeAttribute('multiple');
           }
-        }
+      }
 
-        // 👇 Set the heading text to match the field name
-        const heading = el.querySelector('h3');
-        if (heading) {
+      // 👇 Set the heading text to match the field name
+      const heading = el.querySelector('h3');
+      if (heading) {
           heading.textContent = fieldName || 'Select Services';
-        }
+      }
     });
-
 
     // for service options code
     /*
@@ -1008,11 +1085,13 @@
     
     createOptionServiceDropdownBlock();
     
-    editor.on('component:add', (component) => {
+    editor.on('block:drag:stop', (component) => {
+      console.log(component,'component king')
       setTimeout(() => {
         const el = component.getEl();
-        console.log('element', el);
-        if (el && el.classList && el.classList.contains('service-options-container')) {
+
+        console.log(el.classList,'class king')
+        if (el && el.classList && (el.classList.contains('service-options-container') || el.classList.contains('trigger-service-options-modal'))) {
           selectedComponent = component;
           openServiceModal1(selectedComponent, true);
         }
@@ -1107,51 +1186,267 @@
 
       setTimeout(() => {
         initChoices1(selectedServiceIds); // Preload multi-select
-        // Set default selected value (optional)
-        defaultTextInput.value = defaultText;
+
+        // Clear current options
+        defaultTextInput.innerHTML = '';
+
+        selectedServiceIds.forEach(serviceId => {
+          const service = services.find(s => s.id == serviceId);
+          if (!service) return;
+
+          const opt = document.createElement('option');
+          opt.value = service.id;
+          opt.textContent = service.service_name;
+
+          if (defaultText == service.id || defaultText == service.service_name) {
+            opt.selected = true;
+          }
+
+          defaultTextInput.appendChild(opt);
+        });
+
         modal.show();
       }, 100);
     }
 
-    // When confirm button clicked
+    //When confirm button clicked
     document.getElementById('confirmOptionServices')?.addEventListener('click', () => {
-      if (!selectedComponent) return;
+        if (!selectedComponent) return;
 
-      const fieldName = document.getElementById('fieldNameInput1').value;
-      const defaultText = document.getElementById('serviceDefaultListModal1').value;
-      const required = document.getElementById('requiredField1').checked;
-      const allowMultiple = document.getElementById('allowMultipleSelections1').checked;
-      const allowQuantities = document.getElementById('allowMultipleQuantities1').checked;
+        const fieldName = document.getElementById('fieldNameInput1').value;
+        const defaultText = document.getElementById('serviceDefaultListModal1').value;
+        const required = document.getElementById('requiredField1').checked;
+        const allowMultiple = document.getElementById('allowMultipleSelections1').checked;
+        const allowQuantities = document.getElementById('allowMultipleQuantities1').checked;
 
-      const selectedOptions = choicesInstance1.getValue().map(opt => opt.value);
-      const selectedLabels = choicesInstance1.getValue().map(opt => opt.label);
+        const selectedOptions = choicesInstance1.getValue().map(opt => opt.value);
+        const selectedLabels = choicesInstance1.getValue().map(opt => opt.label);
 
-      selectedComponent.setAttributes({
-        'data-field-name': fieldName,
-        'data-default-text': defaultText,
-        'data-required': required,
-        'data-allow-multiple': allowMultiple,
-        'data-allow-quantities': allowQuantities,
-        'data-selected-services': JSON.stringify(selectedOptions),
-      });
+        selectedComponent.setAttributes({
+          'data-field-name': fieldName,
+          'data-default-text': defaultText,
+          'data-required': required,
+          'data-allow-multiple': allowMultiple,
+          'data-allow-quantities': allowQuantities,
+          'data-selected-services': JSON.stringify(selectedOptions),
+        });
 
-      const el = selectedComponent.getEl();
-      const container = el.querySelector('.service-grid');
+        const el = selectedComponent.getEl();
+        const container = el.querySelector('.service-grid');
 
-      // 👇 Set the heading text to match the field name
-      const heading = el.querySelector('h3');
-      if (heading) {
-        heading.textContent = fieldName || 'Select Services';
+        // 👇 Set the heading text to match the field name
+        const heading = el.querySelector('h3');
+        if (heading) {
+          heading.textContent = fieldName || 'Select Services';
+        }
+
+        if (container) {
+          container.innerHTML = '';
+
+          selectedOptions.forEach((serviceId) => {
+            const service = services.find(s => s.id == serviceId);
+            if (!service) return;
+
+            // Format pricing info
+            let price = '';
+            if (service.service_type === 'recurring') {
+              if (service.trial_for && service.trial_price) {
+                price = `$${service.trial_price} for ${service.trial_for} ${service.trial_period || 'day'}${service.trial_for > 1 ? 's' : ''}, `;
+              }
+              price += `$${service.recurring_service_currency_value} / ${service.recurring_service_currency_value_two} ${service.recurring_service_currency_value_two_type}`;
+            } else {
+              price = `$${service.one_time_service_currency_value}`;
+            }
+
+            const box = document.createElement('div');
+            box.classList.add('service-box');
+            box.style.cssText = `
+              border: 1px solid #ddd;
+              border-radius: 8px;
+              padding: 15px;
+              text-align: left;
+              background: #fff;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            `;
+
+            box.innerHTML = `
+              <label style="display: block; cursor: pointer;">
+                <input 
+                  type="${allowMultiple ? 'checkbox' : 'radio'}" 
+                  name="service_option_${fieldName}${allowMultiple ? '[]' : ''}" 
+                  value="${service.id}" 
+                  ${defaultText == service.id ? 'checked' : ''} 
+                  style="margin-right: 10px;" 
+                />
+                <strong>${service.service_name}</strong>
+                <p style="margin: 5px 0 0; font-size: 14px; color: #555;">${price}</p>
+              </label>
+              ${
+                allowQuantities
+                  ? `<select style="margin-top: 10px;" class="form-select">
+                      ${[...Array(10)].map((_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+                    </select>`
+                  : ''
+              }
+            `;
+
+            container.appendChild(box);
+        });
       }
+    });
 
-      if (container) {
+    // When components are added
+    editor.on('component:add', (component) => {
+      const el = component.getEl();
+
+      if (el && el.classList && (el.classList.contains('service-grid') || el.classList.contains('service-options-container'))) {
+        const existingToolbar = component.get('toolbar') || [];
+
+        const hasCog = existingToolbar.some(tb => tb.command === 'open-service-grid-modal');
+        if (!hasCog) {
+          component.set('toolbar', [
+            {
+              attributes: { class: 'fa fa-cog', title: 'Edit Services Display' },
+              command: 'open-service-grid-modal',
+            },
+            ...existingToolbar,
+          ]);
+        }
+      }
+    });
+
+    // Register the gear icon command
+    editor.Commands.add('open-service-grid-modal', {
+      run(editor) {
+        const selected = editor.getSelected();
+        if (!selected) return;
+
+        // 👇 Find the nearest `.service-options-container` above `.service-grid`
+        const parentEl = selected.getEl()?.closest('.service-options-container');
+
+        if (parentEl) {
+          // 👇 Find the GrapesJS component from the parent DOM element
+          const allComponents = editor.DomComponents.getComponents();
+          let parentComponent = null;
+
+          editor.DomComponents.getWrapper().find('.service-options-container').forEach(comp => {
+            if (comp.getEl() === parentEl) {
+              parentComponent = comp;
+            }
+          });
+
+          if (parentComponent) {
+            selectedComponent = parentComponent;
+            openServiceModal1(selectedComponent, false);
+          }
+        }
+      }
+    });
+
+    editor.on('component:add', (component) => {
+      const el = component.getEl();
+
+      // Only act on <select> elements
+      if (el?.tagName === 'SELECT') {
+        const parentEl = el.closest('.trigger-service-modal');
+
+        if (parentEl) {
+          const toolbar = component.get('toolbar') || [];
+
+          const alreadyHasCog = toolbar.some(t => t.command === 'open-service-dropdown-modal');
+          if (!alreadyHasCog) {
+            toolbar.unshift({
+              attributes: { class: 'fa fa-cog', title: 'Edit Service Options' },
+              command: 'open-service-dropdown-modal',
+            });
+
+            component.set('toolbar', toolbar);
+            component.view.selectParentEl = parentEl;
+          }
+        }
+      }
+    });
+
+    editor.Commands.add('open-service-dropdown-modal', {
+      run(editor) {
+        const selected = editor.getSelected();
+        if (!selected) return;
+
+        // Use direct selection if it's already the main container
+        let triggerEl = selected.getEl();
+        if (triggerEl?.classList?.contains('trigger-service-modal')) {
+          selectedComponent = selected;
+        } else {
+          // If it's a select, go to its parent modal container
+          const parentEl = triggerEl?.closest('.trigger-service-modal');
+          if (!parentEl) return;
+
+          // Find the actual component linked to this parent DOM element
+          const allComponents = editor.getComponents();
+          editor.DomComponents.getWrapper().find('.trigger-service-modal').forEach((cmp) => {
+            if (cmp.getEl() === parentEl) {
+              selectedComponent = cmp;
+            }
+          });
+        }
+
+        if (selectedComponent) {
+          openServiceModal(selectedComponent, false); // Call your modal opener
+        }
+      }
+    });
+
+    editor.DomComponents.addType('service-options-custom', {
+      model: {
+        defaults: {
+          // Your component HTML and attributes...
+          tagName: 'div',
+          classes: ['trigger-service-options-modal'],
+          attributes: { class: 'service-options-container' },
+          // Add a custom toolbar button
+          toolbar: [
+            {
+              attributes: { class: 'fa fa-cog', title: 'Edit Options' },
+              command: 'open-service-options-modal',
+            },
+            'tl-delete', // Optional default delete button
+          ],
+        }
+      }
+    });
+
+    editor.Commands.add('open-service-options-modal', {
+      run(editor, sender, options) {
+        const selected = editor.getSelected();
+        if (selected) {
+          selectedComponent = selected;
+          openServiceModal1(selectedComponent, false); // your existing modal function
+        }
+      }
+    });
+
+    // for checkbox option modal
+    function renderServiceOptionsFromAttributesFromCurrentComponent(component) {
+      const currentEl = component.getEl();
+
+      const container = currentEl.querySelector('.service-grid');
+      const heading = currentEl.querySelector('h3');
+
+      // Extract attributes directly from the component's root element
+      const fieldName = currentEl.getAttribute('data-field-name') || 'Select Services';
+      const defaultText = currentEl.getAttribute('data-default-text') || '';
+      const allowMultiple = currentEl.hasAttribute('data-allow-multiple');
+      const allowQuantities = currentEl.hasAttribute('data-allow-quantities');
+      const selectedServiceIds = JSON.parse(currentEl.getAttribute('data-selected-services') || '[]');
+
+      if (heading) heading.textContent = fieldName;
+
+      if (container && selectedServiceIds.length) {
         container.innerHTML = '';
-
-        selectedOptions.forEach((serviceId) => {
+        selectedServiceIds.forEach((serviceId) => {
           const service = services.find(s => s.id == serviceId);
           if (!service) return;
 
-          // Format pricing info
           let price = '';
           if (service.service_type === 'recurring') {
             if (service.trial_for && service.trial_price) {
@@ -1193,25 +1488,150 @@
                 : ''
             }
           `;
+
           container.appendChild(box);
         });
       }
-    });
+    }
 
-    editor.on('component:selected', (component) => {
-      setTimeout(() => {
-        const el = component.getEl();
-        if (!el) return;
+    function renderDropdownServicesFromAttributes(component) {
+      const el = component.getEl();
+      const select = el.querySelector('select');
+      const heading = el.querySelector('h3');
 
-        const isServiceDiv = el.classList.contains('service-options-container');
-        const isServiceSelect = el.id && el.id.startsWith('serviceOptionDropdownSelect-');
+      // Get attributes from the DOM
+      const fieldName = el.getAttribute('data-field-name');
+      const defaultText = el.getAttribute('data-default-text') || '';
+      const allowMultiple = el.hasAttribute('data-allow-multiple');
+      const required = el.hasAttribute('data-required');
+      const allowQuantities = el.hasAttribute('data-allow-quantities');
+      const selectedServiceIds = JSON.parse(el.getAttribute('data-selected-services') || '[]');
 
-        if (isServiceDiv || isServiceSelect) {
-          selectedComponent = component;
-          openServiceModal1(selectedComponent, false);
+      if (heading) heading.textContent = fieldName || 'Select Services';
+
+      if (!select || !Array.isArray(selectedServiceIds)) return;
+
+      // Clear and repopulate dropdown
+      select.innerHTML = '<option value="">Select a service</option>';
+      selectedServiceIds.forEach(serviceId => {
+        const service = services.find(s => s.id == serviceId);
+        if (!service) return;
+
+        const opt = document.createElement('option');
+        opt.value = serviceId;
+        opt.textContent = service.service_name;
+        if (defaultText == serviceId || defaultText == service.service_name) {
+          opt.selected = true;
         }
-      }, 300);
+
+        select.appendChild(opt);
+      });
+
+      if (required) {
+        select.setAttribute('required', 'required');
+      } else {
+        select.removeAttribute('required');
+      }
+
+      // Prepare container for appended blocks
+      const appendContainer = el.querySelector('.appended-options') || (() => {
+        const div = document.createElement('div');
+        div.className = 'appended-options';
+        div.style.marginTop = '10px';
+        el.appendChild(div);
+        return div;
+      })();
+
+      // Select change handler
+      select.onchange = function () {
+        const selectedValue = select.value;
+        if (!selectedValue) return;
+
+        const selectedService = services.find(s => s.id == selectedValue);
+        if (!selectedService) return;
+
+        // Prevent duplicates
+        if (appendContainer.querySelector(`[data-service-id="${selectedValue}"]`)) {
+          select.value = '';
+          return;
+        }
+
+        // Create block
+        const block = document.createElement('div');
+        block.className = 'appended-block';
+        block.setAttribute('data-service-id', selectedValue);
+        block.style.cssText = `
+          border: 1px solid #ccc;
+          padding: 10px;
+          margin-bottom: 5px;
+          background: #f9f9f9;
+          border-radius: 5px;
+        `;
+
+        const label = selectedService.service_name;
+
+        if (allowMultiple) {
+          block.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>${label}</strong>
+              <button title="Remove" style="background: none; border: none; cursor: pointer;">
+                <i class="fa fa-trash" style="color: red; font-size: 16px;"></i>
+              </button>
+            </div>
+            ${allowQuantities ? '<label style="display:block; margin-top:5px;">Qty: <input type="number" min="1" value="1" style="width:60px;"></label>' : ''}
+          `;
+          block.querySelector('button').addEventListener('click', () => {
+            block.remove();
+          });
+        } else {
+          block.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label style="margin: 0;">
+                <input type="radio" name="deselectOption" checked />
+                <strong>${label}</strong>
+              </label>
+              <i class="fa fa-trash" style="color: red; font-size: 16px; cursor: pointer;" title="Remove"></i>
+            </div>
+            ${allowQuantities ? '<label style="display:block; margin-top:5px;">Qty: <input type="number" min="1" value="1" style="width:60px;"></label>' : ''}
+          `;
+          block.querySelector('.fa-trash').addEventListener('click', () => {
+            block.remove();
+            select.style.display = 'block';
+            select.value = '';
+          });
+
+          select.style.display = 'none';
+        }
+
+        appendContainer.appendChild(block);
+        select.value = '';
+      };
+    }
+
+    editor.on('load', () => {
+      setTimeout(() => {
+        editor.getComponents().forEach(component => {
+          const el = component.getEl();
+          if (el && el.classList.contains('trigger-service-options-modal')) {
+            renderServiceOptionsFromAttributesFromCurrentComponent(component);
+          }
+        });
+      }, 500);
     });
+
+
+    editor.on('load', () => {
+      setTimeout(() => {
+        editor.getComponents().forEach(component => {
+          const el = component.getEl();
+          if (el && el.classList.contains('trigger-service-modal')) {
+            renderDropdownServicesFromAttributes(component);
+          }
+        });
+      }, 500);
+    });
+
+
 
   </script>
 </html>

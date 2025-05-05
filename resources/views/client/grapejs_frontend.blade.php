@@ -162,7 +162,22 @@
                 const iframeDocument = editor.Canvas.getDocument();
 
                 iframeDocument.addEventListener('change', function (event) {
-                    if (event.target.type === 'checkbox' || (event.target.tagName === 'SELECT' && event.target.id === 'service-dropdown')) {
+                    const target = event.target;
+
+                    const isCheckboxOrRadio = target.matches('input[type="checkbox"], input[type="radio"]');
+                    const isServiceDropdown = target.closest('.trigger-service-modal')?.querySelector('select') === target;
+                    const isQuantityInput = target.matches('input[type="number"][name^="quantity_"]');
+                    const isServiceSelect = target.tagName === 'SELECT' && target.closest('.service-box');
+
+                    if (isCheckboxOrRadio || isServiceDropdown || isQuantityInput || isServiceSelect) {
+                        getSelectedServicesAndUpdateSummary();
+                    }
+                });
+
+                // Also watch for service block deletions
+                iframeDocument.addEventListener('click', function (event) {
+                    if (event.target.closest('.remove-service-btn')) {
+                        event.target.closest('.service-box')?.remove();
                         getSelectedServicesAndUpdateSummary();
                     }
                 });
@@ -173,30 +188,52 @@
             function getSelectedServicesAndUpdateSummary() {
                 const iframeDocument = editor.Canvas.getDocument();
                 selectedServices = [];
-                
-                // Get all checked checkboxes inside the GrapesJS editor
-                const checkboxes = iframeDocument.querySelectorAll('input[type="checkbox"]:checked');
-                checkboxes.forEach((checkbox) => {
-                    let serviceId = checkbox.id.replace('service-', ''); // Extract numeric part
-                    selectedServices.push(serviceId);
+
+                // Handle .trigger-service-modal (dropdown-based blocks)
+                const dropdownBlocks = iframeDocument.querySelectorAll('.trigger-service-modal');
+
+                dropdownBlocks.forEach(block => {
+                    const boxes = block.querySelectorAll('.service-box');
+
+                    boxes.forEach(box => {
+                        const serviceId = box.getAttribute('data-service-id');
+                        const quantityInput = box.querySelector(`input[name="quantity_${serviceId}"]`);
+                        const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+
+                        if (serviceId) {
+                            selectedServices.push({
+                                service_id: serviceId,
+                                quantity: quantity
+                            });
+                        }
+                    });
                 });
 
-                // Get selected value from the dropdown (if exists and has a value)
-                const serviceDropdown = iframeDocument.querySelector('#service-dropdown');
-                if (serviceDropdown && serviceDropdown.value) {
-                    selectedServices.push(serviceDropdown.value);
+                // Also handle .trigger-service-options-modal (checkbox or radio inputs)
+                const optionBlocks = iframeDocument.querySelectorAll('.trigger-service-options-modal');
+
+                optionBlocks.forEach(container => {
+                    const checkedInputs = container.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked');
+
+                    checkedInputs.forEach(input => {
+                        const serviceId = input.value;
+                        const quantityInput = container.querySelector(`select[name="quantity_${serviceId}"]`);
+                        const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+
+                        selectedServices.push({
+                            service_id: serviceId,
+                            quantity: quantity
+                        });
+                    });
+                });
+
+                console.log("✅ Selected Services with Quantities:", selectedServices);
+
+                if (selectedServices.length > 0) {
+                    updateSummary(selectedServices);
                 }
-
-                console.log("Selected Services (Checkbox + Dropdown):", selectedServices);
-
-                // If no service is selected, return early
-                if (selectedServices.length === 0) {
-                    //console.warn("No services selected");
-                    //return;
-                }
-
-                updateSummary(selectedServices);
             }
+
 
             // Function to update summary via AJAX (combined for both dropdown & checkbox)
             function updateSummary(selectedServices) {
@@ -444,5 +481,202 @@
 
         });
     </script>
+
+    <script>
+        function renderServiceOptions() {
+            const iframeDoc = editor.Canvas.getDocument();
+            const serviceBlocks = iframeDoc.querySelectorAll('.trigger-service-options-modal');
+            const allServices = @json($services);
+
+            serviceBlocks.forEach(container => {
+                const serviceGrid = container.querySelector('.service-grid');
+                const selectedServicesAttr = container.getAttribute('data-selected-services');
+                const defaultSelected = container.getAttribute('data-default-text');
+                const allowMultiple = container.hasAttribute('data-allow-multiple'); // ✅ boolean logic
+                const allowQuantities = container.hasAttribute('data-allow-quantities');
+                const fieldName = container.getAttribute('data-field-name') || 'service_option';
+
+                let serviceIds = [];
+                try {
+                    serviceIds = JSON.parse(selectedServicesAttr || '[]');
+                } catch (e) {
+                    console.warn('Invalid JSON in data-selected-services');
+                    return;
+                }
+
+                if (!serviceGrid || !Array.isArray(serviceIds)) return;
+                serviceGrid.innerHTML = ''; // Clear existing
+
+                serviceIds.forEach(serviceId => {
+                    const service = allServices.find(s => s.id == serviceId);
+                    if (!service) return;
+
+                    let price = '';
+                    if (service.service_type === 'recurring') {
+                        if (service.trial_for && service.trial_price) {
+                            price = `$${service.trial_price} for ${service.trial_for} ${service.trial_period || 'day'}${service.trial_for > 1 ? 's' : ''}, `;
+                        }
+                        price += `$${service.recurring_service_currency_value} / ${service.recurring_service_currency_value_two} ${service.recurring_service_currency_value_two_type}`;
+                    } else {
+                        price = `$${service.one_time_service_currency_value}`;
+                    }
+
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'service-box';
+                    wrapper.style.cssText = `
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                        padding: 15px;
+                        text-align: left;
+                        background: #fff;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                    `;
+
+                    const isChecked = allowMultiple
+                        ? defaultSelected?.split(',').includes(String(service.id)) || false
+                        : String(service.id) === String(defaultSelected);
+
+                    wrapper.innerHTML = `
+                        <label style="display: block; cursor: pointer;">
+                            <input 
+                                type="${allowMultiple ? 'checkbox' : 'radio'}"
+                                name="service_option_${fieldName}"
+                                value="${service.id}"
+                                ${isChecked ? 'checked' : ''}
+                                style="margin-right: 10px;"
+                            />
+                            <strong>${service.service_name}</strong>
+                            <p style="margin: 5px 0 0; font-size: 14px; color: #555;">${price}</p>
+                        </label>
+                        ${allowQuantities ? `
+                            <select name="quantity_${service.id}" class="form-select mt-2" style="max-width: 80px;">
+                                ${[...Array(10)].map((_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+                            </select>
+                        ` : ''}
+                    `;
+
+                    serviceGrid.appendChild(wrapper);
+                });
+            });
+        }
+
+        editor.on('load', () => {
+            setTimeout(renderServiceOptions, 500);
+        });
+    </script>
+
+    <script>
+        function renderServiceDropdowns() {
+            const iframeDoc = editor.Canvas.getDocument();
+            const dropdownContainers = iframeDoc.querySelectorAll('.trigger-service-modal');
+            const allServices = @json($services);
+
+            dropdownContainers.forEach(container => {
+                const select = container.querySelector('select');
+                const selectedServicesAttr = container.getAttribute('data-selected-services');
+                const defaultText = container.getAttribute('data-default-text');
+                const allowMultiple = container.hasAttribute('data-allow-multiple'); // check presence
+                
+                let serviceIds = [];
+                try {
+                    serviceIds = JSON.parse(selectedServicesAttr || '[]');
+                } catch (e) {
+                    console.warn('Invalid JSON in data-selected-services');
+                    return;
+                }
+
+                if (!select || !Array.isArray(serviceIds)) return;
+
+                // Populate select options
+                select.innerHTML = '<option value="">Select a service</option>';
+                serviceIds.forEach(serviceId => {
+                    const service = allServices.find(s => s.id == serviceId);
+                    if (!service) return;
+
+                    const option = document.createElement('option');
+                    option.value = service.id;
+                    option.textContent = service.service_name || `Service ID ${service.id}`;
+                    select.appendChild(option);
+                });
+
+                // Render default service block if found
+                if (defaultText) {
+                    const defaultService = allServices.find(s => s.service_name === defaultText || s.id == defaultText);
+                    if (defaultService && !container.querySelector(`.service-box[data-service-id="${defaultService.id}"]`)) {
+                        appendServiceBox(container, defaultService, allowMultiple, select);
+                    }
+                }
+
+                // On selection change
+                select.addEventListener('change', () => {
+                    const value = select.value;
+                    if (!value) return;
+
+                    const service = allServices.find(s => s.id == value);
+                    if (!service) return;
+
+                    // Prevent duplicates
+                    if (container.querySelector(`.service-box[data-service-id="${service.id}"]`)) {
+                        select.value = '';
+                        return;
+                    }
+
+                    appendServiceBox(container, service, allowMultiple, select);
+                    select.value = ''; // reset dropdown
+                });
+            });
+
+            function appendServiceBox(container, service, allowMultiple, select) {
+                const box = document.createElement('div');
+                box.className = 'service-box mt-2 p-2 border rounded bg-light d-flex justify-content-between align-items-start';
+                box.setAttribute('data-service-id', service.id);
+
+                // Build price string
+                let price = '';
+                if (service.service_type === 'recurring') {
+                    if (service.trial_for && service.trial_price) {
+                        price = `$${service.trial_price} for ${service.trial_for} ${service.trial_period || 'day'}${service.trial_for > 1 ? 's' : ''}, `;
+                    }
+                    price += `$${service.recurring_service_currency_value} / ${service.recurring_service_currency_value_two} ${service.recurring_service_currency_value_two_type}`;
+                } else {
+                    price = `$${service.one_time_service_currency_value}`;
+                }
+
+                box.innerHTML = `
+                    <div style="flex: 1;">
+                        <strong>${service.service_name}</strong>
+                        <p style="margin: 5px 0 0; font-size: 14px; color: #555;">${price}</p>
+                        <div class="mt-2">
+                            <label>Qty:
+                                <input type="number" min="1" value="1" name="quantity_${service.id}" class="form-control d-inline-block ms-2" style="width: 60px;" />
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-danger remove-service-btn" title="Remove">
+                            x
+                        </button>
+                    </div>
+                `;
+
+                // Remove logic
+                box.querySelector('.remove-service-btn').addEventListener('click', () => {
+                    box.remove();
+                    if (!allowMultiple && select) {
+                        select.style.display = '';
+                        select.value = '';
+                    }
+                });
+
+                container.appendChild(box);
+            }
+
+        }
+
+        editor.on('load', () => {
+            setTimeout(renderServiceDropdowns, 800);
+        });
+    </script>
+
 </body>
 </html>

@@ -46,8 +46,11 @@ class HomeController extends Controller
             abort(404);
         }
 
-        //echo "<pre>"; print_r($landingPage); die;
-        return view('client.grapejs_frontend')->with('landingPage', $landingPage)->with('slug', $landingPage->slug);
+        $teamMemberId = getUserID();
+        $services = Service::where('user_id',$landingPage->user_id)->orderBy('created_at','desc')->where('is_deleted',0)->get();
+
+        //echo "<pre>"; print_r($services); die;
+        return view('client.grapejs_frontend')->with('landingPage', $landingPage)->with('slug', $landingPage->slug)->with('services', $services);
     }
 
     public function landingpageinfo(Request $request, $slug){
@@ -123,13 +126,13 @@ class HomeController extends Controller
         $totalInvoiceAmount = 0;
 
         // Save each item in the invoice_items table
-        foreach ($request->selectedServices as $index => $serviceId) {
-            $service = $serviceId ? Service::find($serviceId) : null;
+        foreach ($request->selectedServices as $index => $item) {
+            $service = $item['service_id'] ?? null;
             //echo "<pre>"; print_r($service->recurring_service_currency_value); die;
 
             // Default values for price, discount, and trial price
-                $price = 0;
-            $quantity = 1;
+            $price = 0;
+            $quantity = max(1, intval($item['quantity'] ?? 1));
             $discount = 0;
             $discountsnextpayment = 0;
             $trialPrice = 0;
