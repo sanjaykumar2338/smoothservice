@@ -418,6 +418,33 @@
                         </div>
 
                         <div>
+                            <h5>Forms</h5>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="">
+                                <label class="form-check-label" for="set_deadline_check">
+                                    Intake form
+                                </label>
+                                
+                                <div class="select2-dark">
+                                    <select id="intake_form" name="intake_form" class="select2 form-select">
+                                        <option value="" disabled>Select Intake Form</option>
+                                        @if($intakeforms)
+                                            <option value=""></option>
+                                            @foreach($intakeforms as $form)
+                                                <option {{$service->intake_form==$form->id?'selected':''}} value="{{$form->id}}">{{$form->form_name}}</option>
+                                            @endforeach
+                                        @endif
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                Collect project information when clients purchase this service.
+                            </div>
+                        </div>
+
+                        <div>
                             <h5>Visibility</h5>
                         </div>
 

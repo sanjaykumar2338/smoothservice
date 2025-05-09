@@ -43,6 +43,7 @@ class Service extends Model
         'trial_period',
         'service_type',
         'is_deleted',
+        'intake_form',
     ];
 
     protected $casts = [

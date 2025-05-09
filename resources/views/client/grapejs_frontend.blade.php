@@ -633,6 +633,8 @@
 
                 // Build price string
                 let price = '';
+                console.log(service.service_type,'service.service_type');
+                
                 if (service.service_type === 'recurring') {
                     if (service.trial_for && service.trial_price) {
                         price = `$${service.trial_price} for ${service.trial_for} ${service.trial_period || 'day'}${service.trial_for > 1 ? 's' : ''}, `;

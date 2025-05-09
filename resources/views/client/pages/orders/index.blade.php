@@ -67,7 +67,10 @@
                             <td>{{ $order->client->first_name }} {{ $order->client->last_name }}</td>
                             <td>{{ $order->service?->service_name ?? 'N/A' }}</td>
                             <td>{{ ucfirst($order->status) }}</td>
-                            <td>{{ $order->created_at->format('Y-m-d') }}</td>
+                            @php
+                                $format = $order->created_at->year === now()->year ? 'M j' : 'M j, Y';
+                            @endphp
+                            <td>{{ $order->created_at->format($format) }}</td>
                             <td>
                                 <!-- Edit Button -->
                                 <a style="display:none;" href="{{ route('order.edit', $order->id) }}" class="btn btn-sm btn-primary">Edit</a>

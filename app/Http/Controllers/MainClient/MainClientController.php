@@ -25,6 +25,7 @@ use App\Models\History;
 use App\Models\TicketStatus;
 use App\Models\TicketTeam;
 use App\Models\OrderTeam;
+use App\Models\Intakeform;
 use App\Models\Invoice;
 use App\Models\User;
 use Stripe\Stripe;
@@ -283,8 +284,12 @@ class MainClientController extends Controller
         $currency = $invoice->currency;
         $firstServiceType = null;
 
+        $intake_forms = [];
         foreach ($invoice->items as $item) {
             $service = $item->service;
+            if($service->intake_form){
+                $intake_forms[] = Intakeform::find($service->intake_form);
+            }
 
             // Determine the first service type (month, day, year, or week)
             if (!$firstServiceType && $service?->service_type == 'recurring') {
@@ -356,14 +361,14 @@ class MainClientController extends Controller
             }
         }
         
-        return view('c_main.c_pages.c_invoice.c_show', compact('invoice', 'services', 'users', 'teamMembers', 'main_data'));
+        //echo "<pre>"; print_r($intake_form); die;
+        return view('c_main.c_pages.c_invoice.c_show', compact('invoice', 'services', 'users', 'teamMembers', 'main_data', 'intake_forms'));
     }
 
     public function invoice_payment($id)
     {
         // Retrieve the invoice by its ID along with the associated client and items
         $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
-
         if ($invoice->paid_at) {
             return redirect()->route('portal.invoices.show',$invoice->id)->with('error', 'Invoice already paid.');
         }
@@ -476,8 +481,7 @@ class MainClientController extends Controller
             $summary['total'] -= $invoice->upfront_payment_amount;
         }
 
-        //echo "<pre>"; print_r($main_data); die;
-        // Pass the invoice data to the view
+        //Pass the invoice data to the view
         return view('c_main.c_pages.c_invoice.c_payment', compact('invoice', 'services', 'users', 'teamMembers', 'addedByUser', 'main_data'));
     }
 
@@ -1535,12 +1539,39 @@ class MainClientController extends Controller
                 'payment_method' => 'balance',
             ]);
 
+            //Create one order per service in invoice
+            foreach ($invoice->items as $item) {
+                if ($item->service_id) {
+                    $service = \App\Models\Service::find($item->service_id);
+                    if (!$service) continue;
+
+                    $order_no = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+
+                    $order = \App\Models\Order::create([
+                        'title' => $service->service_name,
+                        'client_id' => $invoice->client_id,
+                        'invoice_id' => $invoice->id,
+                        'user_id' => $user->id,
+                        'service_id' => $item->service_id,
+                        'order_date' => now(),
+                        'note' => 'Auto-created from invoice #' . $invoice->invoice_no,
+                        'order_no' => $order_no,
+                    ]);
+
+                    \App\Models\History::create([
+                        'order_id' => $order->id,
+                        'user_id' => $service->user_id,
+                        'action_type' => 'order_created',
+                        'action_details' => 'Order auto-created for service: ' . $service->service_name,
+                    ]);
+                }
+            }
+
             // Send email notifications
             Mail::to($addedByUser->email)->send(new \App\Mail\InvoicePaid($invoice, $client, $addedByUser));
             Mail::to($client->email)->send(new \App\Mail\InvoicePaidConfirmation($invoice, $client));
 
             DB::commit();
-
             return response()->json([
                 'success' => true,
                 'message' => 'Payment successful. Invoice has been paid.',
@@ -1555,5 +1586,92 @@ class MainClientController extends Controller
                 'message' => 'An error occurred: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function intakeform($id, $invoice, $order)
+    {
+        $service = Service::findOrFail($id);
+        $intake_form = Intakeform::find($service->intake_form);
+
+        if (!$intake_form) {
+            abort(404, 'No intake form associated with this service.');
+        }
+
+        $invoiceModel = Invoice::findOrFail($invoice);
+
+        return view('c_main.c_pages.c_order.c_intake_form', [
+            'intake_form' => $intake_form,
+            'invoice_no' => $invoice,
+            'landing_page' => $service->id,
+            'order' => $order
+        ]);
+    }
+
+    public function storeIntakeForm(Request $request)
+    {
+        try {
+            // Validate request
+            $validated = $request->validate([
+                'order_id'     => 'required|exists:orders,id',
+                'landing_page' => 'required|integer',
+                'invoice_id'   => 'nullable|integer',
+                'form_data'    => 'required|array',
+            ]);
+
+            $orderId = $validated['order_id'];
+            $formData = $validated['form_data'];
+
+            foreach ($formData as $field) {
+                $fieldName = trim(str_replace('*', '', $field['name'] ?? 'unknown'));
+                $fieldType = $field['type'] ?? 'text';
+                $fieldValue = $field['value'] ?? null;
+
+                // If it's a file in base64, save it as an uploaded file
+                if (
+                    $fieldType === 'file' &&
+                    !empty($fieldValue) &&
+                    preg_match('/^data:(image|application)\/(\w+);base64,/', $fieldValue)
+                ) {
+                    $fieldValue = $this->saveBase64File($fieldValue);
+                }
+
+                // Save each field
+                OrderProjectData::create([
+                    'order_id'    => $orderId,
+                    'field_name'  => $fieldName,
+                    'field_type'  => $fieldType,
+                    'field_value' => $fieldValue,
+                ]);
+            }
+
+            // Mark the order as intake form submitted
+            Order::where('id', $orderId)->update(['is_intake_form_data_submitted' => 1]);
+
+            return response()->json(['success' => true, 'message' => 'Intake form submitted successfully.']);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save intake form: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function saveBase64File($base64String)
+    {
+        if (preg_match('/^data:(image|application)\/(\w+);base64,/', $base64String, $matches)) {
+            $extension = $matches[2];
+            $data = substr($base64String, strpos($base64String, ',') + 1);
+            $data = base64_decode($data);
+
+            $filename = uniqid('upload_') . '.' . $extension;
+            $path = storage_path('app/public/uploads/' . $filename);
+
+            file_put_contents($path, $data);
+
+            return 'storage/uploads/' . $filename;
+        }
+
+        return null;
     }
 }

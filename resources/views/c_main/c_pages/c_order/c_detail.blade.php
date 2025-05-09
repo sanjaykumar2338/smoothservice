@@ -40,6 +40,31 @@
          <div class="row">
             <div class="col-lg-12 col-xl-12">
                <div class="card card-action mb-4">
+
+                  @if($project_data)
+                     <div class="card-body">
+                        <h5 class="card-action-title mb-3">Project Data</h5>
+                        <ul class="list-unstyled mb-0">
+                           @foreach($project_data as $data)
+                           <li class="mb-3">
+                              <div class="d-flex align-items-start">
+                                 <div class="d-flex align-items-start">
+                                    <div class="me-2">
+                                       <strong>{{ $data->field_name }}:</strong> 
+                                       @if($data->field_type === 'file_upload' && $data->field_value)
+                                       <a href="{{ asset('storage/' . $data->field_value) }}" target="_blank">View File</a>
+                                       @else
+                                       <span>{{ $data->field_value ?? 'No value provided' }}</span>
+                                       @endif
+                                    </div>
+                                 </div>
+                              </div>
+                           </li>
+                           @endforeach
+                        </ul>
+                     </div>
+                  @endif
+
                   <div class="card-body">
                      <ul class="list-unstyled mb-0">
                         <li class="mb-3">

@@ -8,6 +8,7 @@ use App\Models\Service;
 use App\Models\ServiceParentService;
 use App\Models\ServiceTeamMember;
 use App\Models\TeamMember;
+use App\Models\Intakeform;
 
 class ServiceController extends Controller
 {
@@ -26,15 +27,18 @@ class ServiceController extends Controller
 
     public function create()
     {
+        $intakeforms = Intakeform::where('user_id', getUserID())->get();
         $team_members = TeamMember::where('added_by', auth()->id())->get();
-        return view('client.pages.service.create')->with('team_members', $team_members);
+        return view('client.pages.service.create')->with('team_members', $team_members)->with('intakeforms', $intakeforms);
     }
 
     public function edit(Service $service)
     {
         $team_members = TeamMember::where('added_by', auth()->id())->get();
-        $selected_members = $service->teamMembers->pluck('id')->toArray(); // Get the team members IDs already added
-        return view('client.pages.service.edit', compact('service', 'team_members', 'selected_members'));
+        $selected_members = $service->teamMembers->pluck('id')->toArray();
+        $intakeforms = Intakeform::where('user_id', getUserID())->get();
+
+        return view('client.pages.service.edit', compact('service', 'team_members', 'selected_members','intakeforms'));
     }
 
     public function update(Request $request, Service $service)
@@ -72,6 +76,7 @@ class ServiceController extends Controller
             'trial_for' => '',
             'trial_period' => '',
             'service_type' => '',
+            'intake_form' => '',
         ]);
 
         // Update the service
@@ -106,6 +111,7 @@ class ServiceController extends Controller
             'trial_for' => $validatedData['trial_for'],
             'trial_period' => $validatedData['trial_period'],
             'service_type' => $validatedData['service_type'],
+            'intake_form' => $validatedData['intake_form'],
         ]);
 
         // Sync parent services
@@ -161,6 +167,7 @@ class ServiceController extends Controller
             'trial_for' => '',
             'trial_period' => '',
             'service_type' => '',
+            'intake_form' => '',
         ]);
 
         // Create the service
@@ -197,6 +204,7 @@ class ServiceController extends Controller
             'trial_for' => $validatedData['trial_for'],
             'trial_period' => $validatedData['trial_period'],
             'service_type' => $validatedData['service_type'],
+            'intake_form' => $validatedData['intake_form'],
         ]);
 
         // Attach parent services

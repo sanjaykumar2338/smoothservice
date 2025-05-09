@@ -370,17 +370,12 @@ class HomeController extends Controller
     }
 
     public function intakeform(Request $request, $id, $inv){
-        $landing_page = LandingPage::where('id',$id)->first();
-        $invoice = Invoice::where('invoice_no', $inv)->first();
+        $intake_form = Intakeform::where('id',$id)->first();
+        $invoice = Invoice::where('id', $inv)->first();
+        //echo "<pre>"; print_r($invoice); die;
 
-        if($landing_page->intake_form && $invoice){
-            $intake_form = Intakeform::where('id', $landing_page->intake_form)
-                ->where('form_fields', '<>', '')
-                ->first();
-            
-            if($intake_form){
-                return view('client.intakeform_template')->with('intake_form', $intake_form)->with('invoice_no',$invoice->id)->with('landing_page', $id);
-            }
+        if($intake_form){
+            return view('client.intakeform_template')->with('intake_form', $intake_form)->with('invoice_no',$invoice->id)->with('landing_page', $id);
         }
 
         return abort(404);

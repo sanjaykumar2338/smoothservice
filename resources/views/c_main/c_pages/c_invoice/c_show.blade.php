@@ -265,6 +265,42 @@
                 </table>
             </div>
 
+
+            @if($intake_forms && count($intake_forms) > 0 && $invoice->paid_at)
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h5 class="mb-3">The following services require an intake form to get started…</h5>
+                        <form method="POST" action="">
+                            @csrf
+                            <div class="list-group">
+                                @foreach($intake_forms as $form)
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <input 
+                                            class="form-check-input me-2" 
+                                            type="checkbox" 
+                                            id="service_{{ $form->id }}" 
+                                            name="services[]" 
+                                            value="{{ $form->id }}"
+                                        >
+                                        <label class="form-check-label" for="service_{{ $form->id }}">
+                                            {{ $form->form_name }}
+                                        </label>
+                                    </div>
+                                    <a href="{{ route('intakeform', ['id' => $form->id, 'invoice' => $invoice->id]) }}" class="btn btn-outline-secondary btn-sm">
+                                        Open form
+                                    </a>
+                                </div>
+                                @endforeach
+                            </div>
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="submit" class="btn btn-primary">Continue to intake form</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            @endif
+
             <!-- Invoice History -->
             <div class="history mt-4">
                 <h6>History</h6>
@@ -283,7 +319,7 @@
                 $canPayWithBalance = ($next_payment_recurring == 0) && ($total - $invoice->upfront_payment_amount <= $user->account_balance);
             @endphp
 
-            @if(!$invoice->paid_at)
+            @if(!$invoice->paid_at || 1)
                 <!-- Pay with Stripe -->
                 <div class="d-flex align-items-right" style="float: right; margin-right: 10px;">
                     <button class="btn btn-danger d-flex align-items-center" onclick="window.location.href='{{ route('portal.invoice.payment', $invoice->id) }}'">
@@ -310,9 +346,8 @@
                     </div>
                 @endif
             @endif
-
-
         </div>
+
     </div>
 </div>
 

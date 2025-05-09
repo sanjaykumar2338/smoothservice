@@ -61,9 +61,20 @@
                         <tr style="cursor: pointer;" onclick="window.location.href='{{ route('portal.orders.show', $order->order_no) }}'">
                             <th scope="row"><a href="{{ route('portal.orders.show', $order->order_no) }}">{{ $order->order_no }}</a></th>
                             <td>{{ $order->title }}</td>
-                            <td>{{ $order->created_at->format('M d, Y') }}</td>
-                            <td>{{ $order->date_completed ? $order->date_completed->format('M d, Y') : '' }}</td>                            </td>
-                            <td>{{ ucfirst($order->status) }}</td>
+                            @php
+                                $format = $order->created_at->year === now()->year ? 'M j' : 'M j, Y';
+                            @endphp
+                            <td>{{ $order->created_at->format($format) }} </td>
+                            <td>{{ $order->date_completed ? $order->date_completed->format('M d, Y') : '' }}</td>
+                            <td>
+                                @if($order->service && $order->service->intake_form && !$order->is_intake_form_data_submitted && $order->invoice_id)
+                                    <a href="{{ route('portal.orders.intakeform', ['id' => $order->service->id, 'invoice' => $order->invoice_id, 'order' => $order->id]) }}">
+                                        Start Order
+                                    </a>
+                                @else
+                                    {{ ucfirst($order->status) }}
+                                @endif
+                            </td>
                         </tr>
                         @endforeach
                     @else
