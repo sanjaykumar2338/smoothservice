@@ -27,6 +27,7 @@ use App\Models\TicketTeam;
 use App\Models\OrderTeam;
 use App\Models\Intakeform;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\User;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
@@ -76,7 +77,8 @@ class MainClientController extends Controller
                             ->orWhere('note', 'LIKE', '%' . $search . '%');
                 });
             })
-            ->paginate(5);
+            ->orderBy('orders.id', 'desc')
+            ->paginate(10);
         
         return view('c_main.c_pages.c_order.c_index', compact('orders', 'search'));
     }
@@ -262,19 +264,15 @@ class MainClientController extends Controller
         return view('c_main.c_pages.c_invoice.c_index', compact('invoices', 'search'));
     }
 
-    public function invoice_show($id)
+   public function invoice_show($id)
     {
-        // Retrieve the invoice by its ID along with the associated client and items
+        // Retrieve the invoice by its ID along with related client and items
         $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
 
-        // Retrieve the services in case you want to display service information in the invoice
         $services = Service::where('user_id', auth()->id())->get();
-
-        // Fetch all users and team members added by the current logged-in user
         $users = User::all();
         $teamMembers = TeamMember::where('added_by', auth()->id())->get();
 
-        // Initialize variables
         $nextPaymentRecurring = 0;
         $totalDiscount = 0;
         $intervalTotal = [];
@@ -283,42 +281,69 @@ class MainClientController extends Controller
         $upfrontPayment = $invoice->upfront_payment_amount > 0 ? $invoice->upfront_payment_amount : 0;
         $currency = $invoice->currency;
         $firstServiceType = null;
-
         $intake_forms = [];
+
+        $user = auth()->user();
+
         foreach ($invoice->items as $item) {
             $service = $item->service;
-            if($service->intake_form){
+
+            // ✅ CREATE ORDER IF NOT EXISTS
+            $existingOrder = Order::where('service_id', $item->service_id)
+                ->where('invoice_id', $invoice->id)
+                ->first();
+
+            if (!$existingOrder && $service && $invoice->paid_at) {
+                $order_no = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+                $user = getAuthenticatedUser();
+
+                $order = Order::create([
+                    'title' => $service->service_name,
+                    'client_id' => $invoice->client_id,
+                    'invoice_id' => $invoice->id,
+                    'user_id' => $user->id,
+                    'service_id' => $item->service_id,
+                    'order_date' => now(),
+                    'note' => 'Auto-created from invoice #' . $invoice->invoice_no,
+                    'order_no' => $order_no,
+                ]);
+
+                History::create([
+                    'order_id' => $order->id,
+                    'user_id' => $service->user_id ?? $user->id,
+                    'action_type' => 'order_created',
+                    'action_details' => 'Order auto-created for service: ' . $service->service_name,
+                ]);
+            }
+
+            if ($service?->intake_form) {
                 $intake_forms[] = Intakeform::find($service->intake_form);
             }
 
-            // Determine the first service type (month, day, year, or week)
+            // Service categorization
             if (!$firstServiceType && $service?->service_type == 'recurring') {
                 $firstServiceType = $service->recurring_service_currency_value_two_type ?? '';
             }
 
             if (!empty($service->trial_for)) {
-                // Trial-based services
                 $trialServices[] = [
                     'name' => $service->service_name ?? $item->item_name,
                     'trialPrice' => ($service->trial_price - $item->discount),
                     'trialDuration' => $service->trial_for . ' ' . ($service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period),
                     'nextPrice' => ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment,
-                    'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type)
+                    'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type),
                 ];
 
                 $nextPaymentRecurring += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
                 $intervalTotal[] = $service->trial_for;
             } else {
-                // Non-trial services
-                //echo "<pre>"; print_r($service); die;
-
                 if ($item->service) {
                     $price = ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
                     $nonTrialServices[] = [
                         'name' => $service->service_name ?? $item->item_name,
                         'price' => $service->recurring_service_currency_value,
                         'quantity' => $item->quantity,
-                        'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type)
+                        'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type),
                     ];
 
                     $nextPaymentRecurring += $price;
@@ -328,10 +353,8 @@ class MainClientController extends Controller
             }
         }
 
-        // Calculate totals
-        $nextTotalWithoutTrial = array_sum(array_column($nonTrialServices, 'price')) * $item->quantity;
+        $nextTotalWithoutTrial = array_sum(array_column($nonTrialServices, 'price')) * ($item->quantity ?? 1);
 
-        // Summary data
         $main_data = [
             'currency' => $currency,
             'trialServices' => $trialServices,
@@ -342,27 +365,35 @@ class MainClientController extends Controller
             'firstServiceType' => $firstServiceType
         ];
 
-        //echo "<pre>"; print_r($main_data); die;
-        // Pass the invoice data to the view
-        if($invoice->landing_page_open==0){
-            Invoice::where('id', $invoice->id)->update(['landing_page_open'=>1]);
-            $landing_page = \App\Models\LandingPage::where('id',$invoice->landing_page)->first();
-            if (isset($landing_page->intake_form) && $invoice) {
-                $intake_form = \App\Models\Intakeform::where('id', $landing_page->intake_form)
+        if ($invoice->landing_page_open == 0) {
+            Invoice::where('id', $invoice->id)->update(['landing_page_open' => 1]);
+            $landing_page = \App\Models\LandingPage::find($invoice->landing_page);
+
+            if ($landing_page && $landing_page->intake_form && $invoice) {
+                $intake_form = Intakeform::where('id', $landing_page->intake_form)
                     ->where('form_fields', '<>', '')
                     ->first();
-                
-                if($intake_form){
+
+                if ($intake_form) {
                     return redirect()->route('intakeform', [
                         'id' => $invoice->landing_page,
                         'invoice' => $invoice->invoice_no
-                    ]);                                    
+                    ]);
                 }
             }
         }
-        
-        //echo "<pre>"; print_r($intake_form); die;
-        return view('c_main.c_pages.c_invoice.c_show', compact('invoice', 'services', 'users', 'teamMembers', 'main_data', 'intake_forms'));
+
+        $invoice_items = InvoiceItem::where('invoice_id', $invoice->id)->get();
+
+        return view('c_main.c_pages.c_invoice.c_show', compact(
+            'invoice',
+            'services',
+            'users',
+            'teamMembers',
+            'main_data',
+            'intake_forms',
+            'invoice_items'
+        ));
     }
 
     public function invoice_payment($id)
@@ -802,30 +833,35 @@ class MainClientController extends Controller
         try {
             $subscriptionId = $request->input('subscription_id');
             $invoiceId = $request->input('invoice_id');
+            $stored_subscrption_id = $request->input('stored_subscrption_id');
+
+            // Fetch invoice, client, and user
             $invoice = Invoice::with(['client', 'items'])->findOrFail($invoiceId);
             $client = Client::findOrFail($invoice->client_id);
             $addedByUser = User::findOrFail($invoice->added_by);
+            $user = auth()->user();
 
-            // Retrieve the subscription details
-            $stored_subscrption_id = $request->input('stored_subscrption_id');
+            // Mark subscription as complete
             $sub = InvoiceSubscription::find($stored_subscrption_id);
+            $sub->update(['completed' => 1]);
 
-            // Save subscription details in the database
-            $sub->update([
-                'completed' => 1
-            ]);
-
-            // Update the invoice
-            Invoice::where('id', $invoiceId)->update([
+            // Update invoice as paid
+            $invoice->update([
                 'paid_at' => now(),
                 'payment_method' => 'stripe_subscription',
             ]);
 
+            // Send email notifications
             Mail::to($addedByUser->email)->send(new \App\Mail\InvoicePaid($invoice, $client, $addedByUser));
             Mail::to($client->email)->send(new \App\Mail\InvoicePaidConfirmation($invoice, $client));
-            return response()->json(['success' => true, 'message' => 'Subscription finalized successfully.']);
+
+            return response()->json(['success' => true, 'message' => 'Subscription finalized and orders created.']);
+
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage()
+            ]);
         }
     }
 
@@ -916,7 +952,6 @@ class MainClientController extends Controller
 
                 Mail::to($addedByUser->email)->send(new \App\Mail\InvoicePaid($invoice, $client, $addedByUser));
                 Mail::to($client->email)->send(new \App\Mail\InvoicePaidConfirmation($invoice, $client));
-
                 return response()->json(['success' => true, 'message' => 'Payment completed successfully.'], 200);
             }
 
@@ -1646,7 +1681,6 @@ class MainClientController extends Controller
 
             // Mark the order as intake form submitted
             Order::where('id', $orderId)->update(['is_intake_form_data_submitted' => 1]);
-
             return response()->json(['success' => true, 'message' => 'Intake form submitted successfully.']);
 
         } catch (\Exception $e) {

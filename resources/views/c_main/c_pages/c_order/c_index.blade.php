@@ -48,6 +48,7 @@
                 <thead>
                     <tr class="text-nowrap">
                         <th style="display:none"><input type="checkbox" id="select-all"></th>
+                        <th>Sr. No.</th>
                         <th>ID</th>
                         <th>Title</th>
                         <th>Created</th>
@@ -57,8 +58,12 @@
                 </thead>
                 <tbody class="table-border-bottom-0">
                     @if($orders->count() > 0)
+                        @php
+                            $i = ($orders->currentPage() - 1) * $orders->perPage() + 1;
+                        @endphp
                         @foreach($orders as $order)
                         <tr style="cursor: pointer;" onclick="window.location.href='{{ route('portal.orders.show', $order->order_no) }}'">
+                            <th>{{ $i++ }}</th>
                             <th scope="row"><a href="{{ route('portal.orders.show', $order->order_no) }}">{{ $order->order_no }}</a></th>
                             <td>{{ $order->title }}</td>
                             @php

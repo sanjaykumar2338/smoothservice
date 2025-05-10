@@ -38,6 +38,7 @@
                 <thead>
                     <tr class="text-nowrap">
                         <th style="display:none"><input type="checkbox" id="select-all"></th>
+                        <th>Sr. No</th>
                         <th>Invoice</th>
                         <th>Date</th>
                         <th>Total</th>
@@ -46,8 +47,12 @@
                 </thead>
                 <tbody class="table-border-bottom-0">
                     @if($invoices->count() > 0)
+                        @php
+                            $n = ($invoices->currentPage() - 1) * $invoices->perPage() + 1;
+                        @endphp
                         @foreach($invoices as $invoice)
                         <tr style="cursor: pointer;" onclick="window.location.href='{{ route('portal.invoices.show', $invoice->id) }}'">
+                            <td>{{$n++}}</td>
                             <th scope="row"><a href="{{ route('portal.invoices.show', $invoice->id) }}">{{ $invoice->invoice_no }}</a></th>
                             <td>{{ $invoice->created_at->format('M d, Y') }}</td>
                             <td>${{ number_format($invoice->total, 2) }}</td>

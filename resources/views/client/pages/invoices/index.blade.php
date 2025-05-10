@@ -59,7 +59,6 @@
                         <th>Client</th>
                         <th>Total</th>
                         <th>Due Date</th>
-                        <th>Intake Form Feedback</th>
                         @if(checkPermission('add_edit_delete_invoice'))
                             <th>Actions</th>
                         @endif
@@ -73,26 +72,6 @@
                             <td>{{ $invoice->client->first_name }} {{ $invoice->client->last_name }}</td>
                             <td>{{$invoice->currency}} {{ $invoice->total }}</td>
                             <td>{{ $invoice->due_date }}</td>
-                            <td>
-                                @php
-                                    $feedback = \App\Models\FeedbackEntry::where('invoice_id', $invoice->id)->latest()->first();
-                                @endphp
-
-                                @if($feedback)
-
-                                <button
-                                    class="btn btn-sm btn-info"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#feedbackModal"
-                                    data-feedback='@json($feedback->form_data)'>
-                                    View Feedback
-                                </button>
-
-
-                                @else
-                                    <span class="text-muted">No Feedback</span>
-                                @endif
-                            </td>
                             @if(checkPermission('add_edit_delete_invoice'))
                             <td>
                                 <!-- Edit Button -->
@@ -134,20 +113,6 @@
                     @endif
                 </ul>
             </nav>
-        </div>
-    </div>
-</div>
-
-<div class="modal" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Feedback Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="feedbackBody">
-                <!-- Feedback data will be inserted here -->
-            </div>
         </div>
     </div>
 </div>

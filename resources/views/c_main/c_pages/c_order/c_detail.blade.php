@@ -41,7 +41,7 @@
             <div class="col-lg-12 col-xl-12">
                <div class="card card-action mb-4">
 
-                  @if($project_data)
+                  @if(count($project_data) > 0)
                      <div class="card-body">
                         <h5 class="card-action-title mb-3">Project Data</h5>
                         <ul class="list-unstyled mb-0">
