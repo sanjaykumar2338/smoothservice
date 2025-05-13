@@ -91,13 +91,13 @@
                                         @if($service->service_type == 'recurring')
                                             @if($order=="")
                                                 @if($service->trial_for!="")
-                                                    <option data-type="recurringwithtrail" data-price="{{$service->trial_price}}" value="{{ $service->id }}">
+                                                    <option data-parent-services="{{ $service->parent_services ?? '' }}"  data-type="recurringwithtrail" data-price="{{$service->trial_price}}" value="{{ $service->id }}">
                                                         {{ $service->service_name }} {{$service->trial_currency}} {{$service->trial_price}} for {{$service->trial_for}} {{ $service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period }}, {{ $service->recurring_service_currency }} 
                                                         ${{ $service->recurring_service_currency_value }}/{{ $service->recurring_service_currency_value_two }} 
                                                         {{ $service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type }}
                                                     </option>
                                                 @else
-                                                    <option data-type="recurring" data-price="{{$service->recurring_service_currency_value}}" value="{{ $service->id }}">
+                                                    <option data-parent-services="{{ $service->parent_services ?? '' }}" data-type="recurring" data-price="{{$service->recurring_service_currency_value}}" value="{{ $service->id }}">
                                                         {{ $service->service_name }} {{ $service->recurring_service_currency }} 
                                                         ${{ $service->recurring_service_currency_value }} / 
                                                         {{ $service->recurring_service_currency_value_two }} 
@@ -106,7 +106,7 @@
                                                 @endif
                                             @endif
                                         @else
-                                            <option data-type="onetime" data-price="{{$service->one_time_service_currency_value}}" value="{{ $service->id }}">
+                                            <option data-parent-services="{{ $service->parent_services ?? '' }}" data-type="onetime" data-price="{{$service->one_time_service_currency_value}}" value="{{ $service->id }}">
                                                 {{ $service->service_name }} / {{ $service->one_time_service_currency }} ${{ $service->one_time_service_currency_value }}
                                             </option>
                                         @endif
@@ -247,6 +247,8 @@
             serviceSelects.forEach(select => {
                 const selectedOption = select.options[select.selectedIndex];
                 const dataType = selectedOption.getAttribute('data-type'); // Get the data-type attribute
+                const parentList = selectedOption.getAttribute('data-parent-services')?.trim();
+                console.log('parentList', parentList, select.value);
 
                 // Check if the selected option has recurring or recurringwithtrail
                 if (dataType === 'recurring' || dataType === 'recurringwithtrail') {
@@ -259,9 +261,36 @@
 
             // Validation: If recurring service and upfront payment are used
             if (hasRecurringService && upfrontPaymentValue !== '') {
-                alert('Partial payments cannot be used with recurring services.');
+                notify.error("Partial payments cannot be used with recurring services.!");
             } else {
-                // If validation passes, submit the form
+
+                // 1. collect all selected service IDs
+                const selectedIds = Array.from(serviceSelects)
+                .map(sel => sel.value)
+                .filter(v => v);
+
+                // 2. check each addon for at least one parent in selectedIds
+                let addonValid = true;
+                serviceSelects.forEach(sel => {
+                    const opt = sel.options[sel.selectedIndex];
+                    const parentList = opt.getAttribute('data-parent-services')?.trim();
+                    if (!parentList) return;         // not an addon, skip
+
+                    // split into an array of parent IDs
+                    const parents = parentList.split(',').map(id => id.trim());
+
+                    // if none of those parents are in selectedIds → invalid
+                    if (!parents.some(pid => selectedIds.includes(pid))) {
+                        addonValid = false;
+                    }
+                });
+
+                if (!addonValid) {
+                    e.preventDefault();
+                    notify.error("One or more addons require at least one of their parent services to be selected");
+                    return;
+                }
+
                 e.target.closest('form').submit();
             }
         });

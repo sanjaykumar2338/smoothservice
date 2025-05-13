@@ -105,3 +105,43 @@ if (typeof TemplateCustomizer !== 'undefined') {
     controls: ['rtl', 'style', 'headerType', 'contentLayout', 'layoutCollapsed', 'layoutNavbarOptions', 'themes']
   });
 }
+
+
+window.notify = {
+  success: function (message) {
+    Toastify({
+      text: message,
+      duration: 5000,
+      gravity: "bottom",
+      position: "right",
+      backgroundColor: "#4CAF50"
+    }).showToast();
+  },
+  error: function (message) {
+    Toastify({
+      text: message,
+      duration: 5000,
+      gravity: "bottom",
+      position: "right",
+      backgroundColor: "#f44336"
+    }).showToast();
+  },
+  info: function (message) {
+    Toastify({
+      text: message,
+      duration: 5000,
+      gravity: "bottom",
+      position: "right",
+      backgroundColor: "#2196F3"
+    }).showToast();
+  },
+  warning: function (message) {
+    Toastify({
+      text: message,
+      duration: 5000,
+      gravity: "bottom",
+      position: "right",
+      backgroundColor: "#ff9800"
+    }).showToast();
+  }
+};

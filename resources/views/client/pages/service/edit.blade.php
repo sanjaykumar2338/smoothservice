@@ -335,12 +335,23 @@
                             @else
                                 <div class="col-md-6 mb-4 mb-md-0" id="parent_services_container" style="display:none">
                             @endif
-                                <div class="select2-dark">
-                                    <select id="parent_services" name="parent_services[]" class="select2 form-select" multiple>
-                                        <option value="1" {{ isset($service) && $service->parentServices && in_array(1, $service->parentServices->pluck('id')->toArray()) ? 'selected' : '' }}>Test 1</option>
-                                        <option value="2" {{ isset($service) && $service->parentServices && in_array(2, $service->parentServices->pluck('id')->toArray()) ? 'selected' : '' }}>Test 2</option>
-                                    </select>
-                                </div>
+
+                            @php
+                                $selectedParents = isset($service) && $service->parent_services
+                                    ? explode(',', $service->parent_services)
+                                    : [];
+                            @endphp
+
+                            <div class="select2-dark">
+                                <select id="parent_services" name="parent_services[]" class="select2 form-select" multiple>
+                                    @foreach($services as $s)
+                                        <option value="{{ $s->id }}" {{ in_array($s->id, $selectedParents) ? 'selected' : '' }}>
+                                            {{ $s->service_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
                             </div>
                             <br>
                         </div>

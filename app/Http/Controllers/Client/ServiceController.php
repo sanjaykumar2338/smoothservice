@@ -29,7 +29,9 @@ class ServiceController extends Controller
     {
         $intakeforms = Intakeform::where('user_id', getUserID())->get();
         $team_members = TeamMember::where('added_by', auth()->id())->get();
-        return view('client.pages.service.create')->with('team_members', $team_members)->with('intakeforms', $intakeforms);
+        $services = Service::orderBy('id','desc')->where('is_deleted', 0)->where('user_id',getUserID())->get();
+
+        return view('client.pages.service.create')->with('team_members', $team_members)->with('intakeforms', $intakeforms)->with('services', $services);
     }
 
     public function edit(Service $service)
@@ -37,18 +39,20 @@ class ServiceController extends Controller
         $team_members = TeamMember::where('added_by', auth()->id())->get();
         $selected_members = $service->teamMembers->pluck('id')->toArray();
         $intakeforms = Intakeform::where('user_id', getUserID())->get();
+        $services = Service::orderBy('id','desc')->where('is_deleted', 0)->where('id','!=',$service->id)->where('user_id',getUserID())->get();
 
-        return view('client.pages.service.edit', compact('service', 'team_members', 'selected_members','intakeforms'));
+        return view('client.pages.service.edit', compact('service', 'team_members', 'selected_members','intakeforms','services'));
     }
 
     public function update(Request $request, Service $service)
     {
+        //echo "<pre>"; print_r($request->all()); die;
         // Validate the request
         $validatedData = $request->validate([
             'service_name' => 'required|string|max:255',
             'editor_content' => '',
             'addon' => 'boolean',
-            'parent_services' => 'array',
+            'parent_services' => 'nullable|array',
             'group_multiple' => 'boolean',
             'assign_team_member' => 'boolean',
             'team_member' => 'array',
@@ -83,7 +87,7 @@ class ServiceController extends Controller
         $service->update([
             'service_name' => $request->service_name,
             'description' => $request->editor_content,
-            'addon' => $request->addon ?? false,
+            'addon' => $request->addon && !empty($validatedData['parent_services']) ?? false,
             'group_multiple' => $request->group_multiple ?? false,
             'assign_team_member' => $request->assign_team_member ?? false,
             'set_deadline_check' => $request->set_deadline_check ?? false,
@@ -112,6 +116,7 @@ class ServiceController extends Controller
             'trial_period' => $validatedData['trial_period'],
             'service_type' => $validatedData['service_type'],
             'intake_form' => $validatedData['intake_form'],
+            'parent_services' => isset($validatedData['parent_services']) ? implode(',', $validatedData['parent_services']) : null,
         ]);
 
         // Sync parent services
@@ -137,7 +142,7 @@ class ServiceController extends Controller
             'service_name' => 'required|string|max:255',
             'editor_content' => '',
             'addon' => 'boolean',
-            'parent_services' => 'array',
+            'parent_services' => 'nullable|array',
             'group_multiple' => 'boolean',
             'assign_team_member' => 'boolean',
             'team_member' => 'array',
@@ -174,7 +179,7 @@ class ServiceController extends Controller
         $service = Service::create([
             'service_name' => $request->service_name,
             'description' => $request->editor_content,
-            'addon' => $request->addon ?? false,
+            'addon' => $request->addon && !empty($validatedData['parent_services']) ?? false,
             'group_multiple' => $request->group_multiple ?? false,
             'assign_team_member' => $request->assign_team_member ?? false,
             'set_deadline_check' => $request->set_deadline_check ?? false,
@@ -205,6 +210,7 @@ class ServiceController extends Controller
             'trial_period' => $validatedData['trial_period'],
             'service_type' => $validatedData['service_type'],
             'intake_form' => $validatedData['intake_form'],
+            'parent_services' => isset($validatedData['parent_services']) ? implode(',', $validatedData['parent_services']) : null,
         ]);
 
         // Attach parent services

@@ -44,6 +44,7 @@ class Service extends Model
         'service_type',
         'is_deleted',
         'intake_form',
+        'parent_services',
     ];
 
     protected $casts = [

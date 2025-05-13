@@ -264,9 +264,8 @@ class MainClientController extends Controller
         return view('c_main.c_pages.c_invoice.c_index', compact('invoices', 'search'));
     }
 
-   public function invoice_show($id)
+    public function invoice_show($id)
     {
-        // Retrieve the invoice by its ID along with related client and items
         $invoice = Invoice::with(['client', 'items'])->findOrFail($id);
 
         $services = Service::where('user_id', auth()->id())->get();
@@ -285,70 +284,111 @@ class MainClientController extends Controller
 
         $user = auth()->user();
 
+        $order_no_base = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+        $globalOrderIndex = 1;
+        $invoice_service_ids = $invoice->items->pluck('service_id')->map(fn($id) => (string) $id)->toArray();
+
         foreach ($invoice->items as $item) {
-            $service = $item->service;
+            $originalService = $item->service;
+            $parentService = null;
 
-            // ✅ CREATE ORDER IF NOT EXISTS
-            $existingOrder = Order::where('service_id', $item->service_id)
-                ->where('invoice_id', $invoice->id)
-                ->first();
-
-            if (!$existingOrder && $service && $invoice->paid_at) {
-                $order_no = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
-                $user = getAuthenticatedUser();
-
-                $order = Order::create([
-                    'title' => $service->service_name,
-                    'client_id' => $invoice->client_id,
-                    'invoice_id' => $invoice->id,
-                    'user_id' => $user->id,
-                    'service_id' => $item->service_id,
-                    'order_date' => now(),
-                    'note' => 'Auto-created from invoice #' . $invoice->invoice_no,
-                    'order_no' => $order_no,
-                ]);
-
-                History::create([
-                    'order_id' => $order->id,
-                    'user_id' => $service->user_id ?? $user->id,
-                    'action_type' => 'order_created',
-                    'action_details' => 'Order auto-created for service: ' . $service->service_name,
-                ]);
+            // Determine parent service if applicable
+            if (!empty($originalService->parent_services)) {
+                $parentIds = array_map('trim', explode(',', $originalService->parent_services));
+                foreach ($parentIds as $pid) {
+                    if (in_array($pid, $invoice_service_ids)) {
+                        $parentService = Service::find($pid);
+                        break;
+                    }
+                }
             }
 
-            if ($service?->intake_form) {
-                $intake_forms[] = Intakeform::find($service->intake_form);
+            $orderService = $parentService ?: $originalService;
+
+            // Prevent duplicate orders per original item (add_on_service check)
+            $existingOrder = Order::where('invoice_id', $invoice->id)
+                ->where('add_on_service', $originalService->id)
+                ->first();
+
+            if (!$existingOrder && $invoice->paid_at) {
+                $user = getAuthenticatedUser();
+                $order_count = $orderService->multiple_orders ?? 1;
+
+                for ($i = 1; $i <= $order_count; $i++) {
+                    $order_no = "{$order_no_base}_{$globalOrderIndex}";
+
+                    // Output for testing
+                    /*
+                    echo "<pre>"; print_r([
+                        'title' => $orderService->service_name,
+                        'client_id' => $invoice->client_id,
+                        'invoice_id' => $invoice->id,
+                        'user_id' => $user->id,
+                        'service_id' => $orderService->id,
+                        'add_on_service' => $originalService->id,
+                        'order_date' => now(),
+                        'note' => 'Auto-created from invoice #' . $invoice->invoice_no,
+                        'order_no' => $order_no,
+                    ]);
+                    */
+
+                    $order = Order::create([
+                        'title' => $orderService->service_name,
+                        'client_id' => $invoice->client_id,
+                        'invoice_id' => $invoice->id,
+                        'user_id' => $user->id,
+                        'service_id' => $orderService->id,
+                        'add_on_service' => $originalService->id,
+                        'order_date' => now(),
+                        'note' => 'Auto-created from invoice #' . $invoice->invoice_no,
+                        'order_no' => $order_no,
+                    ]);
+
+                    History::create([
+                        'order_id' => $order->id,
+                        'user_id' => $orderService->user_id ?? $user->id,
+                        'action_type' => 'order_created',
+                        'action_details' => 'Order auto-created for service: ' . $orderService->service_name,
+                    ]);
+
+                    $globalOrderIndex++;
+                }
+            }
+
+            // Intake form
+            if ($originalService?->intake_form) {
+                $intake_forms[] = Intakeform::find($originalService->intake_form);
             }
 
             // Service categorization
-            if (!$firstServiceType && $service?->service_type == 'recurring') {
-                $firstServiceType = $service->recurring_service_currency_value_two_type ?? '';
+            if (!$firstServiceType && $originalService?->service_type == 'recurring') {
+                $firstServiceType = $originalService->recurring_service_currency_value_two_type ?? '';
             }
 
-            if (!empty($service->trial_for)) {
+            if (!empty($originalService->trial_for)) {
                 $trialServices[] = [
-                    'name' => $service->service_name ?? $item->item_name,
-                    'trialPrice' => ($service->trial_price - $item->discount),
-                    'trialDuration' => $service->trial_for . ' ' . ($service->trial_for > 1 ? $service->trial_period . 's' : $service->trial_period),
-                    'nextPrice' => ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment,
-                    'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type),
+                    'name' => $originalService->service_name ?? $item->item_name,
+                    'trialPrice' => ($originalService->trial_price - $item->discount),
+                    'trialDuration' => $originalService->trial_for . ' ' . ($originalService->trial_for > 1 ? $originalService->trial_period . 's' : $originalService->trial_period),
+                    'nextPrice' => ($originalService->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment,
+                    'interval' => $originalService->recurring_service_currency_value_two . ' ' . ($originalService->recurring_service_currency_value_two > 1 ? $originalService->recurring_service_currency_value_two_type . 's' : $originalService->recurring_service_currency_value_two_type),
                 ];
 
-                $nextPaymentRecurring += ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
-                $intervalTotal[] = $service->trial_for;
+                $nextPaymentRecurring += ($originalService->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                $intervalTotal[] = $originalService->trial_for;
             } else {
-                if ($item->service) {
-                    $price = ($service->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
+                if ($originalService) {
+                    $price = ($originalService->recurring_service_currency_value * $item->quantity) - $item->discountsnextpayment;
                     $nonTrialServices[] = [
-                        'name' => $service->service_name ?? $item->item_name,
-                        'price' => $service->recurring_service_currency_value,
+                        'name' => $originalService->service_name ?? $item->item_name,
+                        'price' => $originalService->recurring_service_currency_value,
                         'quantity' => $item->quantity,
-                        'interval' => $service->recurring_service_currency_value_two . ' ' . ($service->recurring_service_currency_value_two > 1 ? $service->recurring_service_currency_value_two_type . 's' : $service->recurring_service_currency_value_two_type),
+                        'interval' => $originalService->recurring_service_currency_value_two . ' ' . ($originalService->recurring_service_currency_value_two > 1 ? $originalService->recurring_service_currency_value_two_type . 's' : $originalService->recurring_service_currency_value_two_type),
                     ];
 
                     $nextPaymentRecurring += $price;
                     $totalDiscount += $item->discount;
-                    $intervalTotal[] = $service->recurring_service_currency_value_two;
+                    $intervalTotal[] = $originalService->recurring_service_currency_value_two;
                 }
             }
         }
@@ -384,7 +424,6 @@ class MainClientController extends Controller
         }
 
         $invoice_items = InvoiceItem::where('invoice_id', $invoice->id)->get();
-
         return view('c_main.c_pages.c_invoice.c_show', compact(
             'invoice',
             'services',
@@ -1573,34 +1612,6 @@ class MainClientController extends Controller
                 'paid_at' => now(),
                 'payment_method' => 'balance',
             ]);
-
-            //Create one order per service in invoice
-            foreach ($invoice->items as $item) {
-                if ($item->service_id) {
-                    $service = \App\Models\Service::find($item->service_id);
-                    if (!$service) continue;
-
-                    $order_no = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
-
-                    $order = \App\Models\Order::create([
-                        'title' => $service->service_name,
-                        'client_id' => $invoice->client_id,
-                        'invoice_id' => $invoice->id,
-                        'user_id' => $user->id,
-                        'service_id' => $item->service_id,
-                        'order_date' => now(),
-                        'note' => 'Auto-created from invoice #' . $invoice->invoice_no,
-                        'order_no' => $order_no,
-                    ]);
-
-                    \App\Models\History::create([
-                        'order_id' => $order->id,
-                        'user_id' => $service->user_id,
-                        'action_type' => 'order_created',
-                        'action_details' => 'Order auto-created for service: ' . $service->service_name,
-                    ]);
-                }
-            }
 
             // Send email notifications
             Mail::to($addedByUser->email)->send(new \App\Mail\InvoicePaid($invoice, $client, $addedByUser));

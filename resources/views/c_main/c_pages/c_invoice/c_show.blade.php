@@ -136,7 +136,7 @@
                             <!-- Item Name -->
                             <td class="text-start">
                                 {{ $item->service->service_name ?? $item->item_name }}<br>
-
+                                
                                 @php $service = $item->service @endphp
                                 @if(!empty($item->service->trial_for))
                                     <span class="form-label">

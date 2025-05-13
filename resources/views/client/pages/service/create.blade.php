@@ -332,8 +332,11 @@
                                 <div class="col-md-6 mb-4 mb-md-0" id="parent_services_container" style="display:none">
                                 <div class="select2-dark">
                                     <select id="parent_services" name="parent_services[]" class="select2 form-select" multiple>
-                                        <option value="1" {{ isset($service) && $service->parentServices && in_array(1, $service->parentServices->pluck('id')->toArray()) ? 'selected' : '' }}>Test 1</option>
-                                        <option value="2" {{ isset($service) && $service->parentServices && in_array(2, $service->parentServices->pluck('id')->toArray()) ? 'selected' : '' }}>Test 2</option>
+                                        @foreach($services as $s)
+                                            <option value="{{ $s->id }}">
+                                                {{ $s->service_name }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                 </div>
                             </div>

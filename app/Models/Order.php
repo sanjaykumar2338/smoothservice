@@ -10,7 +10,7 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'order_no', 'service_id', 'client_id', 'note', 'status', 'user_id', 'tags', 'notification', 'date_added', 'date_due', 'date_started', 'date_completed', 'amount', 'invoice_id'];
+    protected $fillable = ['title', 'order_no', 'service_id', 'client_id', 'note', 'status', 'user_id', 'tags', 'notification', 'date_added', 'date_due', 'date_started', 'date_completed', 'amount', 'invoice_id', 'add_on_service'];
 
     protected $casts = [
         'date_added' => 'datetime',

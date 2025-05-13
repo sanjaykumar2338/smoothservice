@@ -60,14 +60,17 @@
     <link rel="stylesheet" href="{{asset('/assets/vendor/libs/quill/katex.css')}}" />
     <link rel="stylesheet" href="{{asset('/assets/vendor/libs/quill/editor.css')}}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
     <script src="{{asset('/assets/vendor/js/helpers.js')}}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="{{asset('/assets/vendor/js/template-customizer.js')}}"></script>
     <script src="{{asset('/assets/js/config.js')}}"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="{{asset('/assets/vendor/libs/jquery/jquery.js')}}"></script>
     <script src="{{asset('/assets/vendor/libs/tagify/tagify.js')}}"></script>
+    
   </head>
 
   @include('client.custom_settings')
