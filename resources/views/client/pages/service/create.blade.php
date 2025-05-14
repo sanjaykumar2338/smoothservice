@@ -196,7 +196,7 @@
                                                 <a href="javascript:void(0);" class="list-group-item list-group-item-action d-flex justify-content-between" @click="toggleOrdersDiv">
                                                     <div class="li-wrapper d-flex justify-content-start align-items-center">
                                                         <div class="list-content">
-                                                            <h6 class="mb-1 create_multiple_orders">Create multiple orders?</h6>
+                                                            <h6 class="mb-1 create_multiple_orders">This is a service package, create multiple orders</h6>
                                                         </div>
                                                     </div>
                                                 </a>
@@ -209,7 +209,7 @@
                                         <input type="number" value="" v-model.number="orderValue" class="form-control" placeholder="" name="multiple_orders">
                                     </div>
                                     <div v-show="isOrdersDivVisible">
-                                        <span>@{{ orderValue }}</span> new orders will be created when this service is purchased.
+                                        <span>@{{ orderValue }}</span> new @{{ orderValue == 1 ? 'order' : 'orders' }} will be created when this service is purchased.
                                     </div>
                                 </div>
 
@@ -345,7 +345,17 @@
 
                         <div class="mb-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="1" id="group_multiple" name="group_multiple">
+                                <input
+                                    type="checkbox"
+                                    value="1"
+                                    id="group_multiple"
+                                    name="group_multiple"
+                                    class="form-check-input"
+                                    v-model="groupMultiple"
+                                    :disabled="orderValue >= 1"
+                                    :checked="false"
+                                />
+
                                 <label class="form-check-label" for="group_multiple">
                                     Group multiple quantities of this service into one order
                                 </label>
@@ -548,6 +558,19 @@
             if (primaryCheckbox.checked) {
                 otherCheckboxIds.forEach(id => document.getElementById(id).disabled = true);
                 otherContainers.forEach(id => document.getElementById(id).style.display = 'none');
+
+                otherCheckboxIds.forEach(id => {
+                    const checkbox = document.getElementById(id);
+                    checkbox.disabled = true;
+
+                    // Uncheck group_multiple specifically
+                    if (id === 'group_multiple') {
+                        checkbox.checked = false;
+
+                        // Optional: trigger change event manually
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
+                });
             } else {
                 otherCheckboxIds.forEach(id => document.getElementById(id).disabled = false);
             }
@@ -556,7 +579,7 @@
         otherCheckboxIds.forEach((id, index) => {
             const otherCheckbox = document.getElementById(id);
             otherCheckbox.addEventListener('change', function () {
-                if (otherCheckbox.checked) {
+                if (otherCheckbox.checked && id!="group_multiple") {
                     primaryCheckbox.disabled = true;
                     document.getElementById('parent_services_container').style.display = 'none';
                 } else {
@@ -669,7 +692,7 @@
     new Vue({
         el: '#app',
         data: {
-            isOrdersDivVisible: false,
+            isOrdersDivVisible: true,
             isPricingOptionVisible: false,
             orderValue: "{{ $service->multiple_orders ?? '' }}",
             showModal: false,
@@ -681,6 +704,7 @@
             selectedRecurringPrice: '', // To store the selected recurring price option
             statusMessage: '',
             statusClass: '',
+            groupMultiple: false,
         },
         computed: {
             maxOptionFields() {
@@ -704,6 +728,20 @@
             showModal(newValue) {
                 if (newValue) {
                     //this.fetchSavedOptions();
+                }
+            },
+            orderValue(newVal) {
+                if (newVal >= 1) {
+                    this.groupMultiple = false;
+
+                    // Trigger a custom DOM event
+                    this.$nextTick(() => {
+                        const checkbox = document.getElementById('group_multiple');
+                        if (checkbox) {
+                            const event = new Event('checkboxUnChecked');
+                            checkbox.dispatchEvent(event);
+                        }
+                    });
                 }
             },
             optionMenus: {
@@ -816,6 +854,15 @@
             // Ensure at least one option menu is present
             if (this.optionMenus.length === 0) {
                 this.addOptionMenu();
+            }
+
+            this.addOptionMenu();
+            const checkbox = document.getElementById('group_multiple');
+            if (checkbox) {
+                checkbox.addEventListener('checkboxUnChecked', () => {
+                    console.log('Checkbox was programmatically unchecked due to orderValue >= 1');
+                    // You can also trigger any other logic here
+                });
             }
         }
     });

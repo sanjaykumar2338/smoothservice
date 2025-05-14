@@ -292,7 +292,6 @@ class MainClientController extends Controller
             $originalService = $item->service;
             $parentService = null;
 
-            // Determine parent service if applicable
             if (!empty($originalService->parent_services)) {
                 $parentIds = array_map('trim', explode(',', $originalService->parent_services));
                 foreach ($parentIds as $pid) {
@@ -305,35 +304,56 @@ class MainClientController extends Controller
 
             $orderService = $parentService ?: $originalService;
 
-            // Prevent duplicate orders per original item (add_on_service check)
             $existingOrder = Order::where('invoice_id', $invoice->id)
                 ->where('add_on_service', $originalService->id)
                 ->first();
 
             if (!$existingOrder && $invoice->paid_at) {
                 $user = getAuthenticatedUser();
-                $order_count = $orderService->multiple_orders ?? 1;
+                $multipleOrders = (int) ($orderService->multiple_orders ?? 0);
+                $quantity = (int) ($item->quantity ?? 1);
+                $groupMultiple = (int) ($orderService->group_multiple ?? 0);
 
-                for ($i = 1; $i <= $order_count; $i++) {
-                    $order_no = "{$order_no_base}_{$globalOrderIndex}";
+                if ($multipleOrders > 0) {
+                    $order_count = $multipleOrders * $quantity;
 
-                    // Output for testing
-                    /*
-                    echo "<pre>"; print_r([
-                        'title' => $orderService->service_name,
-                        'client_id' => $invoice->client_id,
-                        'invoice_id' => $invoice->id,
-                        'user_id' => $user->id,
-                        'service_id' => $orderService->id,
-                        'add_on_service' => $originalService->id,
-                        'order_date' => now(),
-                        'note' => 'Auto-created from invoice #' . $invoice->invoice_no,
-                        'order_no' => $order_no,
-                    ]);
-                    */
+                    for ($i = 1; $i <= $order_count; $i++) {
+                        $order_no = "{$order_no_base}_{$globalOrderIndex}";
+
+                        $order = Order::create([
+                            'title' => $item->item_name ?? $orderService->service_name,
+                            'client_id' => $invoice->client_id,
+                            'invoice_id' => $invoice->id,
+                            'user_id' => $user->id,
+                            'service_id' => $orderService->id,
+                            'add_on_service' => $originalService->id,
+                            'order_date' => now(),
+                            'note' => 'Auto-created from invoice #' . $invoice->invoice_no,
+                            'order_no' => $order_no,
+                            'price' => $item->price,
+                        ]);
+
+                        History::create([
+                            'order_id' => $order->id,
+                            'user_id' => $orderService->user_id ?? $user->id,
+                            'action_type' => 'order_created',
+                            'action_details' => 'Order auto-created for service: ' . ($item->item_name ?? $orderService->service_name),
+                        ]);
+
+                        $globalOrderIndex++;
+                    }
+                } elseif ($groupMultiple === 1) {
+                    $title = $quantity . ' x ' . ($item->item_name ?? $orderService->service_name);
+
+                    // Only drop index if this is the only invoice item
+                    if ($invoice->items->count() === 1) {
+                        $order_no = $order_no_base;
+                    } else {
+                        $order_no = "{$order_no_base}_{$globalOrderIndex}";
+                    }
 
                     $order = Order::create([
-                        'title' => $orderService->service_name,
+                        'title' => $title,
                         'client_id' => $invoice->client_id,
                         'invoice_id' => $invoice->id,
                         'user_id' => $user->id,
@@ -342,25 +362,48 @@ class MainClientController extends Controller
                         'order_date' => now(),
                         'note' => 'Auto-created from invoice #' . $invoice->invoice_no,
                         'order_no' => $order_no,
+                        'price' => $item->price,
                     ]);
 
                     History::create([
                         'order_id' => $order->id,
                         'user_id' => $orderService->user_id ?? $user->id,
                         'action_type' => 'order_created',
-                        'action_details' => 'Order auto-created for service: ' . $orderService->service_name,
+                        'action_details' => 'Grouped order auto-created for service: ' . $title,
+                    ]);
+
+                    $globalOrderIndex++;
+                } else {
+                    $order_no = "{$order_no_base}_{$globalOrderIndex}";
+
+                    $order = Order::create([
+                        'title' => $item->item_name ?? $orderService->service_name,
+                        'client_id' => $invoice->client_id,
+                        'invoice_id' => $invoice->id,
+                        'user_id' => $user->id,
+                        'service_id' => $orderService->id,
+                        'add_on_service' => $originalService->id,
+                        'order_date' => now(),
+                        'note' => 'Auto-created from invoice #' . $invoice->invoice_no,
+                        'order_no' => $order_no,
+                        'price' => $item->price,
+                    ]);
+
+                    History::create([
+                        'order_id' => $order->id,
+                        'user_id' => $orderService->user_id ?? $user->id,
+                        'action_type' => 'order_created',
+                        'action_details' => 'Single order auto-created for service: ' . ($item->item_name ?? $orderService->service_name),
                     ]);
 
                     $globalOrderIndex++;
                 }
             }
 
-            // Intake form
             if ($originalService?->intake_form) {
                 $intake_forms[] = Intakeform::find($originalService->intake_form);
             }
 
-            // Service categorization
             if (!$firstServiceType && $originalService?->service_type == 'recurring') {
                 $firstServiceType = $originalService->recurring_service_currency_value_two_type ?? '';
             }
@@ -424,6 +467,7 @@ class MainClientController extends Controller
         }
 
         $invoice_items = InvoiceItem::where('invoice_id', $invoice->id)->get();
+
         return view('c_main.c_pages.c_invoice.c_show', compact(
             'invoice',
             'services',
