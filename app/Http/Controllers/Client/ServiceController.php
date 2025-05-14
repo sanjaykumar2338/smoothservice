@@ -28,7 +28,7 @@ class ServiceController extends Controller
     public function create()
     {
         $intakeforms = Intakeform::where('user_id', getUserID())->get();
-        $team_members = TeamMember::where('added_by', auth()->id())->get();
+        $team_members = TeamMember::where('added_by', getUserID())->get();
         $services = Service::orderBy('id','desc')->where('is_deleted', 0)->where('user_id',getUserID())->get();
 
         return view('client.pages.service.create')->with('team_members', $team_members)->with('intakeforms', $intakeforms)->with('services', $services);
@@ -36,7 +36,7 @@ class ServiceController extends Controller
 
     public function edit(Service $service)
     {
-        $team_members = TeamMember::where('added_by', auth()->id())->get();
+        $team_members = TeamMember::where('added_by', getUserID())->get();
         $selected_members = $service->teamMembers->pluck('id')->toArray();
         $intakeforms = Intakeform::where('user_id', getUserID())->get();
         $services = Service::orderBy('id','desc')->where('is_deleted', 0)->where('id','!=',$service->id)->where('user_id',getUserID())->get();

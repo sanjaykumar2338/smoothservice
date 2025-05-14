@@ -356,7 +356,7 @@ class MainClientController extends Controller
                         'title' => $title,
                         'client_id' => $invoice->client_id,
                         'invoice_id' => $invoice->id,
-                        'user_id' => $user->id,
+                        'user_id' => $invoice->added_by,
                         'service_id' => $orderService->id,
                         'add_on_service' => $originalService->id,
                         'order_date' => now(),
