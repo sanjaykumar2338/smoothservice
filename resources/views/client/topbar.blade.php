@@ -46,25 +46,39 @@
                       </li>
                       <li class="dropdown-notifications-list scrollable-container">
 
-                      @foreach(notifications(5) as $date => $histories)
-                        @foreach($histories as $history)
-                            @php
-                                $prefixes = [
-                                    'order_message' => 'Order message ',
-                                    'order_note' => 'Order note saved with the following data: ',
-                                    'ticket_created' => 'Ticket created with the following data: ',
-                                    'order_created' => 'Order created with the following data: ',
-                                    'order_updated' => 'Order updated with the following data: ',
-                                ];
+                              @foreach(notifications(5) as $date => $histories)
+                                @foreach($histories as $history)
+                                    @php
+                                      $prefixes = [
+                                          'order_message' => 'Order message ',
+                                          'order_note' => 'Order note saved with the following data: ',
+                                          'ticket_created' => 'Ticket created with the following data: ',
+                                          'order_created' => 'Order created with the following data: ',
+                                          'order_updated' => 'Order updated with the following data: ',
+                                      ];
 
-                                $raw = $history->action_details;
-                                $prefix = $prefixes[$history->action_type] ?? '';
-                                $json = str_replace($prefix, '', $raw);
-                                $data = json_decode($json, true);
+                                      $action = $history->action_type;
+                                      $raw = $history->action_details;
+                                      $prefix = $prefixes[$action] ?? '';
+                                      $json = str_replace($prefix, '', $raw);
+                                      $details = json_decode($json, true);
 
-                                $messageText = $data['message'] ?? ($data['note'] ?? ($data['subject'] ?? 'N/A'));
-                                $orderLink = isset($data['order_id']) ? url('/admin/order/' . $data['order_id']) : null;
-                            @endphp
+                                      $messageText = $details['message'] ?? $details['note'] ?? $details['subject'] ?? $raw;
+
+                                      $link = null;
+                                      if (in_array($action, ['order_note', 'order_created', 'order_updated'])) {
+                                          $orderId = $details['order_id'] ?? $history->order_id;
+                                          if ($orderId && \App\Models\Order::find($orderId)) {
+                                              $order = \App\Models\Order::find($orderId);
+                                              $link = route('order.show', $order->order_no);
+                                          }
+                                      } elseif ($action === 'ticket_created') {
+                                          $ticketId = $details['ticket_id'] ?? $history->ticket_id;
+                                          if ($ticketId) {
+                                              $link = route('ticket.show', $ticketId);
+                                          }
+                                      }
+                                  @endphp
 
                             <li class="list-group-item list-group-item-action dropdown-notifications-item">
                                 <div class="d-flex">
@@ -76,7 +90,7 @@
                                     <div class="flex-grow-1">
                                         <h6 class="mb-1">{{ ucwords(str_replace('_', ' ', $history->action_type)) }}</h6>
                                         <p class="mb-0">
-                                            {!! $orderLink ? 'Order Message: <a href="' . $orderLink . '">' . $messageText . '</a>' : $messageText !!}
+                                            {!! $link ? 'Order Message: <a href="' . $link . '">' . $messageText . '</a>' : $messageText !!}
                                         </p>
 
                                         <small class="text-muted">{{ \Carbon\Carbon::parse($history->created_at)->diffForHumans() }}</small>

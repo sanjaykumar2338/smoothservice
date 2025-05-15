@@ -247,6 +247,20 @@
                      {{ $order->date_due ? $order->date_due->format('M d') : 'N/A' }}
                      </span>
                   </li>
+
+                  @if($order->add_on_service)
+                     @php
+                        $addOnService = \App\Models\Service::find($order->add_on_service);
+                     @endphp
+                     @if($addOnService)
+                        <li class="d-flex align-items-center mb-3">
+                              <span class="fw-medium mx-2">Add-on</span>
+                              <span>{{ $addOnService->service_name }}</span>
+                        </li>
+                     @endif
+                  @endif
+
+
                   <li class="d-flex align-items-center mb-3">
                      <span class="fw-medium mx-2">Completed</span>
                      <span>
@@ -255,8 +269,8 @@
                   </li>
                </ul>
 
-               <small class="text-uppercase">Select Team Members</small>
-               <div>
+               <small style="display:none;" class="text-uppercase">Select Team Members</small>
+               <div style="display:none;">
                   <select
                      id="order_team_member"
                      class="selectpicker w-100"
@@ -279,6 +293,7 @@
                      @endforeach
                   </select>
                </div>
+
             </div>
          </div>
       </div>

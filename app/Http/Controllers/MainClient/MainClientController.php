@@ -324,13 +324,22 @@ class MainClientController extends Controller
                             'title' => $item->item_name ?? $orderService->service_name,
                             'client_id' => $invoice->client_id,
                             'invoice_id' => $invoice->id,
-                            'user_id' => $user->id,
+                            'user_id' => $invoice->added_by,
                             'service_id' => $orderService->id,
                             'add_on_service' => $originalService->id,
                             'order_date' => now(),
                             'note' => 'Auto-created from invoice #' . $invoice->invoice_no,
                             'order_no' => $order_no,
                             'price' => $item->price,
+                            'date_started' => now(),
+                            'date_due' => ($orderService->set_a_deadline && $orderService->set_a_deadline_duration)
+                                ? match (strtolower($orderService->set_a_deadline_duration)) {
+                                    'days' => now()->addDays((int) $orderService->set_a_deadline),
+                                    'hours' => now()->addHours((int) $orderService->set_a_deadline),
+                                    'minutes' => now()->addMinutes((int) $orderService->set_a_deadline),
+                                    default => null,
+                                }
+                                : null,
                         ]);
 
                         History::create([
@@ -363,7 +372,17 @@ class MainClientController extends Controller
                         'note' => 'Auto-created from invoice #' . $invoice->invoice_no,
                         'order_no' => $order_no,
                         'price' => $item->price,
+                        'date_started' => now(),
+                        'date_due' => ($orderService->set_a_deadline && $orderService->set_a_deadline_duration)
+                            ? match (strtolower($orderService->set_a_deadline_duration)) {
+                                'days' => now()->addDays((int) $orderService->set_a_deadline),
+                                'hours' => now()->addHours((int) $orderService->set_a_deadline),
+                                'minutes' => now()->addMinutes((int) $orderService->set_a_deadline),
+                                default => null,
+                            }
+                            : null,
                     ]);
+
 
                     History::create([
                         'order_id' => $order->id,
@@ -380,13 +399,23 @@ class MainClientController extends Controller
                         'title' => $item->item_name ?? $orderService->service_name,
                         'client_id' => $invoice->client_id,
                         'invoice_id' => $invoice->id,
-                        'user_id' => $user->id,
+                        'user_id' => $invoice->added_by,
                         'service_id' => $orderService->id,
                         'add_on_service' => $originalService->id,
                         'order_date' => now(),
                         'note' => 'Auto-created from invoice #' . $invoice->invoice_no,
                         'order_no' => $order_no,
                         'price' => $item->price,
+                        'date_started' => now(),
+                        'date_due' => ($orderService->set_a_deadline && $orderService->set_a_deadline_duration)
+                            ? match (strtolower($orderService->set_a_deadline_duration)) {
+                                'days' => now()->addDays((int) $orderService->set_a_deadline),
+                                'hours' => now()->addHours((int) $orderService->set_a_deadline),
+                                'minutes' => now()->addMinutes((int) $orderService->set_a_deadline),
+                                default => null,
+                            }
+                            : null,
+
                     ]);
 
                     History::create([
@@ -1762,5 +1791,28 @@ class MainClientController extends Controller
         }
 
         return null;
+    }
+
+    public function notifications()
+    {
+        $clientId = getUserID(); // Replace with your method to get the current client ID
+
+        $notifications = History::leftJoin('orders', 'history.order_id', '=', 'orders.id')
+            ->leftJoin('tickets', 'history.ticket_id', '=', 'tickets.id')
+            ->where(function ($query) use ($clientId) {
+                $query->where('orders.client_id', $clientId)
+                    ->orWhere('tickets.client_id', $clientId);
+            })
+            ->select('history.*') // important to avoid ambiguous columns
+            ->orderBy('history.created_at', 'desc')
+            ->paginate(10);
+
+        return view('c_main.c_pages.c_notifications', compact('notifications'));
+    }
+
+    public function destroynotification($id)
+    {
+        History::findOrFail($id)->delete();
+        return back()->with('success', 'Notification deleted successfully.');
     }
 }

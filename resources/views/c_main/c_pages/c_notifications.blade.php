@@ -1,4 +1,4 @@
-@extends('client.client_template')
+@extends('c_main.c_dashboard')
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -47,12 +47,12 @@
                             $orderId = $details['order_id'] ?? $note->order_id;
                             if ($orderId && \App\Models\Order::find($orderId)) {
                                 $order = \App\Models\Order::find($orderId);
-                                $link = route('order.show', $order->order_no);
+                                $link = route('portal.orders.show', $order->order_no);
                             }
                         } elseif ($action === 'ticket_created') {
                             $ticketId = $details['ticket_id'] ?? $note->ticket_id;
                             if ($ticketId) {
-                                $link = route('ticket.show', $ticketId);
+                                $link = route('portal.tickets.show', $ticketId);
                             }
                         }
                     @endphp
@@ -69,7 +69,7 @@
                         </td>
                         <td>{{ $note->created_at->diffForHumans() }}</td>
                         <td>
-                            <form action="{{ route('notifications.destroy', $note->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this notification?')">
+                            <form action="{{ route('portal.notifications.destroy', $note->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this notification?')">
                                 @csrf
                                 @method('DELETE')
                                 <button class="btn btn-sm btn-danger">X</button>

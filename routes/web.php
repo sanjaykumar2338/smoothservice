@@ -115,6 +115,9 @@ Route::get('/create-admin-user', function () {
 
 Route::prefix('portal')->middleware([ClientMiddleware::class, DynamicSessionDomain::class])->group(function () {
     Route::get('dashboard', [MainClientController::class, 'dashboard'])->name('portal.dashboard');
+    Route::get('/notifications/list', [MainClientController::class, 'notifications'])->name('portal.notifications.list');
+    Route::delete('/notifications/{id}', [MainClientController::class, 'destroynotification'])->name('portal.notifications.destroy');
+
     Route::get('orders', [MainClientController::class, 'orders'])->name('portal.orders');
     Route::get('/order/landingpage/intakeform/{id}/{invoice}/{order}', [MainClientController::class, 'intakeform'])->name('portal.orders.intakeform');
     Route::post('/order/storeIntakeForm', [MainClientController::class, 'storeIntakeForm'])->name('portal.orders.storeIntakeForm');

@@ -174,6 +174,33 @@ if (!function_exists('notifications')) {
     }
 }
 
+if (!function_exists('clientnotifications')) {
+    function clientnotifications($limit = null) {
+        $client_id = getUserID(); // assumes helper function for logged-in client ID
+
+        $query = \App\Models\History::query()
+            ->leftJoin('orders', 'history.order_id', '=', 'orders.id')
+            ->leftJoin('tickets', 'history.ticket_id', '=', 'tickets.id')
+            ->where(function ($q) use ($client_id) {
+                $q->where('orders.client_id', $client_id)
+                  ->orWhere('tickets.client_id', $client_id);
+            })
+            ->select('history.*')
+            ->orderBy('history.created_at', 'desc');
+
+        if ($limit !== null) {
+            $query->limit($limit);
+            $history = $query->get();
+        } else {
+            $history = $query->paginate(20);
+        }
+
+        return $history->groupBy(function ($item) {
+            return \Carbon\Carbon::parse($item->created_at)->format('Y-m-d');
+        });
+    }
+}
+
 if (!function_exists('servicesSummary')) {
     function servicesSummary(Request $request){
         $summary = [
